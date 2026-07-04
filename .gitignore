@@ -1,0 +1,14 @@
+# Ignore workspace artifacts (FS inputs + all agent-generated outputs)
+artifacts/
+
+# Ignore scratchpad/temporary files
+scratch/
+
+.venv_markitdown/
+
+# Claude Code local-only settings (personal overrides, not shared with the team)
+.claude/settings.local.json
+
+# Python bytecode cache
+__pycache__/
+*.pyc
