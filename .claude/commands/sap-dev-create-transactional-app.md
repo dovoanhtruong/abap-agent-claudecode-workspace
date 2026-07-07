@@ -1,0 +1,89 @@
+---
+description: Sử dụng workflow này khi người dùng yêu cầu tạo mới một Chức năng (Transactional App) hoàn chỉnh từ đầu trên ABAP RAP Model — bắt đầu từ thiết kế & tạo DDIC Foundation (Domain/Data Element/Table/Draft Table/Number Range/Message Class), rồi tới toàn bộ cây RAP (Interface View → DCL → Behavior Definition → Supporting Class → Behavior Pool → Projection View/Metadata Extension → Projection Behavior → Service Definition/Binding) — đọc Technical Specification (TS) do `/sap-dev-fs-analytic` sinh ra và triển khai đúng theo Coding Implementation Plan trong TS, không tự thiết kế hay tự tìm kiếm thêm thông tin ngoài TS.
+argument-hint: <package> <transport-request> <ts-file-path>
+---
+
+> **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`). Where a step needs an MCP tool not yet loaded (e.g. an ADT/system-connection tool), use `ToolSearch` first (see `sap-dev-rule.md` §9).
+>
+> **Relationship to `/sap-dev-create-report`:** same 4-phase design and per-step GENERATE→VALIDATE→DEPLOY&ACTIVATE loop, reused wholesale. The difference is scope: `/sap-dev-create-report` starts from an already-released standard CDS view and stays read-mostly; this workflow starts from **zero** — it designs and creates the Z custom table(s) themselves (DDIC Foundation), then builds the full RAP composition tree (root + children) with behaviors, actions, and implementing classes on top. Use this workflow when TS §3 defines brand-new Z-tables; use `/sap-dev-create-report` when TS §3 only lists existing released CDS views.
+
+[ROLE & OBJECTIVE]
+Act as an Expert SAP ABAP Cloud Developer with SYSTEM EXECUTION PRIVILEGES. CREATE, VALIDATE, and ACTIVATE the complete ABAP RAP Model artifacts described in the TS's Coding Implementation Plan (§9) — starting from DDIC Foundation objects through the full RAP composition tree to the OData service binding. Use your equipped abap-skills (RAP, CDS View Entities, Clean ABAP, ABAP Cloud, Naming Conventions, Authorization & IAM, OO Design Patterns, ABAP SQL & AMDP, Modern ABAP Syntax, ABAP Unit Testing) to guarantee ABAP Cloud syntax, Clean Core, and strict(2) compliance.
+
+[INPUT DATA]
+Package Name: [Điền tên Package]
+Transport Request: [Điền TR, hoặc "Local Object"]
+Technical Specification: [Đường dẫn tới TS_[AppName].md sinh ra bởi /sap-dev-fs-analytic]
+Additional Requirements: [Các yêu cầu thêm]
+Arguments: $ARGUMENTS
+
+[GOVERNING RULES]
+This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: NO OBJECT CREATION WITHOUT TS COVERAGE — if the TS's Coding Implementation Plan doesn't cover something you need, STOP, do not invent it; **global name check before creating is non-negotiable here** (`sap-dev-rule.md` §2) — this workflow mints far more brand-new Z-names (tables, domains, data elements, number ranges, message class, authorization object) than create-report ever does; "Activated" ≠ "correct" — Phase 2 verifies correctness separately; Validation Log / Activation Status updates use [Skill: Caveman]; never re-print the full TS, quote only the row/section needed for the current step.
+
+**TS-specified names always win.** [Skill: Naming Conventions] only fills in a name the TS leaves unspecified — if TS §9 already fixes an object's name (even one that diverges from the skill's default prefixes, e.g. a project using `ZTB_*`/`ZTB_*_D` for tables instead of the skill's default `ZA_/ZD_`), build it exactly as named. Do not "correct" a TS-confirmed name to match the skill's suggestion.
+
+[EXECUTION PROTOCOL — 4 PHASES]
+
+## Phase 0 — Input Validation Gate
+
+0.0 VALIDATE INPUT, in order:
+- The TS file exists and contains all 11 sections of the template, especially §9 Coding Implementation Plan with at least one row.
+- TS §3 defines at least one brand-new Z-table (fields/types/keys) and TS §9 has at least one DDIC-category row (Domain/Data Element/Structure/Number Range/Message Class/Table). If §3 contains ONLY existing released CDS views with no new table — **wrong workflow**: STOP and tell the user this TS looks like a read/report scenario, better suited to `/sap-dev-create-report`.
+- Transport Request is a valid TR number or explicitly "Local Object". If TS §2/§11 marks the TR as "TBD", ask the user to confirm/create the TR now — do not create any object without a bound TR (`sap-dev-rule.md` §4).
+- Package exists / is a valid target.
+- Every EXTERNAL reference source used for associations/value-help (TS §3.2, e.g. standard CDS like `I_PRODUCT`) is marked released/verified — never for the base entity itself, since that is the new custom table.
+- **Global name check**: for every object name proposed in TS §9, verify it does not already exist in the target system. Any collision → STOP and ask the user for an alternative name (`sap-dev-rule.md` §2) before Phase 1 starts.
+
+If ANY check fails → 0.1. If all pass → 0.2.
+
+0.1 GRILL-ME ON GAPS: Use [Skill: Grill Me] (max 1-3 targeted questions) to collect exactly the missing information from 0.0. Do not proceed until 0.0 fully passes. If the gap is in the TS content itself (not just Package/TR/naming collisions), tell the user to re-run/patch `/sap-dev-fs-analytic` instead of improvising here.
+
+0.2 TASK LEDGER: Use [Skill: Scratchpad] (Ledger Format) to create `artifacts/scratchpads/scratchpad_[AppName].md`, one row per object from TS §9. Order rows by TS §9's own sequence, **except**: resequence any Supporting Class/Interface ahead of the Behavior Pool row(s) that call it — this is dependency sequencing (an object still listed in TS §9), not invention, and prevents an activation failure from a forward reference to a not-yet-existing class. Status TODO/DOING/DONE/FAILED. This ledger is the single source of truth for build progress — if the session is interrupted or context is compacted, re-read the ledger instead of re-deriving progress from memory.
+
+0.3 TR BINDING: Extract the TR from [INPUT DATA] (or the one confirmed in 0.0). Every tool call that creates or edits an SAP object must explicitly pass the transport/correction-number parameter matching this TR, to prevent an unwanted auto-generated TR. Verify the exact parameter name/tool signature available in your environment before first use (`sap-dev-rule.md` §9) — if the tool isn't loaded yet, use `ToolSearch` to find it; do not assume a hardcoded tool name.
+
+## Phase 1 — Sequential RAP Build (per the ledger's dependency-resolved order from 0.2)
+
+For each ledger row, execute the matching step below in order. **Never build an object or logic absent from TS §9** — if something is missing, STOP and escalate via 0.1.
+
+Per step: GENERATE (draft per the row's spec) → check the name against [Skill: Naming Conventions] (unless already fixed by TS, see above) → VALIDATE (Lint via [Skill: ABAP Lint & Review] or [Skill: Clean ABAP] where the object type is lintable ABAP/CDS/BDL source; **N/A for pure DDIC metadata objects** — domain/data element/structure/table have no abaplint target, skip straight to activation) → DEPLOY & ACTIVATE → update the ledger row. On activation ERROR: read the exact system error (never guess), consult [Skill: ABAP Cloud / Clean Core], auto-correct and retry; on a chain of errors use [Skill: Handoff] to pause and ask the user. On WARNING: resolve if it violates strict(2), otherwise report as unavoidable.
+
+**Step 0 — DDIC Foundation:** [Skill: RAP] (Data Modeling layer) + [Skill: Naming Conventions]. Build in dependency order: Domain(s) → Data Element(s) → Structure(s) (e.g. action-parameter or mapper-output structures) → Number Range Object (only if TS §5 numbering is Number-Range-based rather than BDEF-managed numbering) → Message Class (with the exact messages TS §5/§10 requires) → Database Table, **Persist** (root + every composition child, keys/foreign-keys per TS §3.1) → Database Table, **Draft** (mirrored structure + the RAP draft-admin include per [Skill: RAP]'s Draft Handling reference). Execute: Naming Check → Push → Activate.
+
+**Step 1 — Interface View (Data Modeling):** [Skill: CDS View Entities] + [Skill: Find Released CDS View] (for external lookup associations only, per TS §3.2). Build the Interface View for the root (`DEFINE ROOT VIEW ENTITY`) and for every composition child, on top of the Step-0 tables, with `@AccessControl.authorizationCheck: #CHECK` and associations to released Standard CDS for value help/lookups. Execute: Lint → Push → Activate. If TS §9 specifies a Custom Entity (`CE_` prefix) instead, use [Skill: RAP Query Provider] here and in Step 3.
+
+**Step 2 — Access Control (DCL) & Authorization Object:** [Skill: Authorization & IAM]. Create `DEFINE ROLE` with `pfcg_auth` per TS §10 for every node in the tree. If TS §9/§10 also specifies a custom classic Authorization Object (e.g. `Z_*_AUT`, for per-action `AUTHORITY-CHECK` beyond DCL), create it here if your tooling supports direct creation; otherwise generate the exact field/`ACTVT`-value spec and record it as a manual ADT step in the Phase 3 walkthrough (same treatment as Step 5's Metadata Extension). Execute: Lint → Push → Activate (DCL); Push → Activate or manual note (Authorization Object).
+
+**Step 3 — Behavior Definition (Base) — full composition tree:** [Skill: RAP]. Root + every child node, draft handling if TS specifies, numbering strategy (managed/early/late per TS §5.2), actions/validations/determinations across the WHOLE tree per TS §5/§7 — not just the root. Execute: Lint → Push → Activate.
+
+**Step 3.5 — Supporting Classes & Interfaces (build BEFORE Step 4):** [Skill: RAP] + [Skill: ABAP SQL & AMDP] + [Skill: Modern ABAP Syntax] + [Skill: Released ABAP Classes] + [Skill: OO Design Patterns] (only invoke this last one when the TS's own complexity genuinely warrants a pattern — e.g. a multi-state status machine or strategy-based mapping already described in TS §5 — never force a pattern the TS doesn't call for). Implement every helper/mapper/utility class + interface that Step 4's behavior pool methods will call, exactly as scoped in TS §9/§5 — no logic beyond what TS documents. These must exist and be activated before Step 4, because the behavior pool's method bodies reference them directly. Execute: Lint → Push → Activate.
+
+**Step 4 — Behavior Pool Class (root + child local handler classes):** [Skill: RAP] + [Skill: ABAP SQL & AMDP] + [Skill: Modern ABAP Syntax]. Implement exactly the logic documented in TS §5/§7 across the whole tree, calling the Step 3.5 supporting classes where TS specifies — no additional logic beyond it. If TS §7 specifies a business event to raise on an action/determination, use [Skill: RAP Business Events] to define and raise it here. Execute: Lint → Push → Activate.
+
+**Step 4.5 — Side-task (optional, non-blocking):** [Skill: ABAP Unit Testing] — generate a test class skeleton for the Step 3.5 and Step 4 classes. In Claude Code, dispatch this via the Agent tool as a background/parallel task if the codebase warrants it; otherwise run inline right after Step 4 without blocking Step 5.
+
+**Step 5 — Projection View & Metadata Extension:** [Skill: CDS View Entities]. Create the projection (`AS PROJECTION ON`) for root + every child with `@Search`, `@EndUserText`, `@Metadata.allowExtensions: true`. Do NOT put `@UI` annotations in the projection — generate the full Metadata Extension source and save it to `artifacts/metadata_extensions/ZMD_[AppName].md`; tell the user to create the DDLX object manually in Eclipse ADT (the automated tool cannot create DDLX objects directly). If TS documents a Plan A/Plan B fallback for a specific annotation/technique (e.g. a calculated-element facet-hiding trick with a field-level fallback), try Plan A first and switch to the TS-documented Plan B automatically on activation error — never invent a fallback TS doesn't already describe. Execute: Lint → Push → Activate (Projection View only).
+
+**Step 6 — Projection Behavior (root + children):** [Skill: RAP]. Skip if no Base BDEF. Execute: Lint → Push → Activate.
+
+**Step 7 — Service Definition & Binding:** [Skill: OData Service Development]. Create Service Definition exposing root + every composition child, then Service Binding (OData V4 UI, per TS unless stated otherwise). Execute: Lint → Push → Activate.
+
+**Step 8 — Fiori App Configuration (optional, non-ABAP, manual):** only if TS §9 lists an App Descriptor / `manifest.json` config row (e.g. frozen/pinned table columns, table settings). This is frontend UI5 configuration outside RAP backend/ADT object activation — generate the exact `manifest.json` snippet and record it as a manual follow-up in the Phase 3 walkthrough (do not invent a new `artifacts/` subfolder; fold it into the walkthrough exactly like Step 5's Metadata Extension manual-step note, per `sap-dev-rule.md` §4's fixed folder list).
+
+## Phase 2 — Manual Runtime Verify Loop (max 3 iterations)
+
+2.0 Once all Phase-1 objects are activated, derive 2-3 representative test scenarios spanning the FULL transactional lifecycle from TS §5/§7 — e.g. Create with auto-derived/determined fields, a Save-triggered status transition, at least one custom action, and (if TS §5.2 documents batch-safe numbering) a multi-row-in-one-request scenario — plus the exact expected outcome for each per TS. **No automated data-preview tool is assumed available** — ask the user to run the OData service (Fiori Preview / Postman / SEGW test) with these scenarios and paste back the actual result.
+
+2.1 Evidence floor (`sap-dev-rule.md` §11): a bare "looks fine" is not a PASS. If the user's reply has no concrete data, ask again for the actual field values/payload before recording a result. Log each attempt in the Scratchpad ledger's Verify Attempts table.
+
+2.2 Compare the pasted actual result against the TS-documented logic field by field, especially the Status Machine and any Determination/Validation entries from TS §5. PASS → Phase 3. MISMATCH → root-cause it (trace the actual-vs-expected diff to the specific object/field responsible — do not guess), fix, redeploy the affected object(s), and ask the user to re-test. After 3 mismatch iterations, STOP — write up the concrete unresolved discrepancy and ask the user rather than attempting a 4th blind fix (`sap-dev-rule.md` §7). If the user insists on accepting an unverified result, record it as "PASS — unverified, user-accepted", never as a plain PASS.
+
+## Phase 3 — Walkthrough & Risk Report
+
+3.0 Save `artifacts/walkthroughs/walkthrough_[AppName].md`: what was built (full object list from the ledger, including DDIC Foundation, all DONE), what was verified and how (cite the actual scenario inputs and results from Phase 2 — never "should work"), and any known risks/manual steps outstanding — e.g. "Metadata Extension pending manual creation in ADT" (Step 5), "Authorization Object / Business Catalog pending manual PFCG assignment" (Step 2, if applicable), "manifest.json frozen-column config pending manual App Descriptor edit" (Step 8, if applicable). If a UI Service Binding (Step 7) was created, optionally use [Skill: SAP Fiori Apps Reference] to generate the Fiori Launchpad URL from its Semantic Object/Action and include it in the walkthrough.
+
+[OUTPUT FORMAT]
+For each Phase-1 step, report in the chat using [Skill: Caveman] style for the narration only (short, evidence-based, no filler) — the source code and log content below stay verbatim, never compressed (`sap-dev-rule.md` §10):
+- The Object Name & Applied Skill (e.g., `ZTB_MYAPP_H` — [Skill: RAP] Data Modeling, or `ZC_MYAPP_H` — [Skill: CDS View Entities]).
+- The exact validated ABAP/CDS/DDIC source code (markdown, verbatim).
+- SYSTEM EXECUTION RESULT: Validation Log (abaplint/Clean ABAP, or "N/A — DDIC metadata" for Step 0 objects), Activation Status (Activated/Failed/Activated with Warnings), Auto-Correction Log if any — verbatim.

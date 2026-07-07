@@ -29,8 +29,10 @@ abap-agent-claudecode-workspace/
 │   │   │   oo-design-patterns/ , rap/ , cds-view-entities/ , odata/ , authorization-iam/ , ...  # Developer (ABAP Cloud)
 │   │   └── grill-me/ , caveman/ , handoff/ , scratchpad/ , document-markdown-converter/         # Productivity
 │   └── commands/                   # ⚙️ Workflows as slash commands
-│       ├── sap-dev-fs-analytic.md      # /sap-dev-fs-analytic — FS → Technical Spec
-│       ├── sap-dev-create-report.md    # /sap-dev-create-report — TS → ABAP RAP source
+│       ├── sap-dev-fs-analytic.md      # /sap-dev-fs-analytic — FS → Technical Spec (data on existing released CDS)
+│       ├── sap-dev-create-report.md    # /sap-dev-create-report — TS → ABAP RAP source (read-mostly, on released CDS)
+│       ├── sap-dev-fs-analytic-transactional-app.md  # /sap-dev-fs-analytic-transactional-app — FS → Technical Spec (new Z-table from scratch)
+│       ├── sap-dev-create-transactional-app.md       # /sap-dev-create-transactional-app — TS → DDIC + full RAP tree from scratch
 │       ├── sap-dev-bug-fix.md          # /sap-dev-bug-fix — root-cause + regression-safe fix
 │       ├── sap-dev-api-inbound.md      # /sap-dev-api-inbound — Z_API_FWK inbound handler
 │       ├── sap-dev-api-outbound.md     # /sap-dev-api-outbound — Z_API_FWK outbound call
@@ -66,8 +68,10 @@ Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `des
 
 ### 3. Workflows as Slash Commands (`.claude/commands/`)
 Same commands, same names, same governance as the Antigravity version:
-* `/sap-dev-fs-analytic`: Analyzes Word/PDF/Excel FS files → Technical Specification (Data Model, Fiori Elements layout, business logic, Clean Core compliance).
-* `/sap-dev-create-report`: Takes a Technical Spec → generates CDS View Entities, DCL, RAP Behavior Pools, OData Service, with automated testing and a runtime verify loop.
+* `/sap-dev-fs-analytic`: Analyzes Word/PDF/Excel FS files → Technical Specification (Data Model, Fiori Elements layout, business logic, Clean Core compliance). Assumes the FS's data already lives in an existing released CDS view.
+* `/sap-dev-create-report`: Takes a Technical Spec → generates CDS View Entities, DCL, RAP Behavior Pools, OData Service, with automated testing and a runtime verify loop. Assumes the data already exists in a released standard CDS view.
+* `/sap-dev-fs-analytic-transactional-app`: Same 6-phase design as `/sap-dev-fs-analytic`, but for an FS describing a brand-new Chức năng (Transactional App) with no existing table/view — its Data Model phase *designs* the new Z-table structure (fields/types/keys, status machine, numbering strategy) instead of just looking one up, and its Coding Implementation Plan always includes a DDIC Foundation step group.
+* `/sap-dev-create-transactional-app`: Same 4-phase design as `/sap-dev-create-report`, but for a brand-new Chức năng (Transactional App) built from zero — designs & creates the DDIC Foundation (Domain, Data Element, Z-Table + Draft Table, Number Range, Message Class) first, then the full RAP composition tree (root + children) with actions/validations/determinations, supporting classes, and the OData service binding.
 * `/sap-dev-bug-fix`: Root-causes a reported bug against user-provided mock data, gets explicit approval on a Cross-Impact Report before touching anything, fixes with a mandatory ABAP Unit Test as regression proof.
 * `/sap-dev-api-inbound`: Builds an inbound API handler on the `Z_API_FWK` architecture.
 * `/sap-dev-api-outbound`: Builds an outbound call via `Z_API_FWK`'s `execute_api`.
@@ -82,10 +86,11 @@ Same commands, same names, same governance as the Antigravity version:
 Place the Functional Specification (FS) document into `artifacts/fs_docs/` (e.g. a `.docx` or plain text file).
 
 ### Step 2: Trigger the FS Analysis Process
-`/sap-dev-fs-analytic artifacts/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT`
+- Data already exists in a released CDS view (report/screen): `/sap-dev-fs-analytic artifacts/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT`
+- Brand-new business object, no existing table/view (transactional app): `/sap-dev-fs-analytic-transactional-app artifacts/fs_docs/SAPER_2025_ZBOM_FS.docx ZPRODX_ZBOM`
 
 ### Step 3: Evaluate Technical Spec & Generate Code
-Review the generated `artifacts/technical_specifications/TS_*.md`, then run `/sap-dev-create-report` with the Package, Transport Request, and TS path.
+Review the generated `artifacts/technical_specifications/TS_*.md`, then run the matching build workflow with the Package, Transport Request, and TS path: `/sap-dev-create-report` (TS §3 lists only existing released CDS views) or `/sap-dev-create-transactional-app` (TS §3 defines brand-new Z-tables — TS §2 states `Target Build Workflow: /sap-dev-create-transactional-app`).
 
 ---
 
