@@ -18,10 +18,10 @@ Act as an Expert SAP Integration Architect & ABAP Cloud Developer. Design, imple
 - Arguments: $ARGUMENTS
 
 [GOVERNING RULES]
-This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: activation success is not completion evidence — Phase 3 below verifies with a real inbound call; progress/log output uses [Skill: Caveman].
+This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: activation success is not completion evidence — Phase 3 below verifies with a real inbound call, and [Skill: Activation Guard] verifies activation itself is genuinely clean and hasn't broken anything downstream before that; progress/log output uses [Skill: Caveman].
 
 [EXECUTION PROTOCOL — CRITICAL]
-After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> DEPLOY & ACTIVATE. All errors MUST be caught using `CX_ROOT` or `ZCX_API_FWK` and returned explicitly.
+After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> DEPLOY & ACTIVATE -> [Skill: Activation Guard] (all 3 gates must pass before the step counts as done). All errors MUST be caught using `CX_ROOT` or `ZCX_API_FWK` and returned explicitly.
 
 ## Phase 0 — Input Validation Gate
 
@@ -29,13 +29,13 @@ After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> 
 
 0.1 GRILL-ME ON GAPS: [Skill: Grill Me] (max 1-3 targeted questions) to fill exactly the gaps found in 0.0.
 
-0.2 PLANNING & DRAFTING: [Skill: Scratchpad] + [Skill: Integration & API Analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; if custom is required, draft the architecture, map the JSON/XML payload to ABAP Dictionary structures, define HTTP/error-handling logic. Save to `artifacts/scratchpads/scratchpad_inbound_[API_Name].md` (this doubles as the build ledger — TODO/DOING/DONE/FAILED per step).
+0.2 PLANNING & DRAFTING: [Skill: Scratchpad] + [Skill: Integration & API Analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; if custom is required, draft the architecture, map the JSON/XML payload to ABAP Dictionary structures, define HTTP/error-handling logic. Save to `artifacts/scratchpads/scratchpad_inbound_[API_Name].md` (this doubles as the build ledger — TODO/DOING/DONE/FAILED/REGRESSED per step).
 
 ## Phase 1 — Build
 
-Step 1 — Data Dictionary Objects: [Skill: ABAP Cloud / Clean Core] + [Skill: Naming Conventions]. Create DDLS/TABL/TTYP for Request/Response payloads. Execute: Lint → Push → Activate.
+Step 1 — Data Dictionary Objects: [Skill: ABAP Cloud / Clean Core] + [Skill: Naming Conventions]. Create DDLS/TABL/TTYP for Request/Response payloads. Execute: Lint → Push → Activate → [Skill: Activation Guard].
 
-Step 2 — Handler Class: [Skill: Clean ABAP], [Skill: Released ABAP Classes], [Skill: Modern ABAP Syntax], [Skill: OO Design Patterns], [Skill: Naming Conventions]. Create a global class (e.g. `ZCL_IB_[API_NAME]`) implementing `ZIF_API_INBOUND_HANDLER`. Apply OO patterns (e.g. Strategy) for multiple payload types. Implement `handle_request`: parse payload (e.g. `xco_cp_json` or `zcl_api_fwk=>json_to_abap`), execute core business logic (EML), catch all exceptions (`cx_static_check`, `cx_root`) and return explicit HTTP status/error messages. Execute: Lint → Push → Activate.
+Step 2 — Handler Class: [Skill: Clean ABAP], [Skill: Released ABAP Classes], [Skill: Modern ABAP Syntax], [Skill: OO Design Patterns], [Skill: Naming Conventions]. Create a global class (e.g. `ZCL_IB_[API_NAME]`) implementing `ZIF_API_INBOUND_HANDLER`. Apply OO patterns (e.g. Strategy) for multiple payload types. Implement `handle_request`: parse payload (e.g. `xco_cp_json` or `zcl_api_fwk=>json_to_abap`), execute core business logic (EML), catch all exceptions (`cx_static_check`, `cx_root`) and return explicit HTTP status/error messages. Execute: Lint → Push → Activate → [Skill: Activation Guard] (Gate 3 re-checks Step 1's DDIC objects are still clean under this class's usage).
 
 Step 3 — Framework Configuration: instruct the user to configure the API via Fiori App `ZUI_API_CONFIG_O4`, mapping the API ID to the new Handler Class.
 
@@ -56,4 +56,4 @@ Step 3 — Framework Configuration: instruct the user to configure the API via F
 Save `artifacts/walkthroughs/walkthrough_inbound_[API_Name].md`: objects built, unit test results, the actual Phase 3 call evidence (payload + response — never "should work"), and any outstanding risks.
 
 [OUTPUT FORMAT]
-Per step, narrate in [Skill: Caveman] style (short, evidence-based); the source code and results below stay verbatim, never compressed (`sap-dev-rule.md` §10): Object Name & Applied Skill (e.g., `ZCL_IB_CREATE_SO` — [Skill: Clean ABAP]); the validated ABAP source code (markdown, verbatim); SYSTEM EXECUTION RESULT (Validation Log, Activation Status).
+Per step, narrate in [Skill: Caveman] style (short, evidence-based); the source code and results below stay verbatim, never compressed (`sap-dev-rule.md` §10): Object Name & Applied Skill (e.g., `ZCL_IB_CREATE_SO` — [Skill: Clean ABAP]); the validated ABAP source code (markdown, verbatim); SYSTEM EXECUTION RESULT (Validation Log, Activation Status, [Skill: Activation Guard] gate results).

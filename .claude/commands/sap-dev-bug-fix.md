@@ -11,7 +11,7 @@ argument-hint: <object-name> <observed-vs-expected-behavior>
 ## Context & Core Constraints
 - **No Live Business Data:** The Agent is connected to the DEV environment only. Testing and bug verification must rely on source code logic analysis or **Mock Data / Sample Data** provided manually by the User.
 - **Cross-Impact Analysis (Mandatory):** Any logic/condition change must be evaluated for regression risks affecting other objects or business flows that reuse this component. If a risk is detected, the Agent **MUST report and request User approval** before making any code changes.
-- **Governing Rules:** Operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10) — in particular, a root-caused fix is not a verified fix until Phase 4's unit test evidence exists; progress updates use `[Skill: Caveman]`.
+- **Governing Rules:** Operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10) — in particular, a root-caused fix is not a verified fix until Phase 4's unit test evidence exists, and it is not a *safe* fix until `[Skill: Activation Guard]` confirms the edited object activated clean AND nothing that depends on it broke as a side effect; progress updates use `[Skill: Caveman]`.
 
 Arguments: $ARGUMENTS
 
@@ -46,9 +46,11 @@ Arguments: $ARGUMENTS
 5. **Load `ABAP Unit Testing`**:
    - Create or update the Local Test Class (`cl_abap_unit_assert`) using Test Doubles and the Mock Data provided by the User.
    - **Note:** Creating an ABAP Unit Test using Mock Data is mandatory to compensate for the lack of real data in DEV and to prevent future regressions.
-6. **Boundary & Activation Check**:
-   - Ensure NO Standard Objects were modified. Provide a clear list of the specific Objects the User needs to Activate in the system.
+6. **Boundary, Activation & Ripple Check — `[Skill: Activation Guard]`**:
+   - Ensure NO Standard Objects were modified (Z/Y custom only).
+   - Deploy and activate the edited object(s) yourself using your system-execution tool — do not just hand the user a to-do list. Run all 3 `[Skill: Activation Guard]` gates: full activation log (no unresolved Error, every Warning explicitly assessed against strict(2)/Clean Core, never dismissed just because activation returned "success"), confirmed active state (not sitting inactive server-side), and — the gate that matters most for a fix touching an object other things already depend on — the ripple/cross-impact check against every consumer identified in the Phase 3 Cross-Impact Report. Re-verify each of those consumers is still active with no new error, not just the object you directly edited.
+   - Only after all 3 gates pass on the edited object AND every impacted consumer, report the final object list with confirmed Activation Status per object (never "should be fine, please activate").
 
 ## Output Format
 
-Report chat progress in `[Skill: Caveman]` style (short, evidence-based) — narration only. Save a Fix Report to `artifacts/walkthroughs/walkthrough_bugfix_[ObjectName].md` in full detail, NOT caveman-compressed (`sap-dev-rule.md` §10): the root cause, the approved fix applied, the ABAP Unit Test evidence (not "should work"), the Cross-Impact Report, and the exact list of objects to activate.
+Report chat progress in `[Skill: Caveman]` style (short, evidence-based) — narration only. Save a Fix Report to `artifacts/walkthroughs/walkthrough_bugfix_[ObjectName].md` in full detail, NOT caveman-compressed (`sap-dev-rule.md` §10): the root cause, the approved fix applied, the ABAP Unit Test evidence (not "should work"), the Cross-Impact Report, the `[Skill: Activation Guard]` gate results for the edited object and every re-checked consumer, and the exact list of objects with their confirmed Activation Status.

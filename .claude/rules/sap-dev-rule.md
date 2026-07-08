@@ -14,15 +14,18 @@
 - All outputs under `artifacts/` (never `.claude/` or root): FS inputs → `fs_docs/` · TS → `technical_specifications/` · Scratchpads → `scratchpads/` · Walkthroughs → `walkthroughs/` · Metadata Ext → `metadata_extensions/` · System Analysis → `system_analysis/`.
 **5. VALIDATION & ERRORS:**
 - Trigger activation; on failure extract the exact SAP error, don't guess the cause.
-- Post-CUD final check: no mutation outside scope, no syntax errors, activated, isolated.
+- Post-CUD final check: no mutation outside scope, no syntax errors, activated, isolated — run `[Skill: Activation Guard]`'s 3 gates (full activation log incl. warnings, confirmed active state, ripple/cross-impact check on dependents) after every single object create/edit/delete, not just at the end of a workflow. This is what "isolated" means in practice: an object breaking something it's connected to is a failure of this check, even if the object itself activated with no error.
 **6. IRON LAWS (NO EXCEPTIONS):**
 - No TS handoff without a passed Verify Loop (or a FAIL the user explicitly accepted in writing).
 - No object/logic creation absent from the TS's Coding Implementation Plan — missing info means STOP, don't improvise; go back to the user or `/sap-dev-fs-analytic`.
 - No activation-only claims — see §8 (Activated ≠ Correct).
+- No object marked DONE in a build ledger without passing all 3 `[Skill: Activation Guard]` gates — a warning waved through without assessment, or a downstream object silently broken by this change, is not a completed step.
 **7. RED FLAGS — STOP if you catch yourself thinking:**
 - "Simple FS, skip a step" → still run every step, just faster.
 - "Missing a field, I'll infer it while coding" → patch the TS first, don't improvise.
 - "It activated, so it's probably correct" → unverified until the Verify step actually runs.
+- "Just a warning, moving on" → run `[Skill: Activation Guard]` Gate 1's assessment first; a warning waved through unassessed is exactly how a later object inherits a silent defect.
+- "That object's not mine, no need to recheck it" → if it's downstream of what you just changed, `[Skill: Activation Guard]` Gate 3 re-checks it anyway — that's the whole point.
 - "One more fix" after ≥3 attempts → stop, it's an architecture/TS problem — ask the user.
 **8. REPORTING LANGUAGE:** Never say "should work / probably fine / likely correct." Every "Activated/Passed/Correct" claim needs cited evidence (command run, output observed) — Activated ≠ Correct, state both separately.
 **9. MCP TOOL USAGE:** Skills dispatch whatever MCP server/tool their function needs. Verify a tool actually exists before its first use in a session — never assume another skill's tool name/syntax applies here. In Claude Code specifically, a not-yet-loaded MCP tool appears as a deferred stub — use the `ToolSearch` tool with a relevant query to find and load its schema before calling it.

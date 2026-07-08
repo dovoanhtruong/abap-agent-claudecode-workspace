@@ -18,10 +18,10 @@ Act as an Expert SAP Integration Architect & ABAP Cloud Developer. Design, imple
 - Arguments: $ARGUMENTS
 
 [GOVERNING RULES]
-This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: activation success is not completion evidence — Phase 2 below verifies with a real outbound call; progress/log output uses [Skill: Caveman].
+This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: activation success is not completion evidence — Phase 2 below verifies with a real outbound call, and [Skill: Activation Guard] verifies activation itself is genuinely clean and hasn't broken anything downstream before that; progress/log output uses [Skill: Caveman].
 
 [EXECUTION PROTOCOL — CRITICAL]
-After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> DEPLOY & ACTIVATE. All outbound calls MUST go through `ZCL_API_FWK=>execute_api`.
+After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> DEPLOY & ACTIVATE -> [Skill: Activation Guard] (all 3 gates must pass before the step counts as done). All outbound calls MUST go through `ZCL_API_FWK=>execute_api`.
 
 ## Phase 0 — Input Validation Gate
 
@@ -29,13 +29,13 @@ After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> 
 
 0.1 GRILL-ME ON GAPS: [Skill: Grill Me] (max 1-3 targeted questions).
 
-0.2 PLANNING & DRAFTING: [Skill: Scratchpad] + [Skill: Integration & API Analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; analyze trigger points, data extraction logic, payload structure, response handling. Save to `artifacts/scratchpads/scratchpad_outbound_[API_Name].md` (doubles as the build ledger).
+0.2 PLANNING & DRAFTING: [Skill: Scratchpad] + [Skill: Integration & API Analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; analyze trigger points, data extraction logic, payload structure, response handling. Save to `artifacts/scratchpads/scratchpad_outbound_[API_Name].md` (doubles as the build ledger — TODO/DOING/DONE/FAILED/REGRESSED per step).
 
 ## Phase 1 — Build
 
-Step 1 — Data Dictionary Objects: [Skill: ABAP Cloud / Clean Core] + [Skill: Naming Conventions]. Create DDLS/TABL/TTYP representing the Request payload and expected Response. Execute: Lint → Push → Activate.
+Step 1 — Data Dictionary Objects: [Skill: ABAP Cloud / Clean Core] + [Skill: Naming Conventions]. Create DDLS/TABL/TTYP representing the Request payload and expected Response. Execute: Lint → Push → Activate → [Skill: Activation Guard].
 
-Step 2 — Outbound Integration Logic: [Skill: RAP], [Skill: Clean ABAP], [Skill: Modern ABAP Syntax], [Skill: OO Design Patterns], [Skill: Naming Conventions]. If triggered by RAP, implement the behavior action (e.g. `FOR MODIFY`) using Modern ABAP Syntax. Gather business data, construct the request payload/headers via `zif_api_fwk_types=>ty_dynamic_request`, call `NEW zcl_api_fwk( )->execute_api( EXPORTING iv_api_id = ... is_dynamic_request_value = ... IMPORTING es_logger = ... CHANGING c_response_data = ... )`, parse `es_logger`/response, update the business object status, return explicit Reported messages. Execute: Lint → Push → Activate.
+Step 2 — Outbound Integration Logic: [Skill: RAP], [Skill: Clean ABAP], [Skill: Modern ABAP Syntax], [Skill: OO Design Patterns], [Skill: Naming Conventions]. If triggered by RAP, implement the behavior action (e.g. `FOR MODIFY`) using Modern ABAP Syntax. Gather business data, construct the request payload/headers via `zif_api_fwk_types=>ty_dynamic_request`, call `NEW zcl_api_fwk( )->execute_api( EXPORTING iv_api_id = ... is_dynamic_request_value = ... IMPORTING es_logger = ... CHANGING c_response_data = ... )`, parse `es_logger`/response, update the business object status, return explicit Reported messages. Execute: Lint → Push → Activate → [Skill: Activation Guard] (Gate 3 re-checks Step 1's DDIC objects and, if this is a RAP-triggered action, the underlying Behavior Definition/Pool are still clean).
 
 Step 3 — Framework Configuration: instruct the user to configure the Outbound API URL/Auth/Method/Headers via Fiori App `ZUI_API_CONFIG_O4`.
 
@@ -52,4 +52,4 @@ Step 3 — Framework Configuration: instruct the user to configure the Outbound 
 Save `artifacts/walkthroughs/walkthrough_outbound_[API_Name].md`: objects built, the actual Phase 2 call evidence (payload sent + target response — never "should work"), and any outstanding risks.
 
 [OUTPUT FORMAT]
-Per step, narrate in [Skill: Caveman] style (short, evidence-based); the source code and results below stay verbatim, never compressed (`sap-dev-rule.md` §10): Object Name & Applied Skill (e.g., `ZR_MY_OUTBOUND` — [Skill: RAP]); the validated ABAP source code (markdown, verbatim); SYSTEM EXECUTION RESULT (Validation Log, Activation Status).
+Per step, narrate in [Skill: Caveman] style (short, evidence-based); the source code and results below stay verbatim, never compressed (`sap-dev-rule.md` §10): Object Name & Applied Skill (e.g., `ZR_MY_OUTBOUND` — [Skill: RAP]); the validated ABAP source code (markdown, verbatim); SYSTEM EXECUTION RESULT (Validation Log, Activation Status, [Skill: Activation Guard] gate results).

@@ -30,7 +30,7 @@ When a workflow spans many steps or may be interrupted/compacted mid-way, use th
 | 3 | ZC_Invoice (Projection) | TODO | |
 ```
 
-Status values: `TODO` (not started), `DOING` (in progress), `DONE` (completed + verified), `FAILED` (attempted, blocked — note why). Update the row immediately when status changes; do not batch updates at the end.
+Status values: `TODO` (not started), `DOING` (in progress), `DONE` (completed + verified), `FAILED` (attempted, blocked — note why), `REGRESSED` (was DONE, then broken as a side effect of a later step — note which step caused it; see [Skill: Activation Guard]). Update the row immediately when status changes; do not batch updates at the end.
 
 ## Verify-Loop Attempt Counter (for bounded retry gates, e.g. "max 3 iterations")
 

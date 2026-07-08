@@ -22,12 +22,12 @@ abap-agent-claudecode-workspace/
 ├── .claude/
 │   ├── rules/
 │   │   └── sap-dev-rule.md         # 🛡️ Mandatory rules (Clean Core, Custom Only, TR, evidence-based reporting...)
-│   ├── skills/                     # 📚 33 skills, FLAT — Claude Code auto-discovers & auto-matches by description
+│   ├── skills/                     # 📚 34 skills, FLAT — Claude Code auto-discovers & auto-matches by description
 │   │   ├── fs-data-model-extractor/ , fs-fiori-ui-elements-mapper/ , fs-logic-behavior-translator/ ,
 │   │   │   fs-integration-api-analyzer/ , fs-vision-extractor/ , find-released-cds-view/     # Consultant (FS analysis)
 │   │   ├── abap/ , abap-cloud/ , clean-abap/ , naming-convension/ , modern-abap-syntax/ ,
 │   │   │   oo-design-patterns/ , rap/ , cds-view-entities/ , odata/ , authorization-iam/ , ...  # Developer (ABAP Cloud)
-│   │   └── grill-me/ , caveman/ , handoff/ , scratchpad/ , document-markdown-converter/         # Productivity
+│   │   └── grill-me/ , caveman/ , handoff/ , scratchpad/ , document-markdown-converter/ , activation-guard/  # Productivity
 │   └── commands/                   # ⚙️ Workflows as slash commands
 │       ├── sap-dev-fs-analytic.md      # /sap-dev-fs-analytic — FS → Technical Spec (data on existing released CDS)
 │       ├── sap-dev-create-report.md    # /sap-dev-create-report — TS → ABAP RAP source (read-mostly, on released CDS)
@@ -64,6 +64,7 @@ Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `des
 * **Custom Only (Z/Y):** Never modify SAP standard objects.
 * **TR & Package:** Every new/modified object must declare a Package and Transport Request.
 * **Evidence-Based Reporting:** "Activated" ≠ "Correct" — every completion claim needs cited evidence, never "should work / probably fine."
+* **Activation Guard:** every object create/edit/delete across the system-touching workflows below runs the `activation-guard` skill's 3 gates (full activation log incl. warnings, confirmed active state, ripple/cross-impact check on dependents) before that step counts as done — this is what stops one quietly-broken object cascading into every object built on top of it later in the same run.
 * **Token Efficiency:** Chat narration uses the `caveman` skill to stay terse — never on code, saved reports, or security/consent warnings.
 
 ### 3. Workflows as Slash Commands (`.claude/commands/`)
