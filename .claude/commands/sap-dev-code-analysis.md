@@ -25,14 +25,14 @@ Since analyzing a whole package or complex object might produce an excessive amo
 Please execute the following sequence:
 
 Step 0: System Scanning & Component Discovery
-Required Skill: [Skill: Scratchpad]
+Required Skill: [Skill: scratchpad]
 Action:
 - Use whichever MCP tool your environment exposes for reading/searching SAP objects to get the initial structure/list of objects (`sap-dev-rule.md` §9) — if it isn't loaded yet, use `ToolSearch` to find it first.
 - Create a `scratchpad_analysis_[Target].md` in `artifacts/scratchpads/`.
 - Document the tree structure in the scratchpad and select the top priority objects that contain the core logic/data models.
 
 Step 1: Deep Dive Analysis
-Required Skill: [Skill: ABAP Logic & Behavior Translator] & [Skill: Data Model Extractor]
+Required Skill: [Skill: fs-logic-behavior-translator] & [Skill: fs-data-model-extractor]
 Action:
 - Sequentially read the source codes of the prioritized objects using the same verified MCP tool.
 - Analyze:
@@ -74,5 +74,5 @@ Format the document exactly as follows:
 - Những điểm cần lưu ý khi bảo trì hoặc mở rộng (Extensibility) trong tương lai.
 
 [OUTPUT FORMAT]
-- All chat progress narration throughout this workflow uses `[Skill: Caveman]` style per `sap-dev-rule.md` §10 — short, evidence-based, narration only (the saved report content and any code excerpts stay verbatim). This is a read-only analysis; still avoid "chắc là/should be" language per `sap-dev-rule.md` §8, cite what was actually read.
+- All chat progress narration throughout this workflow uses `[Skill: caveman]` style per `sap-dev-rule.md` §10 — short, evidence-based, narration only (the saved report content and any code excerpts stay verbatim). This is a read-only analysis; still avoid "chắc là/should be" language per `sap-dev-rule.md` §8, cite what was actually read.
 - Provide the clickable link to the generated Final Technical Report.

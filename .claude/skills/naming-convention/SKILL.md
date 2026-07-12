@@ -11,6 +11,8 @@ description: Kiểm tra, đề xuất và tạo tên chuẩn cho các đối tư
 ## Hướng dẫn (Instructions)
 Khi người dùng yêu cầu tạo mới một đối tượng, hoặc nhờ kiểm tra tên của một đối tượng, hãy đối chiếu với bảng quy tắc bên dưới để đưa ra tên chính xác. Luôn giải thích ngắn gọn tại sao lại dùng Prefix/Suffix đó.
 
+**Ưu tiên tên chỉ định tường minh (TS/user wins):** các quy tắc dưới đây là DEFAULT — nếu TS, FS, hoặc user đã chỉ định tường minh một tên/scheme khác (VD: bảng dùng `ZTB_*`/`ZTB_*_D` thay vì `ZA_`/`ZD_`, hay base name + suffix theo node `_H`/`_FG`/`_RM`), thì tên chỉ định đó THẮNG. Không "sửa lại" một tên đã được TS/user chốt cho khớp default của skill này; chỉ dùng default khi tên chưa được chỉ định.
+
 ### Quy tắc 1: ABAP Dictionary & Source Code (Eclipse Objects)
 Tất cả các custom objects thường bắt đầu bằng `Z` cộng với Prefix.
 * **Database Tables:** Dữ liệu thật (Persistent) dùng `ZA_` (VD: ZA_Customer). Dữ liệu nháp (Draft) dùng `ZD_` (VD: ZD_Customer).

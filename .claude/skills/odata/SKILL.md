@@ -1,27 +1,11 @@
 ---
 name: odata
-description: Help with OData service development in ABAP including OData V2 and V4 services via RAP service bindings, SEGW-based services, service definitions, service bindings, OData annotations, consumption of external OData services, and troubleshooting common OData errors. Use when users ask about OData, OData V2, OData V4, service binding, service definition, SEGW, OData annotations, OData consumption, OData client proxy, HTTP client, communication arrangement, external API consumption, /IWBEP/ errors, or exposing a RAP BO as OData. Triggers include "create OData service", "expose RAP BO", "service binding", "OData V4", "consume external OData", "OData annotations", "SEGW service", or "OData error".
+description: Help with OData service development in ABAP including OData V2 and V4 services via RAP service bindings, service definitions, service bindings, consumption of external OData services, and troubleshooting common OData errors. Use when users ask about OData, OData V2, OData V4, service binding, service definition, OData consumption, OData client proxy, external API consumption, /IWBEP/ errors, or exposing a RAP BO as OData. Triggers include "create OData service", "expose RAP BO", "service binding", "OData V4", "consume external OData", "OData error". For analyzing API requirements from an FS document use fs-integration-api-analyzer; for RAP BO modeling up to the service layer use rap; for communication arrangement/system setup use btp-abap-environment.
 ---
 
 # OData Service Development
 
-Guide for creating and consuming OData services in ABAP, covering both RAP-based (V4/V2) and SEGW-based (V2) approaches.
-
-## Workflow
-
-1. **Determine the user's goal**:
-   - Exposing a RAP BO as an OData service (recommended approach)
-   - Creating a classic SEGW-based OData V2 service
-   - Consuming an external OData service from ABAP
-   - Adding OData annotations for Fiori UIs
-   - Troubleshooting OData errors
-
-2. **Identify the approach**:
-   - RAP-based service (preferred for ABAP Cloud)
-   - SEGW-based service (classic, Standard ABAP only)
-   - OData consumption (client proxy)
-
-3. **Guide implementation** following SAP best practices
+Guide for creating and consuming OData services in ABAP Cloud — RAP-based service exposure and external consumption.
 
 ## RAP-Based OData Services (Recommended)
 
@@ -88,38 +72,7 @@ Binds a service definition to a specific OData protocol and provides a URL:
 | **Aggregation**       | `$apply` transformation       | Not natively supported          |
 | **Recommendation**    | Preferred for new development | Maintain existing only          |
 
-## SEGW-Based OData V2 Services (Classic)
-
-For Standard ABAP only (not available in ABAP Cloud):
-
-### Architecture
-
-```
-SEGW Project → Data Model (Entity Types, Sets, Associations)
-             → Service Implementation (MPC/DPC classes)
-             → Register & Activate in /IWFND/MAINT_SERVICE
-```
-
-### Steps
-
-1. **Create project** in `SEGW` transaction
-2. **Define data model**: Entity types, properties, navigation properties
-3. **Generate runtime artifacts** (MPC/DPC classes)
-4. **Implement DPC extension methods**: `GET_ENTITYSET`, `GET_ENTITY`, `CREATE_ENTITY`, etc.
-5. **Register service** in `/IWFND/MAINT_SERVICE`
-6. **Test** via `/IWFND/GW_CLIENT` or browser
-
-### DPC Method Implementation Example
-
-```abap
-METHOD travelset_get_entityset.
-  SELECT * FROM ztravel_tab
-    INTO TABLE @DATA(lt_travel)
-    UP TO 100 ROWS.
-
-  et_entityset = CORRESPONDING #( lt_travel ).
-ENDMETHOD.
-```
+> **SEGW (classic OData V2) is out of scope for this workspace** — it is Standard ABAP only, unavailable in ABAP Cloud, and its DPC pattern encourages direct physical-table reads (violates workspace rule §3). For any new service, expose a RAP BO via service definition + binding as above. If asked about maintaining a legacy SEGW service, say explicitly that it must be handled in a classic (Tier 3) context outside this workspace's rules.
 
 ## Consuming External OData Services
 
@@ -162,28 +115,9 @@ DATA lt_data TYPE STANDARD TABLE OF z_entity_type.
 lo_response->get_business_data( IMPORTING et_business_data = lt_data ).
 ```
 
-## OData Annotations for Fiori
+## OData/UI Annotations
 
-Key CDS annotations that control OData/Fiori behavior:
-
-```cds
-@UI.headerInfo: {
-  typeName: 'Travel',
-  typeNamePlural: 'Travels',
-  title: { type: #STANDARD, value: 'TravelID' },
-  description: { type: #STANDARD, value: 'Description' }
-}
-
-@UI.lineItem: [{ position: 10 }]
-@UI.selectionField: [{ position: 10 }]
-@UI.identification: [{ position: 10 }]
-TravelID;
-
-@UI.lineItem: [{ position: 20, importance: #HIGH }]
-@UI.identification: [{ position: 20 }]
-@Consumption.valueHelpDefinition: [{ entity: { name: 'I_Currency', element: 'Currency' } }]
-CurrencyCode;
-```
+UI and value-help annotations (`@UI.*`, `@Consumption.valueHelpDefinition`) live on the CDS side — [Skill: cds-view-entities] owns their syntax and the metadata-extension pattern.
 
 ## Troubleshooting
 

@@ -142,10 +142,10 @@ def main():
         )
         sys.exit(1)
 
-    # Find AppList.json in parent directory or other locations
-    app_list_path = Path(__file__).parent.parent / "AppList.json"
+    # Find AppList.json (bundled under references/, with legacy fallbacks)
+    app_list_path = Path(__file__).parent.parent / "references" / "AppList.json"
     if not app_list_path.exists():
-        app_list_path = Path(__file__).parent.parent.parent / "AppList.json"
+        app_list_path = Path(__file__).parent.parent / "AppList.json"
     if not app_list_path.exists():
         app_list_path = Path("AppList.json")
 

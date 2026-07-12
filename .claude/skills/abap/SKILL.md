@@ -108,6 +108,14 @@ For detailed abaplint configuration including starter configs for On-Premise, St
 
 - Given-when-then structure, focused assertions, dependency injection
 
+## Priority Levels
+
+**Critical** — significantly impacts maintainability, testability, or could cause bugs: magic numbers without constants, deep nesting (>3 levels), methods with >5 parameters, empty IF branches, static classes without interfaces, return codes instead of exceptions.
+
+**Major** — reduces clarity, violates Clean ABAP principles: non-descriptive names, Hungarian notation/prefixes, long methods (>20 lines), DEFAULT KEY usage, commented-out code, multiple output parameters.
+
+**Minor** — stylistic improvements: missing inline declarations, string quotes instead of backticks, unnecessary ME-> references, formatting inconsistencies.
+
 ## Output Format
 
 Structure analysis results as:
@@ -129,6 +137,8 @@ Structure analysis results as:
 **Location:** Line [X] / Method [name]
 **Problem:** [description]
 **Recommendation:** [how to fix]
+**Anti-pattern:** [problematic code, when illustrative]
+**Clean code:** [improved code]
 
 ### Major Issues
 [Same format]
@@ -138,6 +148,9 @@ Structure analysis results as:
 
 ### Positive Observations
 - [Things done well]
+
+### Overall Assessment
+[Brief summary of code quality and main areas for improvement]
 ```
 
 ## References

@@ -1,34 +1,11 @@
 ---
 name: rap
-description: Help with RAP (RESTful ABAP Programming Model) development including behavior definitions, EML statements, managed and unmanaged BOs, draft handling, actions, validations, determinations, side effects, and business events. Use when users ask about RAP, BDEF, BDL, EML, behavior definitions, behavior pools, managed BO, unmanaged BO, draft-enabled BO, RAP actions, RAP validations, RAP determinations, RAP side effects, RAP business events, create/read/update/delete in RAP, or building transactional Fiori apps with ABAP Cloud. Triggers include "create a RAP BO", "write a behavior definition", "EML syntax", "managed vs unmanaged", "enable draft", "add an action", "add a validation", "RAP handler method", or "RAP saver class".
+description: Help with RAP (RESTful ABAP Programming Model) development including behavior definitions, EML statements, managed and unmanaged BOs, draft handling, actions, validations, determinations, and side effects. Use when users ask about RAP, BDEF, BDL, EML, behavior definitions, behavior pools, managed BO, unmanaged BO, draft-enabled BO, RAP actions, RAP validations, RAP determinations, RAP side effects, create/read/update/delete in RAP, or building transactional Fiori apps with ABAP Cloud. Triggers include "create a RAP BO", "write a behavior definition", "EML syntax", "managed vs unmanaged", "enable draft", "add an action", "add a validation", "RAP handler method", or "RAP saver class". For event bindings, Event Mesh integration, and event consumption use rap-business-events; for custom entity query providers (IF_RAP_QUERY_PROVIDER) use rap-query-provider; for OData protocol/publishing specifics use odata.
 ---
 
 # RAP (RESTful ABAP Programming Model)
 
-Guide for building transactional applications using the ABAP RESTful Application Programming Model (RAP) in ABAP Cloud.
-
-## Workflow
-
-1. **Determine the user's goal**:
-   - Creating a new RAP BO from scratch
-   - Adding behavior (actions, validations, determinations) to an existing BO
-   - Writing EML statements to consume a RAP BO
-   - Troubleshooting RAP-related issues
-   - Understanding RAP concepts
-
-2. **Identify the scenario**:
-   - Managed (greenfield) vs. unmanaged (brownfield)
-   - Draft-enabled or not
-   - Numbering concept: early/late, internal/external/managed
-   - Single entity or composition tree (root + children)
-
-3. **Guide implementation** following the RAP layered architecture:
-   - Data modeling (database tables → CDS view entities)
-   - Behavior definition (BDEF using BDL)
-   - Behavior implementation (ABAP behavior pool)
-   - Business service exposure (service definition → service binding)
-
-4. **Provide code examples** using correct BDL and EML syntax
+Guide for building transactional applications with RAP in ABAP Cloud. The body keeps the decision tables and hallucination-prone syntax references; full copy-paste templates live in `references/` — read them when actually writing the object, not before.
 
 ## RAP Architecture Layers
 
@@ -42,151 +19,11 @@ Guide for building transactional applications using the ABAP RESTful Application
 
 ## Implementation Types
 
-### Managed (Greenfield)
+- **Managed (greenfield)**: framework owns the transactional buffer and standard CRUD; you code only actions/validations/determinations. Header: `managed implementation in class zbp_r_entity unique; strict ( 2 );`
+- **Unmanaged (brownfield)**: you provide the buffer and implement all operations — for embedding existing business logic. Header: `unmanaged implementation in class zbp_r_entity unique; strict ( 2 );`
+- Managed save can be extended (`with additional save`) or replaced (`with unmanaged save`).
 
-- Framework handles transactional buffer and standard CRUD operations automatically
-- Only need custom code for non-standard operations (actions, validations, determinations)
-- Automatic save handling (can be enhanced with `additional save` or replaced with `unmanaged save`)
-
-```
-managed implementation in class zbp_r_entity unique;
-strict ( 2 );
-```
-
-### Unmanaged (Brownfield)
-
-- Developer provides transactional buffer and implements all operations
-- Used when existing business logic needs to be embedded in RAP
-
-```
-unmanaged implementation in class zbp_r_entity unique;
-strict ( 2 );
-```
-
-## Behavior Definition (BDL) Quick Reference
-
-### Complete BDEF Structure
-
-```
-managed implementation in class zbp_r_root unique;
-strict ( 2 );
-with draft;
-
-define behavior for ZR_Root alias Root
-persistent table zroot_tab
-draft table zroot_d
-etag master LocalLastChangedAt
-lock master
-total etag LastChangedAt
-authorization master ( global )
-late numbering
-{
-  // Field characteristics
-  field ( readonly ) RootUUID, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt;
-  field ( mandatory ) Description;
-  field ( numbering : managed ) RootUUID;
-
-  // Standard operations
-  create;
-  update;
-  delete;
-
-  // Association to child entity
-  association _Child { create; }
-
-  // Actions
-  action doSomething result [1] $self;
-  static action createFromTemplate parameter ZD_CreateParam result [1] $self;
-  internal action recalculate;
-
-  // Validations
-  validation validateDescription on save { create; field Description; }
-
-  // Determinations
-  determination setDefaults on modify { create; }
-  determination calcTotal on modify { field Quantity, Price; }
-
-  // Draft actions
-  draft action Resume;
-  draft action Edit;
-  draft action Activate optimized;
-  draft action Discard;
-  draft determine action Prepare
-  {
-    validation validateDescription;
-  }
-
-  // Side effects
-  side effects
-  {
-    field Quantity affects field TotalAmount;
-    field Price affects field TotalAmount;
-    determine action Prepare executed on field Description affects messages;
-  }
-
-  // Events
-  event created;
-  event deleted parameter ZD_DeletedEvent;
-
-  // Mapping
-  mapping for zroot_tab corresponding
-  {
-    RootUUID = root_uuid;
-    Description = description;
-  }
-}
-
-define behavior for ZR_Child alias Child
-persistent table zchild_tab
-draft table zchild_d
-etag master LocalLastChangedAt
-lock dependent by _Root
-authorization dependent by _Root
-{
-  field ( readonly ) ChildUUID, RootUUID;
-  field ( numbering : managed ) ChildUUID;
-
-  update;
-  delete;
-
-  association _Root;
-
-  mapping for zchild_tab corresponding
-  {
-    ChildUUID = child_uuid;
-    RootUUID = root_uuid;
-  }
-}
-```
-
-### Projection BDEF
-
-```
-projection;
-strict ( 2 );
-use draft;
-
-define behavior for ZC_Root alias Root
-{
-  use create;
-  use update;
-  use delete;
-
-  use action doSomething;
-
-  use association _Child { create; }
-}
-
-define behavior for ZC_Child alias Child
-{
-  use update;
-  use delete;
-
-  use association _Root;
-}
-```
-
-### Key BDL Elements
+## Key BDL Elements
 
 | Element                 | Syntax                                    | Purpose                                                                |
 | ----------------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
@@ -196,152 +33,15 @@ define behavior for ZC_Child alias Child
 | **Lock master**         | `lock master`                             | Root entity controls pessimistic locking                               |
 | **Lock dependent**      | `lock dependent by _Assoc`                | Child entity delegates locking to parent                               |
 | **ETag**                | `etag master FieldName`                   | Optimistic concurrency control                                         |
-| **Total ETag**          | `total etag FieldName`                    | Required for draft-enabled BOs                                         |
+| **Total ETag**          | `total etag FieldName`                    | Required for draft-enabled BOs (root only)                             |
 | **Draft**               | `with draft;`                             | Enables draft handling for entire BO                                   |
-| **Collaborative draft** | `with collaborative draft;`               | Multi-user draft editing                                               |
-| **Strict mode**         | `strict ( 2 );`                           | Enables additional BDL syntax checks (use latest version)              |
+| **Strict mode**         | `strict ( 2 );`                           | Enables additional BDL syntax checks (always use for new BOs)          |
 
-## ABAP Behavior Pool (ABP)
+> Full copy-paste templates — complete managed+draft root/child BDEF, projection BDEF, actions/validations/determinations/side-effects syntax: read [references/bdef-templates.md](references/bdef-templates.md) when writing a BDEF.
+> Handler (`lhc_*`) and saver (`lsc_*`) class skeletons with worked action/validation/determination implementations: read [references/behavior-pool-templates.md](references/behavior-pool-templates.md) when writing a behavior pool.
+> Business events (`event` in BDEF, `RAISE ENTITY EVENT`, event binding): [Skill: rap-business-events] owns this.
 
-### Handler Class
-
-```abap
-CLASS lhc_root DEFINITION INHERITING FROM cl_abap_behavior_handler.
-  PRIVATE SECTION.
-
-    " Standard operations (unmanaged only)
-    METHODS create FOR MODIFY
-      IMPORTING entities FOR CREATE Root.
-
-    " Action implementation
-    METHODS doSomething FOR MODIFY
-      IMPORTING keys FOR ACTION Root~doSomething RESULT result.
-
-    " Validation
-    METHODS validateDescription FOR VALIDATE ON SAVE
-      IMPORTING keys FOR Root~validateDescription.
-
-    " Determination
-    METHODS setDefaults FOR DETERMINE ON MODIFY
-      IMPORTING keys FOR Root~setDefaults.
-
-    " Instance feature control
-    METHODS get_instance_features FOR INSTANCE FEATURES
-      IMPORTING keys REQUEST requested_features FOR Root RESULT result.
-
-    " Instance authorization
-    METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
-      IMPORTING keys REQUEST requested_authorizations FOR Root RESULT result.
-
-ENDCLASS.
-
-CLASS lhc_root IMPLEMENTATION.
-
-  METHOD doSomething.
-    " Read current instance data
-    READ ENTITIES OF zr_root IN LOCAL MODE
-      ENTITY Root
-      ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT DATA(entities)
-      FAILED failed.
-
-    " Modify instances
-    MODIFY ENTITIES OF zr_root IN LOCAL MODE
-      ENTITY Root
-      UPDATE FIELDS ( Status )
-      WITH VALUE #( FOR entity IN entities
-        ( %tky = entity-%tky
-          Status = 'DONE'
-          %control-Status = if_abap_behv=>mk-on ) )
-      FAILED failed
-      REPORTED reported.
-
-    " Fill result
-    result = VALUE #( FOR entity IN entities
-      ( %tky = entity-%tky
-        %param = entity ) ).
-  ENDMETHOD.
-
-  METHOD validateDescription.
-    READ ENTITIES OF zr_root IN LOCAL MODE
-      ENTITY Root
-      FIELDS ( Description ) WITH CORRESPONDING #( keys )
-      RESULT DATA(entities).
-
-    LOOP AT entities INTO DATA(entity).
-      IF entity-Description IS INITIAL.
-        APPEND VALUE #( %tky = entity-%tky ) TO failed-root.
-        APPEND VALUE #( %tky = entity-%tky
-          %msg = new_message_with_text(
-            severity = if_abap_behv_message=>severity-error
-            text = 'Description must not be empty' )
-          %element-Description = if_abap_behv=>mk-on
-        ) TO reported-root.
-      ENDIF.
-    ENDLOOP.
-  ENDMETHOD.
-
-  METHOD setDefaults.
-    READ ENTITIES OF zr_root IN LOCAL MODE
-      ENTITY Root
-      ALL FIELDS WITH CORRESPONDING #( keys )
-      RESULT DATA(entities).
-
-    MODIFY ENTITIES OF zr_root IN LOCAL MODE
-      ENTITY Root
-      UPDATE FIELDS ( Status CreatedAt )
-      WITH VALUE #( FOR entity IN entities
-        ( %tky = entity-%tky
-          Status = 'NEW'
-          %control-Status = if_abap_behv=>mk-on ) )
-      REPORTED reported.
-  ENDMETHOD.
-
-ENDCLASS.
-```
-
-### Saver Class
-
-```abap
-CLASS lsc_root DEFINITION INHERITING FROM cl_abap_behavior_saver.
-  PROTECTED SECTION.
-    METHODS finalize REDEFINITION.
-    METHODS check_before_save REDEFINITION.
-    METHODS save_modified REDEFINITION.
-    METHODS cleanup REDEFINITION.
-    METHODS cleanup_finalize REDEFINITION.
-ENDCLASS.
-
-CLASS lsc_root IMPLEMENTATION.
-  METHOD finalize.
-    " Final calculations before save
-  ENDMETHOD.
-
-  METHOD check_before_save.
-    " Final consistency checks
-  ENDMETHOD.
-
-  METHOD save_modified.
-    " Only needed for 'with additional save' or 'with unmanaged save'
-    " Raise business events here
-    IF create-root IS NOT INITIAL.
-      RAISE ENTITY EVENT zr_root~created
-        FROM VALUE #( FOR <cr> IN create-root
-          ( %key = VALUE #( RootUUID = <cr>-RootUUID ) ) ).
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD cleanup.
-    " Clear transactional buffer
-  ENDMETHOD.
-
-  METHOD cleanup_finalize.
-    " Rollback finalize changes on failure
-  ENDMETHOD.
-ENDCLASS.
-```
-
-## EML (Entity Manipulation Language) Quick Reference
+## EML Quick Reference
 
 EML is the ABAP language for programmatically interacting with RAP BOs. Key operations: `MODIFY ENTITY` (create/update/delete/execute action), `READ ENTITIES`, `COMMIT ENTITIES`, `ROLLBACK ENTITIES`.
 
@@ -356,11 +56,10 @@ EML is the ABAP language for programmatically interacting with RAP BOs. Key oper
 
 ## Draft Handling
 
-- Enabled via `with draft;` in BDEF header
-- Requires separate `draft table` for each entity
+- Enabled via `with draft;` in BDEF header; requires a separate `draft table` per entity
 - Draft table must include `"%admin": include sych_bdl_draft_admin_inc;`
 - Draft actions (`Edit`, `Activate`, `Discard`, `Resume`, `Prepare`) are implicitly provided
-- Use `%is_draft` component (or `%tky` which includes it) to distinguish draft vs. active instances
+- Use `%is_draft` (or `%tky`, which includes it) to distinguish draft vs. active instances
 
 ## RAP Save Sequence
 
@@ -369,8 +68,7 @@ EML is the ABAP language for programmatically interacting with RAP BOs. Key oper
 | **Early Save** | `finalize` → `check_before_save` → (on failure: `cleanup_finalize`) | Ensure data consistency  |
 | **Late Save**  | `adjust_numbers` → `save` / `save_modified` → `cleanup`             | Persist data to database |
 
-- Early save failures (sy-subrc = 4) return to interaction phase
-- Late save is point of no return — either commit succeeds or runtime error
+- Early save failures return to the interaction phase; late save is the point of no return — either commit succeeds or runtime error.
 
 ## Key BDEF Derived Type Components
 
@@ -390,10 +88,10 @@ EML is the ABAP language for programmatically interacting with RAP BOs. Key oper
 ## Best Practices
 
 - Always use `strict ( 2 );` for new BOs
-- Prefer `%tky` over `%key` for future-proof code (handles draft/late numbering transitions)
+- Prefer `%tky` over `%key` — it survives draft/late-numbering transitions
 - Always fill `%cid` in create operations even if not referenced later
 - Use `IN LOCAL MODE` in handler methods to bypass feature controls and authorization checks
-- Implement validations for data consistency checks, determinations for calculated fields
+- Validations = consistency checks on save; determinations = derived/calculated fields on modify
 - Keep handler methods focused; use ABP auxiliary classes for shared logic
 - For managed BOs, only implement handler methods for non-standard operations
 

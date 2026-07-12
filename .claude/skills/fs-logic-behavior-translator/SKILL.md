@@ -1,6 +1,6 @@
 ---
-name: ABAP Logic & Behavior Translator
-description: Kỹ năng phân tích FS để trích xuất các quy tắc nghiệp vụ phức tạp, phân quyền và hành vi (Behavior), từ đó xác định cách triển khai kỹ thuật phù hợp nhất (CDS Logic vs. ABAP Virtual Elements vs. RAP Behavior Pool).
+name: fs-logic-behavior-translator
+description: Kỹ năng phân tích FS để trích xuất các quy tắc nghiệp vụ phức tạp, phân quyền, hành vi (Behavior), status machine và chiến lược đánh số (numbering), từ đó xác định cách triển khai kỹ thuật phù hợp nhất (CDS Logic vs. ABAP Virtual Elements vs. RAP Behavior Pool). Use when analyzing the business rules / processing logic sections of an FS document during TS creation. Triggers include "extract business logic", "phân tích logic FS", "status machine", "validation/determination từ FS".
 ---
 
 # ROLE
@@ -15,7 +15,9 @@ Read the "Processing Logic" or "Business Rules" sections of the FS carefully:
 3. **Extract Complex Logic (Virtual Elements / ABAP Layer):**
    - Look for complex calculations that require reading external data, loops, or historical aggregation (e.g., calculating Opening/Closing balances using period-end anchors, complex fallback chains for text descriptions).
    - Flag these to be implemented as **Virtual Elements** (for read-only) or in the **Behavior Pool (AMDP/ABAP)**.
-4. **Identify Actions and Determinations:** (For transactional apps) Note any specific buttons that trigger business logic (e.g., "Approve Document").
+4. **Identify Actions and Determinations:** (For transactional apps) Note any specific buttons that trigger business logic (e.g., "Approve Document"). For each action capture: UI placement (header/line-item toolbar), enable/visibility condition, and confirmation/popup requirements — the TS's UI section needs these to wire toolbar buttons.
+4b. **Extract the Status Machine:** (For transactional apps) If the FS implies document states (Draft/Submitted/Approved/Rejected...), reconstruct the full state table: every status value, allowed transitions, which action triggers each transition, and which fields become read-only per status. Missing transitions are a STOP-and-ask, not something to invent.
+4c. **Determine the Numbering Strategy:** (For transactional apps) Decide and justify: RAP managed numbering (UUID), early numbering, or late numbering with a Number Range object. If a human-readable document number is required, specify the Number Range object + interval and note batch-safety (parallel draft activation) considerations.
 5. **Clean Core & Cloud Extensibility Check (CRITICAL):**
    - Scan the FS for standard SAP tables (e.g., ACDOCA, BSEG, MSEG, MARA) or classic unreleased APIs (e.g., standard Function Modules, BAPIs).
    - Flag them as violations of Clean Core in S/4HANA Cloud.
@@ -28,6 +30,8 @@ Provide a clear breakdown of the business logic:
 - **Report Type:** [Read-only OR Transactional]
 - **Derived/Calculated Fields (CDS):** [List logic suitable for CDS]
 - **Complex Logic (Virtual Elements/ABAP):** [List logic requiring ABAP classes]
-- **Actions/Determinations:** [List actions or write "None"]
+- **Actions/Determinations:** [List actions with UI placement + enable condition, or write "None"]
+- **Status Machine:** [State table: status → allowed transitions → triggering action → field locks; or "None"]
+- **Numbering Strategy:** [managed UUID / early / late + Number Range object; or "N/A (read-only)"]
 - **Clean Core & Cloud Extensibility Check:** [List any violations of Clean Core in the FS and suggest released standard CDS views/APIs replacements]
 - **Authorization Check:** [Specify auth objects or PFCG requirements]

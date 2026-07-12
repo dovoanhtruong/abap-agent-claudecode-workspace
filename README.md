@@ -1,16 +1,68 @@
 # 🚀 SAP ABAP Cloud Agent Workspace (Claude Code)
 
-Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. This is a sibling to `abap_antigravity_workspace` — same governance rules, same domain skills, same automated workflows — re-plumbed to use Claude Code's actual native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports) instead of Antigravity's router/rules-workflows conventions.
+![Claude Code](https://img.shields.io/badge/Claude%20Code-native-7A5AF8)
+![SAP](https://img.shields.io/badge/SAP-ABAP%20Cloud%20%C2%B7%20Clean%20Core-0FAAFF)
+![Skills](https://img.shields.io/badge/skills-33-2EA44F)
+![Workflows](https://img.shields.io/badge/workflows-9-E8590C)
+![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
 
-> ### ⭐ For best results, pair this workspace with 2 MCP servers
-> Several skills (`find-released-cds-view`, `fs-logic-behavior-translator`, `fs-integration-api-analyzer`, `sap-fiori-apps-reference`, `atc-cloudification`, and rule §9's "verify a tool exists / use `ToolSearch`" guidance) call out to "whichever MCP server/tool your environment exposes" for SAP CDS/documentation search — they work without one, but are far faster and more accurate with these two connected:
->
-> | MCP Server | What it gives the Agent |
-> |---|---|
-> | **[cds-kb-mcp](https://github.com/dovoanhtruong/cds-kb-mcp)** | Semantic search across 7,355 released S/4HANA Cloud CDS views (`search_cds`, `get_cds_view`, `get_views_by_tag`, `get_taxonomy`) — powers `find-released-cds-view` and the Clean-Core-replacement checks in the FS-analysis skills, instead of the Agent guessing a CDS view name. |
-> | **[mcp-sap-docs](https://github.com/dovoanhtruong/mcp-sap-docs)** | Hybrid search over SAP Help Portal, SAP Accelerator Hub (OData/REST/SOAP APIs), the Fiori Apps Library, and Clean Core released-object data — backs the "search official SAP documentation before proposing an API/CDS replacement" steps required across the Consultant skills and workflows. |
->
-> Add both to your Claude Code MCP config (`claude mcp add` or your `.mcp.json`) — see each repo's README for the exact server command. Once connected, when a skill needs one, Claude Code will surface it as a tool to load via `ToolSearch` on first use.
+Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 33 domain skills auto-activate by description, 9 slash-command workflows drive FS-to-deployed-code pipelines, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text.
+
+> Sibling to `abap_antigravity_workspace` — same governance and domain knowledge, re-plumbed for Claude Code's native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports).
+
+---
+
+## 🧭 Architecture at a Glance
+
+```mermaid
+flowchart LR
+    subgraph CTX["Always in context"]
+        CM["CLAUDE.md (hub)"] --> RULE["sap-dev-rule.md<br/>§1-§14 strict rules"]
+    end
+    subgraph ONDEMAND["Loaded on demand"]
+        SK["33 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates & deep docs"]
+        WF["9 workflows<br/>.claude/commands/*"]
+    end
+    subgraph ENFORCE["Hook-enforced (code)"]
+        H1["pre-cud-guard.sh<br/>Z/Y-only · TR+Package · no TR CUD"]
+        H2["workspace-write-guard.sh<br/>.claude/ lock · artifacts/-only outputs"]
+    end
+    USER((User)) --> WF
+    USER --> SK
+    WF -->|"[Skill: x]"| SK
+    RULE -.governs.-> WF & SK
+    H1 & H2 -.block bad calls.-> WF & SK
+    SK --> MCP["MCP servers<br/>cds-kb · sap-docs · ADT"]
+```
+
+```mermaid
+flowchart LR
+    FS["📄 FS document<br/>artifacts/fs_docs/"] --> A{"New Z-tables<br/>needed?"}
+    A -->|"no — data in released CDS"| FA["/sap-dev-fs-analytic"]
+    A -->|"yes — brand-new app"| FAT["/sap-dev-fs-analytic-transactional-app"]
+    FA --> TS["📋 TS_*.md + Verify Loop<br/>(max 3 iterations)"]
+    FAT --> TS
+    TS --> G1{{"👤 Human reviews TS"}}
+    G1 --> CR["/sap-dev-create-report"]
+    G1 --> CTA["/sap-dev-create-transactional-app"]
+    CR --> BUILD["Sequential RAP build<br/>every object: Lint → Activate<br/>→ activation-guard 3 gates"]
+    CTA --> BUILD
+    BUILD --> G2{{"👤 Manual runtime verify<br/>evidence required, max 3 iterations"}}
+    G2 --> WT["📦 Walkthrough + risk report<br/>artifacts/walkthroughs/"]
+```
+
+---
+
+## ⭐ Recommended MCP Servers
+
+Several skills (`find-released-cds-view`, `fs-logic-behavior-translator`, `fs-integration-api-analyzer`, `sap-fiori-apps-reference`, `atc-cloudification`, and rule §9's "verify a tool exists / use `ToolSearch`" guidance) call out to "whichever MCP server/tool your environment exposes" for SAP CDS/documentation search — they work without one, but are far faster and more accurate with these two connected:
+
+| MCP Server | What it gives the Agent |
+|---|---|
+| **[cds-kb-mcp](https://github.com/dovoanhtruong/cds-kb-mcp)** | Semantic search across 7,355 released S/4HANA Cloud CDS views (`search_cds`, `get_cds_view`, `get_views_by_tag`, `get_taxonomy`) — powers `find-released-cds-view` and the Clean-Core-replacement checks in the FS-analysis skills, instead of the Agent guessing a CDS view name. |
+| **[mcp-sap-docs](https://github.com/dovoanhtruong/mcp-sap-docs)** | Hybrid search over SAP Help Portal, SAP Accelerator Hub (OData/REST/SOAP APIs), the Fiori Apps Library, and Clean Core released-object data — backs the "search official SAP documentation before proposing an API/CDS replacement" steps required across the Consultant skills and workflows. |
+
+Add both to your Claude Code MCP config (`claude mcp add` or your `.mcp.json`) — see each repo's README for the exact server command. Once connected, when a skill needs one, Claude Code will surface it as a tool to load via `ToolSearch` on first use.
 
 ---
 
@@ -21,83 +73,112 @@ abap-agent-claudecode-workspace/
 ├── CLAUDE.md                       # 🧠 Hub file — always loaded; @imports the rule file below
 ├── .claude/
 │   ├── rules/
-│   │   └── sap-dev-rule.md         # 🛡️ Mandatory rules (Clean Core, Custom Only, TR, evidence-based reporting...)
-│   ├── skills/                     # 📚 34 skills, FLAT — Claude Code auto-discovers & auto-matches by description
-│   │   ├── fs-data-model-extractor/ , fs-fiori-ui-elements-mapper/ , fs-logic-behavior-translator/ ,
-│   │   │   fs-integration-api-analyzer/ , fs-vision-extractor/ , find-released-cds-view/     # Consultant (FS analysis)
-│   │   ├── abap/ , abap-cloud/ , clean-abap/ , naming-convension/ , modern-abap-syntax/ ,
-│   │   │   oo-design-patterns/ , rap/ , cds-view-entities/ , odata/ , authorization-iam/ , ...  # Developer (ABAP Cloud)
-│   │   └── grill-me/ , caveman/ , handoff/ , scratchpad/ , document-markdown-converter/ , activation-guard/  # Productivity
-│   └── commands/                   # ⚙️ Workflows as slash commands
-│       ├── sap-dev-fs-analytic.md      # /sap-dev-fs-analytic — FS → Technical Spec (data on existing released CDS)
-│       ├── sap-dev-create-report.md    # /sap-dev-create-report — TS → ABAP RAP source (read-mostly, on released CDS)
-│       ├── sap-dev-fs-analytic-transactional-app.md  # /sap-dev-fs-analytic-transactional-app — FS → Technical Spec (new Z-table from scratch)
-│       ├── sap-dev-create-transactional-app.md       # /sap-dev-create-transactional-app — TS → DDIC + full RAP tree from scratch
-│       ├── sap-dev-bug-fix.md          # /sap-dev-bug-fix — root-cause + regression-safe fix
-│       ├── sap-dev-api-inbound.md      # /sap-dev-api-inbound — Z_API_FWK inbound handler
-│       ├── sap-dev-api-outbound.md     # /sap-dev-api-outbound — Z_API_FWK outbound call
-│       ├── sap-dev-code-analysis.md    # /sap-dev-code-analysis — architecture documentation
-│       └── sap-dev-code-review.md      # /sap-dev-code-review — strict QA review
+│   │   └── sap-dev-rule.md         # 🛡️ 14 strict rules (Clean Core, Custom Only, TR, evidence, subagents, language, self-modification)
+│   ├── skills/                     # 📚 33 skills, FLAT — auto-discovered & matched by description (catalog below)
+│   │   └── <name>/SKILL.md          #    + references/ subfolders for heavy templates (loaded only when needed)
+│   ├── hooks/                      # 🔒 Hard-enforced guardrails (PreToolUse) — code, not prompt text
+│   │   ├── pre-cud-guard.sh         # Blocks non-Z/Y CUD, missing TR/Package, and any TR create/delete/modify
+│   │   └── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → artifacts/ only
+│   ├── settings.json               # Hook wiring
+│   └── commands/                   # ⚙️ 9 workflows as slash commands (see Quick Start)
 ├── artifacts/                      # 📦 Single root for all input/output artifacts (gitignored)
 │   ├── fs_docs/                     # Input Functional Specification (FS) documents
 │   ├── technical_specifications/    # Technical Specifications (TS_*.md)
-│   ├── scratchpads/                 # Architectural drafts, planning & progress ledgers
-│   │   └── review/                  # Code Review reports (review_*.md)
+│   ├── scratchpads/                 # Drafts, progress ledgers, handoff notes (+ review/ for code reviews)
 │   ├── walkthroughs/                # Deployment guides, testing & task checklists
 │   ├── metadata_extensions/         # Generated Metadata Extension (DDLX) source, pending manual ADT creation
-│   └── system_analysis/             # System/package analysis reports
+│   └── system_analysis/             # System/package analysis & audit reports
 ├── .gitignore
 └── README.md                       # 📖 This file
 ```
 
 ---
 
-## 🛠️ Core Components & How They Work
+## 📚 Skill Catalog (33, by category)
 
-### 1. Skill Auto-Discovery (`.claude/skills/`)
-Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — **no manual router file to read**, unlike a typical Antigravity setup. When you ask for something that matches a skill's description, Claude Code loads it via the Skill tool automatically. Skills are intentionally flat (no Consultant/Developer/Productivity subfolders) because that's what Claude Code's discovery mechanism requires; the category groupings above are just for human browsing.
+**🔎 FS Analysis / Consultant (7)** — `fs-data-model-extractor` (data model from FS: extract / design new Z-tables / trace lineage) · `fs-fiori-ui-elements-mapper` (FS layouts → Fiori Elements annotations + toolbar buttons) · `fs-logic-behavior-translator` (business rules → CDS vs Virtual Element vs Behavior Pool; status machine, numbering) · `fs-integration-api-analyzer` (FS integration specs → API design + payload mapping) · `fs-vision-extractor` (transcribe mockups/flowcharts/screenshots embedded in FS) · `document-markdown-converter` (binary FS → Markdown via MarkItDown) · `find-released-cds-view` (map a business field to its released Clean-Core CDS view).
 
-### 2. Always-On Rules (`CLAUDE.md` → `.claude/rules/sap-dev-rule.md`)
-`CLAUDE.md` `@imports` the rule file, so it's unconditionally present in context every turn — more reliable than a "please read this file first" instruction. It forces the Agent to strictly follow:
-* **Modern ABAP & Design Patterns:** Constructor Expressions, String Templates, GoF OO Design Patterns.
-* **Clean Core:** CDS Views to read, EML to write. No direct modification of physical tables.
-* **Custom Only (Z/Y):** Never modify SAP standard objects.
-* **TR & Package:** Every new/modified object must declare a Package and Transport Request.
-* **Evidence-Based Reporting:** "Activated" ≠ "Correct" — every completion claim needs cited evidence, never "should work / probably fine."
-* **Activation Guard:** every object create/edit/delete across the system-touching workflows below runs the `activation-guard` skill's 3 gates (full activation log incl. warnings, confirmed active state, ripple/cross-impact check on dependents) before that step counts as done — this is what stops one quietly-broken object cascading into every object built on top of it later in the same run.
-* **Token Efficiency:** Chat narration uses the `caveman` skill to stay terse — never on code, saved reports, or security/consent warnings.
+**🧱 ABAP Cloud Foundations (10)** — `abap` (abaplint + Clean ABAP review, merged) · `abap-cloud` (3-tier model, language restrictions, released-API discovery) · `abap-cloud-migration` (classic → cloud code adaptation, wrapper pattern) · `atc-cloudification` (ATC cloud-readiness check variants) · `modern-abap-syntax` (VALUE/COND/REDUCE enforcement) · `abap-sql-amdp` (advanced SQL, AMDP, CDS table functions) · `abap-unit-testing` (test classes, test doubles, CDS/OSQL/RAP BO test environments) · `oo-design-patterns` (when-is-which-GoF-pattern-warranted decision table) · `released-abap-classes` (released class lookup by use case) · `abap-generative-ai` (ABAP AI SDK / ISLM completion API).
 
-### 3. Workflows as Slash Commands (`.claude/commands/`)
-Same commands, same names, same governance as the Antigravity version:
-* `/sap-dev-fs-analytic`: Analyzes Word/PDF/Excel FS files → Technical Specification (Data Model, Fiori Elements layout, business logic, Clean Core compliance). Assumes the FS's data already lives in an existing released CDS view.
-* `/sap-dev-create-report`: Takes a Technical Spec → generates CDS View Entities, DCL, RAP Behavior Pools, OData Service, with automated testing and a runtime verify loop. Assumes the data already exists in a released standard CDS view.
-* `/sap-dev-fs-analytic-transactional-app`: Same 6-phase design as `/sap-dev-fs-analytic`, but for an FS describing a brand-new Chức năng (Transactional App) with no existing table/view — its Data Model phase *designs* the new Z-table structure (fields/types/keys, status machine, numbering strategy) instead of just looking one up, and its Coding Implementation Plan always includes a DDIC Foundation step group.
-* `/sap-dev-create-transactional-app`: Same 4-phase design as `/sap-dev-create-report`, but for a brand-new Chức năng (Transactional App) built from zero — designs & creates the DDIC Foundation (Domain, Data Element, Z-Table + Draft Table, Number Range, Message Class) first, then the full RAP composition tree (root + children) with actions/validations/determinations, supporting classes, and the OData service binding.
-* `/sap-dev-bug-fix`: Root-causes a reported bug against user-provided mock data, gets explicit approval on a Cross-Impact Report before touching anything, fixes with a mandatory ABAP Unit Test as regression proof.
-* `/sap-dev-api-inbound`: Builds an inbound API handler on the `Z_API_FWK` architecture.
-* `/sap-dev-api-outbound`: Builds an outbound call via `Z_API_FWK`'s `execute_api`.
-* `/sap-dev-code-analysis`: Scans and documents an existing object/package's architecture.
-* `/sap-dev-code-review`: Strict QA review (risk, performance, maintainability) — advisory only, no auto-refactor.
+**⚙️ RAP & Services (6)** — `rap` (BDEF, EML, handlers/savers, draft, save sequence) · `rap-query-provider` (IF_RAP_QUERY_PROVIDER for custom entities; the "Query not fully covered" fix) · `rap-business-events` (event definition, binding, Event Mesh) · `cds-view-entities` (CDS data modeling, admin fields, compositions) · `odata` (service definition/binding, consumption, troubleshooting) · `badi-enhancement` (new BAdI framework, released BAdIs in Cloud).
+
+**🔐 Platform & Security (4)** — `authorization-iam` (AUTHORITY-CHECK, DCL, RAP auth handlers, IAM apps/catalogs/roles) · `btp-abap-environment` (provisioning, ADT connectivity, communication management) · `btp-diagram-generator` (BTP solution diagrams as draw.io files) · `sap-fiori-apps-reference` (Fiori Launchpad URL generation, offline AppList fallback).
+
+**🧭 Governance & Productivity (6)** — `activation-guard` (3-gate post-activation verification: log, active state, ripple check) · `naming-convention` (FPT project naming standards; explicit TS names win) · `scratchpad` (plan + progress ledger, single source of truth) · `handoff` (session-transition notes with ledger pointer) · `grill-me` (targeted requirement interviews, ≤3 rounds) · `caveman` (terse chat narration, never on code/reports).
 
 ---
 
-## 🚀 Quick Start Guide
+## 🛠️ Core Components & How They Work
 
-### Step 1: Prepare Input Documents
-Place the Functional Specification (FS) document into `artifacts/fs_docs/` (e.g. a `.docx` or plain text file).
+### 1. Skill Auto-Discovery (`.claude/skills/`)
+Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 33.
 
-### Step 2: Trigger the FS Analysis Process
-- Data already exists in a released CDS view (report/screen): `/sap-dev-fs-analytic artifacts/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT`
-- Brand-new business object, no existing table/view (transactional app): `/sap-dev-fs-analytic-transactional-app artifacts/fs_docs/SAPER_2025_ZBOM_FS.docx ZPRODX_ZBOM`
+### 2. Always-On Rules (`CLAUDE.md` → `.claude/rules/sap-dev-rule.md`)
+`CLAUDE.md` `@imports` the rule file, so it's unconditionally in context every turn. The 14 sections cover: DEV-only assumption, consent + Z/Y-only + TR/Package discipline, CDS-read/EML-write standards, `artifacts/`-only outputs, activation-guard gates after every object mutation, Iron Laws (no improvising beyond the TS), Red Flags, evidence-based reporting ("Activated ≠ Correct"), MCP tool verification, token efficiency, evidence floor for user verification, subagent policy, language policy (chat VN · code EN), and self-modification rules (`.claude/` locked behind user-created `.unlock`).
 
-### Step 3: Evaluate Technical Spec & Generate Code
-Review the generated `artifacts/technical_specifications/TS_*.md`, then run the matching build workflow with the Package, Transport Request, and TS path: `/sap-dev-create-report` (TS §3 lists only existing released CDS views) or `/sap-dev-create-transactional-app` (TS §3 defines brand-new Z-tables — TS §2 states `Target Build Workflow: /sap-dev-create-transactional-app`).
+### 3. Workflows as Slash Commands (`.claude/commands/`)
+Each workflow is a phase-gated protocol: input validation gate (grill-me on gaps) → ledger-tracked build (activation-guard after every object) → evidence-based verify loop (max 3 iterations, then stop and ask) → walkthrough report. See Quick Start for all 9.
+
+### 4. Hard-Enforced Guardrails (`.claude/hooks/`)
+Prompt rules can be ignored; hooks can't. `pre-cud-guard.sh` fires on every call to any connected SAP MCP server matching `mcp__sap_<project>_dev__*` and blocks: non-Z/Y object CUD, object CUD without TR+Package, and any agent-driven create/delete/modify of a Transport Request itself. It's heuristic (regex over the tool payload) — tighten the field lookups once you've inspected one real call. `workspace-write-guard.sh` fires on `Write|Edit|NotebookEdit|Bash` and blocks: any change inside `.claude/` unless the **user** has manually created the sentinel `.claude/.unlock` (the agent is permanently blocked from creating that sentinel itself), and creation of new files outside `artifacts/` (editing existing files stays allowed). Hooks enforce "did this happen" — the rule file still governs "was it done well".
+
+---
+
+## 🚀 Quick Start
+
+### First-time setup
+
+1. Clone, then open the folder in Claude Code.
+2. (Recommended) Connect the two MCP servers above, plus your SAP system's ADT MCP server (named `mcp__sap_<project>_dev__*` so the CUD guard covers it).
+3. One-time venv for binary FS conversion: `python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdown[all]'`.
+4. Know the lock: if you ask Claude to modify `.claude/` (rules/skills/hooks), first run `touch .claude/.unlock`, and delete it when done.
+
+### The 9 workflows
+
+**Pipeline A — report/screen over existing released CDS data:**
+
+```bash
+# FS → Technical Specification
+/sap-dev-fs-analytic artifacts/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT
+# Review artifacts/technical_specifications/TS_*.md, then TS → activated RAP objects
+/sap-dev-create-report ZREPORT_PM DEVK900123 artifacts/technical_specifications/TS_InventoryReport.md
+```
+
+**Pipeline B — brand-new transactional app (no existing Z-table/CDS):**
+
+```bash
+# FS → Technical Specification incl. DDIC Foundation design (tables/domains/number range/status machine)
+/sap-dev-fs-analytic-transactional-app artifacts/fs_docs/SAPER_2025_ZBOM_FS.docx ZPRODX_ZBOM
+# TS → DDIC Foundation + full RAP composition tree + OData binding
+/sap-dev-create-transactional-app ZPRODX_ZBOM DEVK900124 artifacts/technical_specifications/TS_ZBom.md
+```
+
+**Maintenance & integration:**
+
+```bash
+# Root-cause + regression-safe fix (halts for your approval before touching code)
+/sap-dev-bug-fix ZC_INVENTORY_REPORT "SO Type ZOR2: expected qty 10, got 0"
+
+# Inbound API on Z_API_FWK (external system calls SAP)
+/sap-dev-api-inbound CREATE_SALES_ORDER
+
+# Outbound API via Z_API_FWK=>execute_api (SAP calls external system)
+/sap-dev-api-outbound NOTIFY_WMS
+
+# Deep-dive documentation of an existing object/package
+/sap-dev-code-analysis ZPRODX_ZBOM "data flow + call graph"
+
+# Strict advisory QA review (no auto-refactor)
+/sap-dev-code-review ZCL_BOM_PROCESSOR "performance, security"
+```
+
+Every build workflow asks for anything missing (Package, TR, TS gaps) before touching the system, and refuses to mark work done without activation evidence.
 
 ---
 
 ## ⚙️ Notes for Developers
-* **Relative Paths:** All configuration documents use relative paths so the workspace can move to any machine without breaking links.
-* **Adding Skills:** Drop a new `.claude/skills/<name>/SKILL.md` with `name`/`description` frontmatter — Claude Code picks it up automatically, no registration table to edit.
-* **document-markdown-converter setup:** This skill shells out to a local MarkItDown CLI in `.venv_markitdown/` (relative to workspace root). That venv is not included — run `python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdown[all]'` once before first use of `/sap-dev-fs-analytic` on a binary FS file.
-* **MCP Servers:** See the highlighted callout near the top of this README — connect `cds-kb-mcp` and `mcp-sap-docs` for the best experience.
-* **Relationship to `abap_antigravity_workspace`:** This workspace was ported from it and is maintained separately — a fix or new skill added to one does not automatically propagate to the other.
+
+* **Relative paths** everywhere — the workspace moves between machines without breaking.
+* **Adding a skill:** `touch .claude/.unlock`, drop `.claude/skills/<name>/SKILL.md` with `name` (= folder name) + `description` frontmatter, keep the body lean with heavy content in `references/`, then re-run the integrity check (frontmatter name = dir name; every `[Skill: x]` reference resolves) and delete `.unlock`. Claude Code picks it up automatically.
+* **Audit trail:** the full skill/workflow/rule audit and upgrade history lives in `artifacts/system_analysis/skill_audit_*.md`.
+* **Relationship to `abap_antigravity_workspace`:** ported from it, maintained separately — fixes do not auto-propagate between the two.

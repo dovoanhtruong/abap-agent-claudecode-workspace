@@ -1,200 +1,33 @@
 ---
 name: abap-sql-amdp
-description: Help with modern ABAP SQL features and AMDP (ABAP Managed Database Procedures) including inline declarations, window functions, GROUP BY, HAVING, PRIVILEGED ACCESS, string functions, aggregate expressions, common table expressions (CTE), AMDP classes, AMDP procedures, AMDP table functions, CDS table functions, and AMDP scalar functions. Use when users ask about ABAP SQL, modern SQL, SELECT, window functions, CTE, common table expression, AMDP, SQLScript, AMDP table function, CDS table function, aggregate, GROUP BY, HAVING, UNION, INTERSECT, EXCEPT, PRIVILEGED ACCESS, ABAP SQL expressions, built-in SQL functions, or database procedures. Triggers include "ABAP SQL query", "window function", "CTE", "AMDP", "table function", "GROUP BY", "aggregate", "PRIVILEGED ACCESS", "inline SELECT", or "SQLScript".
+description: Help with advanced ABAP SQL and AMDP (ABAP Managed Database Procedures) — window functions, common table expressions (CTE), AMDP classes/procedures, AMDP table functions, CDS table functions, AMDP scalar functions, and PRIVILEGED ACCESS. Use when users ask about AMDP, SQLScript, table functions, window functions, CTE, UNION/INTERSECT/EXCEPT, advanced ABAP SQL expressions, or database-level performance optimization. Triggers include "AMDP", "SQLScript", "table function", "window function", "CTE", "advanced SQL", "database procedure". For constructor expressions, internal-table operations, and string templates use modern-abap-syntax.
 ---
 
 # ABAP SQL & AMDP
 
-Guide for writing modern ABAP SQL statements and ABAP Managed Database Procedures (AMDP) in ABAP Cloud and Standard ABAP.
+You already know standard ABAP SQL (SELECT, GROUP BY, HAVING, joins, subqueries, aggregates, window functions, CTE) — don't re-derive it here. This skill exists for the decisions and the AMDP-specific syntax that gets hallucinated.
 
-## Workflow
+## Workspace Constraint First (rule §3)
 
-1. **Determine the user's goal**:
-   - Writing or optimizing ABAP SQL queries
-   - Using advanced SQL features (window functions, CTEs, aggregates)
-   - Creating AMDP procedures or functions
-   - Implementing CDS table functions via AMDP
-   - Understanding PRIVILEGED ACCESS for authorization bypass
+Read SAP data via released CDS views (`I_*`) only — never physical SAP tables. Custom Z-tables are read via their own CDS interface views once those exist. Any example below using a `z*_ve` source means "your CDS view entity", not a bare table.
 
-2. **Identify the context**:
-   - ABAP for Cloud Development vs. Standard ABAP (affects available syntax)
-   - Performance optimization needs
-   - Whether AMDP is justified (prefer ABAP SQL when possible)
+## Modern ABAP SQL Feature Checklist
 
-3. **Guide implementation** using modern ABAP SQL syntax
+One-line reminders of what's available in ABAP for Cloud Development — expand any of them from the cheat sheets in References when needed:
 
-## Modern ABAP SQL Quick Reference
+- Inline results: `SELECT ... INTO TABLE @DATA(lt_x)` — always the default
+- SQL expressions in field lists: `CASE`, arithmetic, `concat()`, `division()`, `coalesce()`
+- Window functions: `OVER ( PARTITION BY ... ORDER BY ... )` with `SUM/AVG/ROW_NUMBER/RANK/LEAD/LAG`
+- CTE: `WITH +cte AS ( SELECT ... ) SELECT FROM +cte ...` — prefer over nested subqueries for readability
+- Set operations: `UNION [ALL]`, `INTERSECT`, `EXCEPT`
+- Existence checks: `WHERE EXISTS ( SELECT ... )` / `FOR ALL ENTRIES` (only with a filled, deduplicated driver table)
+- `PRIVILEGED ACCESS` — bypasses CDS access control; only with explicit justification, see [Skill: authorization-iam]
 
-### Basic SELECT with Inline Declaration
+## ABAP SQL vs AMDP — the decision
 
-```abap
-"Single record
-SELECT SINGLE FROM ztravel
-  FIELDS travel_id, description, total_price, currency_code
-  WHERE travel_id = @lv_travel_id
-  INTO @DATA(ls_travel).
+Prefer ABAP SQL for almost everything (optimizer-friendly, debuggable, no HANA lock-in). Reach for AMDP only when: the logic needs SQLScript features ABAP SQL lacks (imperative logic between set operations, script-side variables), a **CDS table function** needs an implementation, or measured mass-data processing genuinely benefits from staying on the database.
 
-"Multiple records into internal table
-SELECT FROM ztravel
-  FIELDS travel_id, description, total_price, currency_code
-  WHERE status = 'O'
-  ORDER BY total_price DESCENDING
-  INTO TABLE @DATA(lt_travels)
-  UP TO 100 ROWS.
-```
-
-### Expressions in SELECT List
-
-```abap
-SELECT FROM zflight
-  FIELDS carrier_id,
-         connection_id,
-         flight_date,
-         seats_max - seats_occupied AS seats_free,
-         CASE WHEN seats_occupied > seats_max * 80 / 100
-              THEN 'FULL'
-              ELSE 'AVAILABLE'
-         END AS availability,
-         CAST( price AS DECFLOAT34 ) AS price_dec,
-         CONCAT( carrier_id, connection_id ) AS flight_key
-  INTO TABLE @DATA(lt_flights).
-```
-
-### Aggregate Functions and GROUP BY
-
-```abap
-SELECT FROM zflight
-  FIELDS carrier_id,
-         COUNT(*) AS flight_count,
-         SUM( seats_occupied ) AS total_passengers,
-         AVG( price ) AS avg_price,
-         MIN( flight_date ) AS first_flight,
-         MAX( flight_date ) AS last_flight
-  GROUP BY carrier_id
-  HAVING COUNT(*) > 10
-  INTO TABLE @DATA(lt_stats).
-```
-
-### Window Functions
-
-```abap
-SELECT FROM zflight
-  FIELDS carrier_id,
-         connection_id,
-         flight_date,
-         price,
-         "Running total
-         SUM( price ) OVER( PARTITION BY carrier_id
-                            ORDER BY flight_date
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW ) AS running_total,
-         "Row number within partition
-         ROW_NUMBER( ) OVER( PARTITION BY carrier_id
-                             ORDER BY flight_date DESCENDING ) AS row_num,
-         "Ranking
-         RANK( ) OVER( PARTITION BY carrier_id ORDER BY price DESCENDING ) AS price_rank,
-         "Lead/Lag
-         LAG( price, 1 ) OVER( PARTITION BY carrier_id ORDER BY flight_date ) AS prev_price,
-         LEAD( price, 1 ) OVER( PARTITION BY carrier_id ORDER BY flight_date ) AS next_price
-  INTO TABLE @DATA(lt_window).
-```
-
-### Common Table Expressions (CTE)
-
-```abap
-WITH
-  +connections AS (
-    SELECT FROM zflsch
-      FIELDS carrier_id, connection_id, city_from, city_to
-      WHERE carrier_id IN @lt_carriers ),
-  +flight_counts AS (
-    SELECT FROM zflight
-      FIELDS carrier_id, connection_id,
-             COUNT(*) AS cnt
-      GROUP BY carrier_id, connection_id ),
-  +result AS (
-    SELECT FROM +connections AS c
-      INNER JOIN +flight_counts AS f
-        ON c~carrier_id = f~carrier_id AND c~connection_id = f~connection_id
-      FIELDS c~carrier_id, c~city_from, c~city_to, f~cnt )
-  SELECT FROM +result
-    FIELDS *
-    ORDER BY cnt DESCENDING
-    INTO TABLE @DATA(lt_result).
-```
-
-### Set Operations (UNION, INTERSECT, EXCEPT)
-
-```abap
-"UNION ALL (keeps duplicates) / UNION (removes duplicates)
-SELECT FROM ztable1 FIELDS col1, col2
-UNION ALL
-SELECT FROM ztable2 FIELDS col1, col2
-INTO TABLE @DATA(lt_union).
-
-"INTERSECT — rows in both
-SELECT FROM ztable1 FIELDS col1
-INTERSECT
-SELECT FROM ztable2 FIELDS col1
-INTO TABLE @DATA(lt_intersect).
-
-"EXCEPT — rows in first but not second
-SELECT FROM ztable1 FIELDS col1
-EXCEPT
-SELECT FROM ztable2 FIELDS col1
-INTO TABLE @DATA(lt_except).
-```
-
-### PRIVILEGED ACCESS
-
-Bypasses CDS access control (DCL) — use with care:
-
-```abap
-"Skips access control defined in CDS DCL
-SELECT FROM zi_travel
-  FIELDS travel_id, description
-  WHERE status = 'O'
-  INTO TABLE @DATA(lt_all_travels)
-  PRIVILEGED ACCESS.
-```
-
-### Built-in SQL Functions
-
-| Category       | Functions                                                                                                       |
-| -------------- | --------------------------------------------------------------------------------------------------------------- |
-| **String**     | `CONCAT`, `SUBSTRING`, `LENGTH`, `LEFT`, `RIGHT`, `LTRIM`, `RTRIM`, `UPPER`, `LOWER`, `REPLACE`, `LPAD`, `RPAD` |
-| **Numeric**    | `ABS`, `CEIL`, `FLOOR`, `ROUND`, `MOD`, `DIV`, `DIVISION`                                                       |
-| **Date/Time**  | `DATS_ADD_DAYS`, `DATS_DAYS_BETWEEN`, `TSTMP_ADD_SECONDS`, `TSTMP_CURRENT_UTCTIMESTAMP`, `DATN_ADD_MONTHS`      |
-| **Conversion** | `CAST`, `COALESCE`, `CURRENCY_CONVERSION`, `UNIT_CONVERSION`                                                    |
-| **Null**       | `COALESCE`, `CASE WHEN ... IS NULL`                                                                             |
-| **Aggregate**  | `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`, `STRING_AGG`                                                               |
-
-### Subqueries
-
-```abap
-"Scalar subquery
-SELECT FROM ztravel
-  FIELDS travel_id,
-         total_price,
-         ( SELECT AVG( total_price ) FROM ztravel ) AS avg_price
-  INTO TABLE @DATA(lt_with_avg).
-
-"EXISTS subquery
-SELECT FROM ztravel AS t
-  FIELDS t~travel_id, t~description
-  WHERE EXISTS ( SELECT FROM zbooking AS b
-                   WHERE b~travel_id = t~travel_id
-                     AND b~flight_date > @sy-datum )
-  INTO TABLE @DATA(lt_with_bookings).
-```
-
-## AMDP (ABAP Managed Database Procedures)
-
-### When to Use AMDP
-
-- Prefer ABAP SQL for most scenarios
-- Use AMDP when: complex calculations benefit from SQLScript, CDS table functions are needed, or mass data processing requires database-level optimization
-
-### AMDP Class Structure
+## AMDP Class Structure
 
 ```abap
 CLASS zcl_my_amdp DEFINITION
@@ -218,7 +51,7 @@ CLASS zcl_my_amdp DEFINITION
 ENDCLASS.
 ```
 
-### AMDP Procedure Implementation
+Implementation shape (procedure — table functions are analogous with `BY DATABASE FUNCTION` + `RETURN SELECT`):
 
 ```abap
 METHOD get_carrier_stats
@@ -226,19 +59,15 @@ METHOD get_carrier_stats
   FOR HDB
   LANGUAGE SQLSCRIPT
   OPTIONS READ-ONLY
-  USING zflight_ve.
+  USING zflight_ve.                "declare EVERY consumed view/entity
 
-  et_result = SELECT carrier_id,
-                     COUNT(*) AS total
+  et_result = SELECT carrier_id, COUNT(*) AS total
               FROM zflight_ve
-              GROUP BY carrier_id
-              ORDER BY total DESC;
+              GROUP BY carrier_id;
 ENDMETHOD.
 ```
 
-### AMDP Table Function for CDS Table Function
-
-CDS table function definition:
+## CDS Table Function
 
 ```cds
 @ClientHandling.type: #CLIENT_DEPENDENT
@@ -253,27 +82,7 @@ define table function ZDEMO_AMDP_TF
   implemented by method zcl_my_amdp=>get_data;
 ```
 
-AMDP implementation:
-
-```abap
-METHOD get_data
-  BY DATABASE FUNCTION
-  FOR HDB
-  LANGUAGE SQLSCRIPT
-  OPTIONS READ-ONLY
-  USING zcarrier_ve zflight_ve.
-
-  RETURN SELECT c.carrier_id,
-                c.carrier_name,
-                COUNT(*) AS flight_count
-         FROM zcarrier_ve AS c
-         INNER JOIN zflight_ve AS f
-           ON c.carrier_id = f.carrier_id
-         GROUP BY c.carrier_id, c.carrier_name;
-ENDMETHOD.
-```
-
-### AMDP Client Safety (ABAP Cloud)
+## AMDP Client Safety (ABAP Cloud) — the table that prevents the classic bug
 
 | Addition                       | Use Case                                      |
 | ------------------------------ | --------------------------------------------- |
@@ -281,28 +90,10 @@ ENDMETHOD.
 | `CLIENT INDEPENDENT`           | Uses only client-independent objects          |
 | `AMDP OPTIONS READ-ONLY`       | Mandatory in ABAP for Cloud Development       |
 
-## Output Format
-
-When helping with ABAP SQL or AMDP topics, structure responses as:
-
-```markdown
-## ABAP SQL / AMDP Guidance
-
-### Query
-
-[The ABAP SQL statement or AMDP implementation]
-
-### Explanation
-
-[Key features used and why]
-
-### Performance Notes
-
-[Optimization considerations if relevant]
-```
+Forgetting the client-handling addition (or `USING`) is the #1 AMDP activation failure — declare every consumed entity and match its client handling.
 
 ## References
 
-- ABAP SQL Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets
+- ABAP SQL Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets (03_ABAP_SQL)
 - AMDP Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets/blob/main/12_AMDP.md
 - ABAP SQL Reference: https://help.sap.com/doc/abapdocu_cp_index_htm/CLOUD/en-US/index.htm?file=abenabap_sql.htm

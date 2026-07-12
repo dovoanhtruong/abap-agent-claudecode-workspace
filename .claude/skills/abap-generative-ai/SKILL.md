@@ -1,125 +1,55 @@
 ---
 name: abap-generative-ai
-description: Help with implementing Generative AI within ABAP Cloud using ISLM (Intelligent Scenario Lifecycle Management) and the ABAP AI SDK. Use when users ask about Generative AI, AI SDK, ISLM, LLM, OpenAI in ABAP, Azure OpenAI, Hub, prompts, completions, embeddings in ABAP. Triggers include "generative ai", "ai sdk", "islm", "llm", "tích hợp ai", "openai abap".
+description: Help with implementing Generative AI within ABAP Cloud using ISLM (Intelligent Scenario Lifecycle Management) and the official ABAP AI SDK (CL_AIC_ISLM_* / IF_AIC_* family). Use when users ask about Generative AI, AI SDK, ISLM, LLM calls from ABAP, Generative AI Hub, prompt templates, or completions in ABAP. Triggers include "generative ai", "ai sdk", "islm", "llm", "tích hợp ai", "openai abap", "completion api".
 ---
 
 # ABAP Generative AI
 
-Guide for integrating Large Language Models (LLMs) and Generative AI into ABAP applications using the **ABAP AI SDK** powered by ISLM (Intelligent Scenario Lifecycle Management).
+Guide for calling Large Language Models from ABAP Cloud using the **ABAP AI SDK powered by ISLM**. The SDK's real, released surface is the `CL_AIC_ISLM_*` factory + `IF_AIC_*` interface family — do not invent other class names; if unsure, verify against the References below before emitting code.
 
-## Workflow
+## Prerequisites
 
-1. **Verify Prerequisites**:
-   - Ensure the system is configured for Generative AI Hub or Azure OpenAI.
-   - The appropriate Communication Arrangements are active.
-2. **Select the Use Case**:
-   - Chat Completion (generating text, answering questions)
-   - Embeddings (vector representation for search)
-3. **Implement using the ABAP AI SDK**.
+- An **ISLM Intelligent Scenario** of type Generative AI exists and is published (this is what maps your code to a concrete model/deployment — never hardcode model names like `gpt-4`).
+- Generative AI Hub / provider connectivity is configured with active Communication Arrangements.
 
-## ABAP AI SDK Reference
-
-The core interfaces reside in the `IF_AISA_*` (AI SDK ABAP) packages.
-
-### Chat Completions
-
-Calling an LLM to generate a response based on a user prompt.
+## Completion API (the core pattern)
 
 ```abap
-CLASS zcl_demo_ai_chat DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES if_oo_adt_classrun.
-ENDCLASS.
+TRY.
+    " Factory → instance bound to the ISLM scenario
+    DATA(lo_api) = cl_aic_islm_compl_api_factory=>get( )->create_instance(
+                     islm_scenario = 'ZMY_LLM_SCENARIO' ).
 
-CLASS zcl_demo_ai_chat IMPLEMENTATION.
-  METHOD if_oo_adt_classrun~main.
-    TRY.
-        " 1. Create the AI Profile / Destination (Scenario mapped in ISLM)
-        DATA(lo_destination) = cl_aisa_destination_factory=>create_by_scenario( 'ZMY_LLM_SCENARIO' ).
-        
-        " 2. Initialize the AI client for Chat Completion
-        DATA(lo_client) = cl_aisa_chat_comp_factory=>create( lo_destination ).
-        
-        " 3. Build the request payload
-        DATA(lo_request) = cl_aisa_chat_comp_request=>create( ).
-        
-        " Add System Prompt (Context)
-        lo_request->add_message(
-          role    = if_aisa_chat_comp_msg_role=>system
-          content = 'You are a helpful ABAP development assistant.'
-        ).
-        
-        " Add User Prompt
-        lo_request->add_message(
-          role    = if_aisa_chat_comp_msg_role=>user
-          content = 'Explain the difference between VALUE and REDUCE in ABAP.'
-        ).
-        
-        " 4. Set model parameters (optional)
-        lo_request->set_temperature( '0.7' ).
-        lo_request->set_max_tokens( 500 ).
-        
-        " 5. Execute the call
-        DATA(lo_response) = lo_client->execute( lo_request ).
-        
-        " 6. Process response
-        DATA(lt_choices) = lo_response->get_choices( ).
-        IF lines( lt_choices ) > 0.
-          out->write( lt_choices[ 1 ]-message-content ).
-        ENDIF.
-        
-      CATCH cx_aisa_exception INTO DATA(lx_error).
-        out->write( |AI Error: { lx_error->get_text( ) }| ).
-    ENDTRY.
-  ENDMETHOD.
-ENDCLASS.
+    " Execute a completion for a plain-text prompt
+    DATA(lo_result) = lo_api->execute_for_string(
+                        `Explain the difference between VALUE and REDUCE in ABAP.` ).
+
+    DATA(lv_completion) = lo_result->get_completion( ).
+    out->write( lv_completion ).
+
+  CATCH cx_aic_api_factory cx_aic_completion_api INTO DATA(lx_error).
+    " Network/quota/config issues are common with LLM calls — always handle
+    out->write( |AI Error: { lx_error->get_text( ) }| ).
+ENDTRY.
 ```
 
-### Embeddings
+Key types: `CL_AIC_ISLM_COMPL_API_FACTORY` (entry point), `IF_AIC_COMPLETION_API` (instance), `IF_AIC_COMPLETION_API_RESULT` (result), exceptions `CX_AIC_API_FACTORY` / `CX_AIC_COMPLETION_API`.
 
-Generating vector embeddings for text, usually for RAG (Retrieval-Augmented Generation) scenarios.
+## Prompt Templates
 
-```abap
-CLASS zcl_demo_ai_embed DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES if_oo_adt_classrun.
-ENDCLASS.
+For reusable prompts with placeholders, use `CL_AIC_ISLM_PROMPT_TPL_FACTORY` to create/fill a prompt template bound to the scenario, then execute it via the completion API (exception: `CX_AIC_PROMPT_TEMPLATE`). Prefer templates over string concatenation when the same prompt shape is used in multiple places — they keep prompt text out of code and versionable.
 
-CLASS zcl_demo_ai_embed IMPLEMENTATION.
-  METHOD if_oo_adt_classrun~main.
-    TRY.
-        " 1. Create Destination for Embedding Scenario
-        DATA(lo_dest) = cl_aisa_destination_factory=>create_by_scenario( 'ZMY_EMBED_SCENARIO' ).
-        
-        " 2. Create Embedding Client
-        DATA(lo_client) = cl_aisa_embedding_factory=>create( lo_dest ).
-        
-        " 3. Build Request
-        DATA(lo_request) = cl_aisa_embedding_request=>create( ).
-        lo_request->add_input( 'This is a sample text to be converted into an embedding vector.' ).
-        
-        " 4. Execute
-        DATA(lo_response) = lo_client->execute( lo_request ).
-        
-        " 5. Get Vector
-        DATA(lt_data) = lo_response->get_data( ).
-        IF lines( lt_data ) > 0.
-          DATA(lt_vector) = lt_data[ 1 ]-embedding.
-          out->write( |Embedding generated with { lines( lt_vector ) } dimensions.| ).
-        ENDIF.
+## What the SDK does NOT (yet) offer
 
-      CATCH cx_aisa_exception INTO DATA(lx_error).
-        out->write( |Error: { lx_error->get_text( ) }| ).
-    ENDTRY.
-  ENDMETHOD.
-ENDCLASS.
-```
+- **No documented embeddings API** in the ISLM-based ABAP AI SDK. If a requirement needs embeddings/RAG vectors, do not fabricate `*_embedding_*` classes — route via the Generative AI Hub orchestration service (HTTP, outbound communication arrangement) and say explicitly that this is outside the AI SDK.
+- Fine-grained sampling parameters (temperature, max tokens) are governed by the ISLM scenario/model configuration, not ad-hoc setters — check the current SDK API reference before promising a parameter is settable from code.
 
 ## Best Practices
-- Avoid hardcoding model names (e.g., `gpt-4`). Always use ISLM configuration (Scenarios) to map models dynamically.
-- Handle `CX_AISA_EXCEPTION` carefully, as network/quota issues are common with LLMs.
-- Consider token limits when building context for RAG.
+
+- Always indirect through the ISLM scenario — it is the lifecycle/governance boundary (model swaps, deployments) and the reason the SDK exists.
+- Consider token limits when assembling prompt context; truncate/summarize inputs deliberately rather than letting calls fail.
 
 ## References
-- SAP ABAP Cheat Sheets — Generative AI (30_Generative_AI)
-- SAP Help Portal: ABAP AI SDK
+
+- SAP ABAP Cheat Sheets — [30_Generative_AI.md](https://github.com/SAP-samples/abap-cheat-sheets/blob/main/30_Generative_AI.md) (canonical code patterns)
+- SAP Help — [API Reference Guide for ABAP AI SDK](https://help.sap.com/docs/abap-ai/generative-ai-in-abap-cloud/api-reference-guide-for-abap-ai-sdk)

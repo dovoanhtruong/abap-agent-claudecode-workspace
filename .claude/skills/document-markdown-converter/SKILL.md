@@ -1,6 +1,6 @@
 ---
 name: document-markdown-converter
-description: Hướng dẫn tiền xử lý (pre-processing) tài liệu nhị phân (PDF, DOCX, XLSX, PPTX, HTML, v.v.) bằng công cụ Microsoft MarkItDown thành định dạng Markdown (MD). Kỹ năng này giúp Agent bóc tách cấu trúc dữ liệu, bảng biểu và text một cách chuẩn xác mà không cần đọc trực tiếp file nhị phân, qua đó tiết kiệm token tối đa. Sử dụng kỹ năng này khi người dùng yêu cầu đọc file tài liệu thiết kế (FS) hoặc bất cứ khi nào thấy file PDF/Word được cung cấp làm đầu vào. Triggers: `markitdown`, `convert fs`, `parse document`, `tiền xử lý tài liệu`, `pdf`, `docx`.
+description: Hướng dẫn tiền xử lý (pre-processing) tài liệu FS nhị phân (PDF, DOCX, XLSX, PPTX, HTML, v.v.) bằng công cụ Microsoft MarkItDown thành định dạng Markdown (MD) trước khi phân tích trong các workflow SAP. Sử dụng khi một tài liệu thiết kế FS/spec được cung cấp làm đầu vào cho workflow phân tích (fs-analytic, bug-fix...) — KHÔNG dùng cho các thao tác PDF/Word/Excel tổng quát (tạo, chỉnh sửa, merge file — việc đó thuộc các skill pdf/docx/xlsx chuyên dụng). Triggers: `markitdown`, `convert fs`, `parse FS document`, `tiền xử lý tài liệu FS`, `đọc file FS`.
 ---
 
 # Document Markdown Converter (MarkItDown Integration)
@@ -30,7 +30,7 @@ Execute the conversion command and output to the `artifacts/scratchpads/` direct
 ```
 
 ### 3. Handoff to Analysis
-Once `fs_markdown.md` is generated successfully, **stop reading the original document**. Direct your `view_file` tool to read `artifacts/scratchpads/fs_markdown.md` instead.
+Once `fs_markdown.md` is generated successfully, **stop reading the original document**. Read `artifacts/scratchpads/fs_markdown.md` instead (with the Read tool).
 The resulting markdown will contain preserved headings, lists, and tables which you can easily parse for Data Model and UI elements extraction.
 
 ## Optional: LLM OCR for Images

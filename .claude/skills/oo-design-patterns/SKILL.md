@@ -5,178 +5,35 @@ description: Help with Object-Oriented Design Patterns (GoF) implemented in ABAP
 
 # OO Design Patterns in ABAP
 
-Guide for implementing standard Object-Oriented Design Patterns (Gang of Four) using modern ABAP constructs.
+The build workflows need pattern *selection judgment*, not textbook implementations — you already know how to code every GoF pattern. **Never force a pattern the TS doesn't call for** (workspace rule §6: patterns are justified by the TS's Coding Implementation Plan, not aesthetics). A pattern that isn't earning its indirection is worse than a plain class.
 
-## Workflow
+## When Is Which Pattern Warranted
 
-1. **Understand the problem domain**: What is the structural, creational, or behavioral issue the user is trying to solve?
-2. **Select the appropriate pattern**:
-   - Creational: Singleton, Factory, Builder
-   - Structural: Adapter, Decorator, Facade, Composite
-   - Behavioral: Strategy, Observer, Command, State
-3. **Implement using modern ABAP**: Emphasize interfaces, composition over inheritance, and clean ABAP principles.
+| Pattern | Use in ABAP/RAP context when... | Avoid when... |
+|---|---|---|
+| **Singleton** | One shared config/cache/connection holder per session | It's hiding global state that makes tests order-dependent; RAP handlers are stateless anyway |
+| **Factory** | Callers must not know the concrete class — test injection (interface + `create object` behind a static `create( )`), variant selection by type code | There's exactly one implementation and no test seam needed |
+| **Strategy** | An algorithm varies by config/customizing (pricing rule, validation policy) chosen at runtime | The "strategies" are 2 branches of a stable IF — COND is enough |
+| **Observer** | Decoupled reaction to a change; in RAP prefer **business events** ([Skill: rap-business-events]) over hand-rolled observers | A direct method call is clearer and the coupling is fine |
+| **Decorator** | Layering optional behavior (logging, caching) over an interface without touching implementations | Subclassing or a plain wrapper method does the job |
+| **Builder** | Constructing an object with many optional parts stepwise (test-data builders are the classic ABAP use) | A `VALUE #( )` constructor expression covers it |
+| **State** | A status machine where behavior per state is complex enough to warrant one class per state | Status logic fits in a determination/validation + CASE — typical for most RAP BOs |
+| **Command** | Queue/undo/audit of operations as objects (e.g., batch job step lists) | You're just calling a method |
+| **Adapter** | Wrapping an unreleased/legacy API behind a clean released interface — the Tier-2 wrapper pattern IS an adapter ([Skill: abap-cloud-migration]) | Signatures already match |
+| **Facade** | One entry point over a subsystem (e.g., a supporting class hiding several I_* view reads from a behavior pool) | It would be a one-method pass-through |
+| **Composite** | Uniform treatment of tree structures (BOM explosions, org hierarchies) | The hierarchy is fixed at 2 levels — just loop |
+| **Iterator** | Custom traversal order/lazy paging over a non-table source | It's an internal table — LOOP/FOR already iterate |
+| **Proxy** | Lazy loading or access control in front of an expensive resource (RFC destination, HTTP client) | The resource is cheap to create |
 
-## Creational Patterns
+## ABAP-Specific Realization Notes
 
-### Singleton
+Only where the ABAP realization is non-obvious:
 
-Ensures a class has only one instance and provides a global point of access to it.
+- **Singleton**: `CREATE PRIVATE` + `CLASS-DATA go_instance` + `CLASS-METHODS get_instance`. In ABAP Cloud there is no cross-session shared memory — a "singleton" lives per internal session only.
+- **Factory for testability**: return an interface type; give the factory an injectable seam (`CLASS-METHODS set_instance FOR TESTING` or constructor injection in the consumer) — this is the seam [Skill: abap-unit-testing] relies on for dependency isolation.
+- **Strategy/State class explosion**: in ABAP each class is a repository object with TR overhead — before splitting per-state/per-strategy classes, confirm the variability is real and in the TS.
+- **Observer in RAP**: `RAISE ENTITY EVENT` + event handler class replaces hand-rolled observer registries.
 
-```abap
-CLASS zcl_singleton DEFINITION PUBLIC CREATE PRIVATE.
-  PUBLIC SECTION.
-    CLASS-METHODS get_instance
-      RETURNING VALUE(ro_instance) TYPE REF TO zcl_singleton.
-  PRIVATE SECTION.
-    CLASS-DATA mo_instance TYPE REF TO zcl_singleton.
-ENDCLASS.
+## Output Format
 
-CLASS zcl_singleton IMPLEMENTATION.
-  METHOD get_instance.
-    IF mo_instance IS NOT BOUND.
-      mo_instance = NEW #( ).
-    ENDIF.
-    ro_instance = mo_instance.
-  ENDMETHOD.
-ENDCLASS.
-```
-
-### Factory Method
-
-Defines an interface for creating an object, but lets subclasses decide which class to instantiate.
-
-```abap
-INTERFACE zif_document.
-  METHODS print.
-ENDINTERFACE.
-
-CLASS zcl_pdf_document DEFINITION PUBLIC.
-  PUBLIC SECTION. INTERFACES zif_document.
-ENDCLASS.
-
-CLASS zcl_document_factory DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    CLASS-METHODS create_document
-      IMPORTING type TYPE string
-      RETURNING VALUE(ro_doc) TYPE REF TO zif_document.
-ENDCLASS.
-
-CLASS zcl_document_factory IMPLEMENTATION.
-  METHOD create_document.
-    ro_doc = COND #( 
-      WHEN type = 'PDF' THEN NEW zcl_pdf_document( )
-      WHEN type = 'DOC' THEN NEW zcl_word_document( ) 
-    ).
-  ENDMETHOD.
-ENDCLASS.
-```
-
-## Behavioral Patterns
-
-### Strategy
-
-Defines a family of algorithms, encapsulates each one, and makes them interchangeable.
-
-```abap
-INTERFACE zif_tax_strategy.
-  METHODS calculate_tax 
-    IMPORTING amount TYPE decfloat34 
-    RETURNING VALUE(tax) TYPE decfloat34.
-ENDINTERFACE.
-
-CLASS zcl_us_tax DEFINITION PUBLIC.
-  PUBLIC SECTION. INTERFACES zif_tax_strategy.
-ENDCLASS.
-
-CLASS zcl_order DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    METHODS constructor IMPORTING io_tax_strategy TYPE REF TO zif_tax_strategy.
-    METHODS get_total RETURNING VALUE(total) TYPE decfloat34.
-  PRIVATE SECTION.
-    DATA mo_tax_strategy TYPE REF TO zif_tax_strategy.
-ENDCLASS.
-
-CLASS zcl_order IMPLEMENTATION.
-  METHOD constructor.
-    mo_tax_strategy = io_tax_strategy.
-  ENDMETHOD.
-  METHOD get_total.
-    " Calculate base total then apply strategy
-    total = base_total + mo_tax_strategy->calculate_tax( base_total ).
-  ENDMETHOD.
-ENDCLASS.
-```
-
-### Observer
-
-Defines a one-to-many dependency so that when one object changes state, all its dependents are notified.
-
-```abap
-INTERFACE zif_observer.
-  METHODS update IMPORTING state TYPE string.
-ENDINTERFACE.
-
-CLASS zcl_subject DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    METHODS attach IMPORTING io_observer TYPE REF TO zif_observer.
-    METHODS notify.
-    METHODS set_state IMPORTING state TYPE string.
-  PRIVATE SECTION.
-    DATA mt_observers TYPE TABLE OF REF TO zif_observer.
-    DATA mv_state TYPE string.
-ENDCLASS.
-
-CLASS zcl_subject IMPLEMENTATION.
-  METHOD attach.
-    APPEND io_observer TO mt_observers.
-  ENDMETHOD.
-  METHOD notify.
-    LOOP AT mt_observers INTO DATA(lo_observer).
-      lo_observer->update( mv_state ).
-    ENDLOOP.
-  ENDMETHOD.
-  METHOD set_state.
-    mv_state = state.
-    notify( ).
-  ENDMETHOD.
-ENDCLASS.
-```
-
-## Structural Patterns
-
-### Decorator
-
-Attaches additional responsibilities to an object dynamically.
-
-```abap
-INTERFACE zif_component.
-  METHODS operation RETURNING VALUE(result) TYPE string.
-ENDINTERFACE.
-
-CLASS zcl_decorator DEFINITION PUBLIC ABSTRACT.
-  PUBLIC SECTION.
-    INTERFACES zif_component.
-    METHODS constructor IMPORTING io_component TYPE REF TO zif_component.
-  PROTECTED SECTION.
-    DATA mo_component TYPE REF TO zif_component.
-ENDCLASS.
-
-CLASS zcl_decorator IMPLEMENTATION.
-  METHOD constructor. mo_component = io_component. ENDMETHOD.
-  METHOD zif_component~operation. result = mo_component->operation( ). ENDMETHOD.
-ENDCLASS.
-
-CLASS zcl_concrete_decorator DEFINITION INHERITING FROM zcl_decorator PUBLIC.
-  PUBLIC SECTION.
-    METHODS zif_component~operation REDEFINITION.
-ENDCLASS.
-
-CLASS zcl_concrete_decorator IMPLEMENTATION.
-  METHOD zif_component~operation.
-    result = super->zif_component~operation( ) && ` + Extra Behavior`.
-  ENDMETHOD.
-ENDCLASS.
-```
-
-## References
-- SAP ABAP Cheat Sheets — OO Design Patterns (Branch: oo_patterns)
+When recommending a pattern: name it, state the forces that justify it (one sentence, tied to the TS/FS requirement), then give the ABAP skeleton. If no pattern is warranted, say so explicitly — "plain class, no pattern" is a valid recommendation.

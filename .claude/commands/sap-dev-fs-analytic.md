@@ -12,35 +12,35 @@ Act as an Expert SAP Solution Architect and Technical Analyst. Deeply read and a
 - Functional Specification (FS): file(s) in `artifacts/fs_docs/`, or FS text pasted directly. Arguments: $ARGUMENTS
 
 [GOVERNING RULES]
-This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: no TS handoff without passing the Verify Loop (Phase 5); progress updates use [Skill: Caveman]; never re-print full drafts already saved to a file, reference the path instead.
+This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: no TS handoff without passing the Verify Loop (Phase 5); progress updates use [Skill: caveman]; never re-print full drafts already saved to a file, reference the path instead.
 
 [EXECUTION PROTOCOL — 6 PHASES]
 
 ## Phase 0 — Intake & Pre-processing
 
-0.0 TASK LEDGER: Use [Skill: Scratchpad] to create `artifacts/scratchpads/scratchpad_[ReportName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
+0.0 TASK LEDGER: Use [Skill: scratchpad] to create `artifacts/scratchpads/scratchpad_[ReportName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
 
-0.1 DOCUMENT PRE-PROCESSING: Use [Skill: Document Markdown Converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
+0.1 DOCUMENT PRE-PROCESSING: Use [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
 
-0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), use [Skill: FS Vision Extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
+0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), use [Skill: fs-vision-extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
 
 0.3 DATA COMPLETENESS GATE (HARD GATE): Review `fs_markdown.md`. If the FS explicitly references fields/tables/requirements that live in an unprocessed image, an external link, or a table that failed conversion, STOP and ask the user to provide the missing information. Do not guess or use placeholder ranges (e.g. "Fields 1 to 39"). Do not proceed to Phase 1 until this gate passes.
 
 ## Phase 1 — Data Model Foundation (sequential — every later phase reuses this vocabulary)
 
-1.0 DATA MODELING ANALYSIS: Use [Skill: Data Model Extractor] on `fs_markdown.md` → Data Model Draft (Base Views/Tables, Joins & Conditions, Key Fields, Hardcoded Filters, Output Fields).
+1.0 DATA MODELING ANALYSIS: Use [Skill: fs-data-model-extractor] on `fs_markdown.md` → Data Model Draft (Base Views/Tables, Joins & Conditions, Key Fields, Hardcoded Filters, Output Fields).
 
-1.1 RELEASED CDS VALIDATION: Use [Skill: Find Released CDS View] to verify every source in the Data Model Draft is a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). Replace any unreleased/internal table or view with the best released alternative matching grain and field coverage. Output: **Verified Data Model** — the field/source vocabulary every later phase must reuse verbatim (identical field and view names) to avoid drift.
+1.1 RELEASED CDS VALIDATION: Use [Skill: find-released-cds-view] to verify every source in the Data Model Draft is a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). Replace any unreleased/internal table or view with the best released alternative matching grain and field coverage. Output: **Verified Data Model** — the field/source vocabulary every later phase must reuse verbatim (identical field and view names) to avoid drift.
 
 ## Phase 2 — Domain Analysis (parallel if subagents available, sequential otherwise — identical output either way)
 
 2.A/2.B/2.C each take `fs_markdown.md` + the Verified Data Model as read-only input and produce one independent draft. In Claude Code, dispatch these three via the Agent tool (parallel Task calls in one message) when the task warrants it; each agent scope: read-only input, write only its own draft, no shared state. If parallel dispatch isn't warranted for a small FS, run them sequentially in the order below — the result is identical, only slower.
 
-2.A UI/UX ANALYSIS: [Skill: Fiori UI Elements Mapper] → UI Layout Draft (Selection Fields, Line Items, Sorting/Grouping, Object Page Facets).
+2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (Selection Fields, Line Items, Sorting/Grouping, Object Page Facets).
 
-2.B BUSINESS LOGIC EXTRACTION: [Skill: ABAP Logic & Behavior Translator] → Business Logic Draft (Report Type, CDS-level derived fields, Virtual Elements/ABAP-level complex logic, Actions/Determinations, Clean Core violations + released replacements, Authorization Check). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check.
+2.B BUSINESS LOGIC EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft (Report Type, CDS-level derived fields, Virtual Elements/ABAP-level complex logic, Actions/Determinations, Clean Core violations + released replacements, Authorization Check). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check.
 
-2.C INTEGRATION & API ANALYSIS: [Skill: Integration & API Analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently.
+2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently.
 
 2.D RECONCILIATION: Cross-check the three drafts against the Verified Data Model — every field name referenced in 2.A/2.B/2.C must exist in the Verified Data Model under the same name. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field is genuinely missing) before proceeding to Phase 3.
 
@@ -48,7 +48,7 @@ This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rule
 
 3.0 ARCHITECTURE BRAINSTORM: Only when the Business Logic Draft contains genuinely complex/ambiguous logic (e.g. multi-level fallback chains, period-anchor balance calculations, a real choice between CDS Virtual Element vs. Behavior Pool vs. Custom Entity + Query Provider), generate 2-3 candidate architectures with explicit trade-offs (Clean Core compliance / Performance / Maintainability), pick one, and state why. For straightforward reports with no such ambiguity, skip the multi-option comparison and go straight to the obvious design — do not manufacture false choices just to seem thorough.
 
-3.1 CODING IMPLEMENTATION PLAN (the section `/sap-dev-create-report` depends on entirely): using [Skill: Naming Conventions] for every object name, produce a complete table of every object to be created:
+3.1 CODING IMPLEMENTATION PLAN (the section `/sap-dev-create-report` depends on entirely): using [Skill: naming-convention] for every object name, produce a complete table of every object to be created:
 
 | # | Object Name | Type | Purpose | Source/Base + Join/Association | Field Mapping (which TS output field(s) it delivers) | Corresponding create-report Step |
 |---|---|---|---|---|---|---|
@@ -70,7 +70,7 @@ PASS → Phase 6. FAIL → fix the specific gap in the phase it belongs to, then
 
 ## Phase 6 — Handoff
 
-6.0 Save the TS, mark the ledger fully DONE. If the session ends here before `/sap-dev-create-report` runs, use [Skill: Handoff] to summarize state for the next session.
+6.0 Save the TS, mark the ledger fully DONE. If the session ends here before `/sap-dev-create-report` runs, use [Skill: handoff] to summarize state for the next session.
 
 [OUTPUT FORMAT — CRITICAL]
 Save the final TS as Markdown directly under `artifacts/technical_specifications/TS_[ReportName].md` (relative to workspace root). Do not add introductory or concluding remarks outside the template. Use CamelCase for `[ReportName]`.
@@ -101,7 +101,7 @@ Report Type: [Read-only OR Transactional/Actionable — determined strictly from
 ## 5. Business Logic & Behavior
 - Derived/Calculated Fields (CDS): [List]
 - Complex Logic (Virtual Elements / ABAP): [List]
-- Authorization Check: [Auth objects / standard propagation]
+- Authorization Check: [chi tiết tập trung tại §10 — không liệt kê lại ở đây để tránh lệch 2 nơi]
 
 ## 6. Integration & API
 [From Phase 2.C — or "N/A — FS has no integration requirements"]

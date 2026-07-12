@@ -1,6 +1,6 @@
 ---
-name: Integration & API Analyzer
-description: Kỹ năng phân tích tài liệu FS để trích xuất các đặc tả tích hợp (Integration), thiết kế API (OData V2/V4, REST), cấu trúc JSON Payload, và sơ đồ mapping dữ liệu giữa SAP và hệ thống ngoài theo chuẩn SAP API Style Guide.
+name: fs-integration-api-analyzer
+description: Kỹ năng phân tích tài liệu FS để trích xuất các đặc tả tích hợp (Integration), thiết kế API (OData V2/V4, REST), cấu trúc JSON Payload, và sơ đồ mapping dữ liệu giữa SAP và hệ thống ngoài theo chuẩn SAP API Style Guide. Use when the input is an FS DOCUMENT whose integration/API requirements need extracting during TS creation. Triggers include "extract API spec từ FS", "phân tích integration FS", "payload mapping từ FS". For implementing/consuming an OData service (code-level), use odata instead.
 ---
 
 # ROLE

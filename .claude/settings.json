@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__sap_[a-z0-9]+_dev__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/pre-cud-guard.sh",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/workspace-write-guard.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

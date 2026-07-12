@@ -6,11 +6,28 @@ license: MIT
 
 # SAP Fiori URL Generator Skill
 
-This skill enables you to generate SAP Fiori Launchpad (FLP) URLs based on app names using the `mcp-sap-docs-local` MCP tools.
+This skill enables you to generate SAP Fiori Launchpad (FLP) URLs based on app names.
 
 ## References & Tools
 
 When you need to look up SAP Fiori app information, search and fetch from the SAP Fiori apps reference library using whichever MCP server/tool your environment exposes for it (`sap-dev-rule.md` §9). You need two lookups: (1) search by app name/keywords to get a list of candidate apps, (2) fetch full details for a specific App ID (e.g., F1511A) to get its Semantic Object and Action. In Claude Code specifically, a not-yet-loaded MCP tool appears as a deferred stub — use the `ToolSearch` tool with a relevant query to find and load its schema before calling it.
+
+### Offline fallback (no MCP server needed)
+
+If no suitable MCP server is connected, use the bundled snapshot `references/AppList.json` (5,236 apps; fields include `App Name`, `App ID`, `Semantic Object - Action`, `OData Service`). Do NOT read the whole 4.6 MB file — grep it or run the bundled script from this skill's directory:
+
+```bash
+# Quick lookup by app name (case-insensitive)
+grep -i -B2 -A6 '"App Name": ".*maintenance request' references/AppList.json
+
+# Search mode (list candidate apps)
+python3 scripts/fiori-url-generator.py search "maintenance request"
+
+# Full generation: <base-url> <client> <app-name> [language]
+python3 scripts/fiori-url-generator.py https://myserver.com:44300 100 "Create Maintenance Request"
+```
+
+The snapshot is a point-in-time export — when an MCP server IS available, prefer it (fresher data) and use the snapshot only to cross-check or when offline.
 
 ## Overview
 

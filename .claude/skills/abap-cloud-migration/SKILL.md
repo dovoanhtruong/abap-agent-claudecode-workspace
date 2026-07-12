@@ -1,6 +1,6 @@
 ---
 name: abap-cloud-migration
-description: Help with migrating classic ABAP custom code to ABAP Cloud including custom code adaptation, identifying unreleased API replacements, generating wrapper classes for unreleased objects, ATC Cloud Readiness checks, handling incompatible language constructs, and step-by-step migration workflows. Use when users ask about migrating to ABAP Cloud, custom code migration, cloud readiness, unreleased API replacement, wrapper pattern, ATC cloud checks, code adaptation, classic to cloud migration, S/4HANA cloud migration, or clean core compliance. Triggers include "migrate to ABAP Cloud", "cloud readiness check", "unreleased API", "replace with released API", "custom code adaptation", "wrapper for unreleased", "ATC cloud", "clean core migration", "move to tier 1", or "ABAP Cloud compatibility".
+description: Help with migrating classic ABAP custom code to ABAP Cloud including custom code adaptation, identifying unreleased API replacements, generating wrapper classes for unreleased objects, ATC Cloud Readiness checks, handling incompatible language constructs, and step-by-step migration workflows. Use when users ask about migrating to ABAP Cloud, custom code migration, cloud readiness, unreleased API replacement, wrapper pattern, ATC cloud checks, code adaptation, classic to cloud migration, or S/4HANA cloud migration. Triggers include "migrate to ABAP Cloud", "cloud readiness check", "unreleased API", "replace with released API", "custom code adaptation", "wrapper for unreleased", "ATC cloud", "move to tier 1", or "ABAP Cloud compatibility". For conceptual tier-model/clean-core questions use abap-cloud; for configuring the ATC check variant itself use atc-cloudification.
 ---
 
 # ABAP Cloud Migration Patterns
@@ -23,17 +23,19 @@ Guide for systematically migrating classic ABAP custom code to ABAP Cloud (Tier 
 2. Use check variant `ABAP_CLOUD_READINESS` or a custom variant with cloud-relevant checks
 3. Review findings in the ATC Results view
 
-### Key ATC Check Messages
+### Typical Finding Categories and Remediations
 
-| Message ID | Description                           | Action                            |
-| ---------- | ------------------------------------- | --------------------------------- |
-| `NROB`     | Use of unreleased number range API    | Use `CL_NUMBERRANGE_RUNTIME`      |
-| `BAPI`     | Direct BAPI call                      | Use released RAP API or wrapper   |
-| `DYNP`     | Dynpro/screen usage                   | Replace with Fiori/UI5            |
-| `FUGR`     | Unreleased function module call       | Find released replacement or wrap |
-| `CLAS`     | Unreleased class usage                | Find released replacement or wrap |
-| `TABL`     | Direct DB table access (not released) | Use released CDS view entity      |
-| `LANG`     | Incompatible language construct       | Refactor to use modern ABAP       |
+ATC cloud-readiness findings are identified by **check name** within the variant (e.g. "Usage of Released APIs", "Usage of APIs", "ABAP Language Version", "Allowed Object Types in Cloud Development") plus the referenced unreleased object — there is no published table of short message IDs, so never cite one; quote the actual check name and object from the ATC result. Remediation by the *kind* of object flagged:
+
+| Flagged object/construct kind          | Action                            |
+| -------------------------------------- | --------------------------------- |
+| Number range object (`NROB`-type TADIR) | Use `CL_NUMBERRANGE_RUNTIME`      |
+| Direct BAPI call                        | Use released RAP API or wrapper   |
+| Dynpro/screen usage                     | Replace with Fiori/UI5            |
+| Unreleased function module call         | Find released replacement or wrap |
+| Unreleased class usage                  | Find released replacement or wrap |
+| Direct DB table access (not released)   | Use released CDS view entity      |
+| Incompatible language construct         | Refactor to modern ABAP (cloud language version) |
 
 ## Common API Replacements
 
@@ -80,99 +82,11 @@ Guide for systematically migrating classic ABAP custom code to ABAP Cloud (Tier 
 | `DESCRIBE FIELD ... TYPE`                | RTTI: `cl_abap_typedescr=>describe_by_data( )` |
 | `GET/SET PARAMETER ID`                   | Not available — use method parameters          |
 
-## Wrapper Pattern
+## Wrapper Pattern (Tier 2) — summary
 
-When no released API exists, create a wrapper class in Tier 2 (classic ABAP) and release it for Tier 1 consumption.
+When no released API exists: (1) define a clean Z-interface with typed signatures + class-based exceptions, (2) implement it in a Standard-ABAP class that calls the unreleased API internally, (3) release the wrapper in ADT (API State tab → C1 contract → "Use in ABAP Cloud"), (4) consume it from Tier 1, (5) retire it when SAP releases a proper API.
 
-### Step 1: Create Wrapper Interface (Tier 2, released for Cloud)
-
-```abap
-"Released for use in ABAP Cloud (C1 contract)
-INTERFACE zif_text_handler
-  PUBLIC.
-  METHODS read_text
-    IMPORTING iv_id          TYPE thead-tdid
-              iv_name        TYPE thead-tdname
-              iv_object      TYPE thead-tdobject
-              iv_language    TYPE sy-langu DEFAULT sy-langu
-    RETURNING VALUE(rt_text) TYPE tline_tab
-    RAISING   zcx_text_error.
-
-  METHODS save_text
-    IMPORTING iv_id       TYPE thead-tdid
-              iv_name     TYPE thead-tdname
-              iv_object   TYPE thead-tdobject
-              iv_language TYPE sy-langu DEFAULT sy-langu
-              it_text     TYPE tline_tab
-    RAISING   zcx_text_error.
-ENDINTERFACE.
-```
-
-### Step 2: Create Wrapper Class (Tier 2, released for Cloud)
-
-```abap
-"Implementation uses unreleased FMs internally
-"Released for use in ABAP Cloud (C1 contract)
-CLASS zcl_text_handler DEFINITION
-  PUBLIC FINAL CREATE PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES zif_text_handler.
-ENDCLASS.
-
-CLASS zcl_text_handler IMPLEMENTATION.
-  METHOD zif_text_handler~read_text.
-    "Uses unreleased FM internally — OK in Tier 2
-    CALL FUNCTION 'READ_TEXT'
-      EXPORTING
-        id       = iv_id
-        name     = iv_name
-        object   = iv_object
-        language = iv_language
-      TABLES
-        lines    = rt_text
-      EXCEPTIONS
-        OTHERS   = 1.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_text_error.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD zif_text_handler~save_text.
-    DATA ls_header TYPE thead.
-    ls_header-tdid     = iv_id.
-    ls_header-tdname   = iv_name.
-    ls_header-tdobject = iv_object.
-    ls_header-tdspras  = iv_language.
-
-    CALL FUNCTION 'SAVE_TEXT'
-      EXPORTING header = ls_header
-      TABLES    lines  = it_text
-      EXCEPTIONS OTHERS = 1.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE zcx_text_error.
-    ENDIF.
-  ENDMETHOD.
-ENDCLASS.
-```
-
-### Step 3: Release the Wrapper
-
-In ADT, open the wrapper class properties:
-
-1. Go to **API State** tab
-2. Add **Use System-Internally (C1)** contract
-3. Set visibility to **Use in ABAP Cloud**
-
-### Step 4: Use in Tier 1 Code
-
-```abap
-"Tier 1 (ABAP Cloud) code — uses released wrapper
-DATA(lo_text) = NEW zcl_text_handler( ).
-DATA(lt_text) = lo_text->zif_text_handler~read_text(
-  iv_id     = 'ST'
-  iv_name   = lv_doc_name
-  iv_object = 'VBBK' ).
-```
+> Full worked example (READ_TEXT/SAVE_TEXT wrapper, all 4 steps with code): read [references/wrapper-walkthrough.md](references/wrapper-walkthrough.md) when actually building one. Tier concepts → [Skill: abap-cloud].
 
 ## Migration Strategy by Object Type
 

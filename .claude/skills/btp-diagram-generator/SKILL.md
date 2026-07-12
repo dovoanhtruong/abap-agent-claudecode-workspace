@@ -51,7 +51,7 @@ d.connect(idp, ci, kind="dashed", direction="up")
 d.save("btp-task-center-architecture.drawio")  # validates → raises on errors
 ```
 
-Run via `uv run python <script>.py` (per [AGENTS.md](../../../AGENTS.md)). `save()` validates first and raises `ValueError` with the full error list if anything is off; warnings are printed.
+Run via `uv run python <script>.py` from the workspace root. `save()` validates first and raises `ValueError` with the full error list if anything is off; warnings are printed.
 
 ### Quick-Path API surface
 
@@ -84,7 +84,7 @@ If `lookup_icon` raises `IconNotFound`, fall back to a styled tile (`external(la
 ### Open the diagram
 
 ```sh
-uv run python skills/btp-diagram-generator/scripts/open_diagram.py btp-task-center-architecture.drawio
+uv run python .claude/skills/btp-diagram-generator/scripts/open_diagram.py btp-task-center-architecture.drawio
 ```
 
 Falls back to printing a `https://app.diagrams.net/?…#create=...` URL if no system opener is found. If a draw.io MCP tool is available in the runtime, prefer that — only call MCP tools that actually appear in the tool list.
@@ -230,13 +230,13 @@ Never invent an MCP tool name — only call tools that actually appear in the av
 Run the bundled validator script first — it codifies most of the checklist:
 
 ```sh
-python3 skills/btp-diagram-generator/scripts/validate_diagram.py <file.drawio>
+python3 .claude/skills/btp-diagram-generator/scripts/validate_diagram.py <file.drawio>
 ```
 
 If it warns about blurry icons (SVG intrinsic size smaller than cell), fix in place:
 
 ```sh
-python3 skills/btp-diagram-generator/scripts/upscale_svg_icons.py <file.drawio> --size 48 --in-place
+python3 .claude/skills/btp-diagram-generator/scripts/upscale_svg_icons.py <file.drawio> --size 48 --in-place
 ```
 
 Then verify these remaining items by eye:

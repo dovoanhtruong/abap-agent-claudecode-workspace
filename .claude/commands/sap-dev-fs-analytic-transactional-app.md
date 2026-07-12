@@ -14,17 +14,17 @@ Act as an Expert SAP Solution Architect and Technical Analyst. Deeply read and a
 - Functional Specification (FS): file(s) in `artifacts/fs_docs/`, or FS text pasted directly. Arguments: $ARGUMENTS
 
 [GOVERNING RULES]
-This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: no TS handoff without passing the Verify Loop (Phase 5); progress updates use [Skill: Caveman]; never re-print full drafts already saved to a file, reference the path instead. A structural gap (an entity/field with no table, key, or type decided) is a HARD BLOCK — do not placeholder it; a business-value gap (e.g. an exact config value still pending from another app/team) may be recorded as `[assumption]`/`TBD` per `sap-dev-rule.md` §11 as long as it doesn't stop the build.
+This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: no TS handoff without passing the Verify Loop (Phase 5); progress updates use [Skill: caveman]; never re-print full drafts already saved to a file, reference the path instead. A structural gap (an entity/field with no table, key, or type decided) is a HARD BLOCK — do not placeholder it; a business-value gap (e.g. an exact config value still pending from another app/team) may be recorded as `[assumption]`/`TBD` per `sap-dev-rule.md` §11 as long as it doesn't stop the build.
 
 [EXECUTION PROTOCOL — 6 PHASES]
 
 ## Phase 0 — Intake & Pre-processing
 
-0.0 TASK LEDGER: Use [Skill: Scratchpad] to create `artifacts/scratchpads/scratchpad_[AppName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
+0.0 TASK LEDGER: Use [Skill: scratchpad] to create `artifacts/scratchpads/scratchpad_[AppName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
 
-0.1 DOCUMENT PRE-PROCESSING: Use [Skill: Document Markdown Converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
+0.1 DOCUMENT PRE-PROCESSING: Use [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
 
-0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), use [Skill: FS Vision Extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
+0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), use [Skill: fs-vision-extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
 
 0.3 DATA COMPLETENESS GATE (HARD GATE): Review `fs_markdown.md`. If the FS explicitly references fields/entities/requirements that live in an unprocessed image, an external link, or a table that failed conversion, STOP and ask the user to provide the missing information. Do not guess or use placeholder ranges. Do not proceed to Phase 1 until this gate passes.
 
@@ -32,11 +32,11 @@ This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rule
 
 Unlike `/sap-dev-fs-analytic` (which only *looks up* an existing view), this phase *designs* the persistence layer from zero.
 
-1.0 ENTITY & TREE ANALYSIS: Use [Skill: Data Model Extractor] on `fs_markdown.md` → identify the composition tree (root entity + every child/sub-entity the FS describes, e.g. a header with line-item children), each entity's business key(s), and whether the FS implies versioning/sequencing (e.g. a document number + version, or a child row number scoped to its parent).
+1.0 ENTITY & TREE ANALYSIS: Use [Skill: fs-data-model-extractor] on `fs_markdown.md` → identify the composition tree (root entity + every child/sub-entity the FS describes, e.g. a header with line-item children), each entity's business key(s), and whether the FS implies versioning/sequencing (e.g. a document number + version, or a child row number scoped to its parent).
 
-1.1 NEW TABLE DESIGN (the step that replaces "find a released view"): for every entity in the tree, design its full DDIC shape: field list with ABAP type/length, which fields are keys (including any composite/parent-FK keys for children), which fields need a fixed-value Domain (status, type, category fields), which need a dedicated Data Element (for label reuse), and whether the app needs a Number Range object (external/managed sequential numbering) vs. simple RAP-managed/BDEF numbering for a field. Flag draft-table need (draft-enabled if the FS implies save-later/edit-in-progress behavior, e.g. an "Edit" that doesn't commit immediately). [Skill: Naming Conventions] for every proposed name — but if the FS/user has already stated an explicit naming scheme (base name + node suffixes, e.g. `_H`/`_FG`/`_RM`), that explicit scheme wins over the skill's generic default.
+1.1 NEW TABLE DESIGN (the step that replaces "find a released view"): for every entity in the tree, design its full DDIC shape: field list with ABAP type/length, which fields are keys (including any composite/parent-FK keys for children), which fields need a fixed-value Domain (status, type, category fields), which need a dedicated Data Element (for label reuse), and whether the app needs a Number Range object (external/managed sequential numbering) vs. simple RAP-managed/BDEF numbering for a field. Flag draft-table need (draft-enabled if the FS implies save-later/edit-in-progress behavior, e.g. an "Edit" that doesn't commit immediately). [Skill: naming-convention] for every proposed name — but if the FS/user has already stated an explicit naming scheme (base name + node suffixes, e.g. `_H`/`_FG`/`_RM`), that explicit scheme wins over the skill's generic default.
 
-1.2 RELEASED CDS VALIDATION — reference/lookup data only: use [Skill: Find Released CDS View] to verify every EXTERNAL reference the FS points to (e.g. Sales Order, Product, Plant, Batch, Profit Center — anything looked up from existing SAP master/transaction data rather than owned by this new app) resolves to a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). These become associations/value-help on the new Interface Views, never the base entity itself. Replace any unreleased/internal reference with the best released alternative matching grain and field coverage.
+1.2 RELEASED CDS VALIDATION — reference/lookup data only: use [Skill: find-released-cds-view] to verify every EXTERNAL reference the FS points to (e.g. Sales Order, Product, Plant, Batch, Profit Center — anything looked up from existing SAP master/transaction data rather than owned by this new app) resolves to a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). These become associations/value-help on the new Interface Views, never the base entity itself. Replace any unreleased/internal reference with the best released alternative matching grain and field coverage.
 
 Output: **Verified Data Model** — (a) the New Table Design (entity → field → type/key/domain) and (b) the released reference views and the field they supply — the vocabulary every later phase must reuse verbatim (identical field/table/view names) to avoid drift.
 
@@ -44,11 +44,11 @@ Output: **Verified Data Model** — (a) the New Table Design (entity → field �
 
 2.A/2.B/2.C each take `fs_markdown.md` + the Verified Data Model as read-only input and produce one independent draft. In Claude Code, dispatch these three via the Agent tool (parallel Task calls in one message) when the task warrants it; each agent scope: read-only input, write only its own draft, no shared state. If parallel dispatch isn't warranted for a small FS, run them sequentially in the order below — the result is identical, only slower.
 
-2.A UI/UX ANALYSIS: [Skill: Fiori UI Elements Mapper] → UI Layout Draft (List Report Selection Fields/Line Items/Sorting, Object Page Facets per composition-tree node, toolbar buttons per facet with their enable/visibility condition).
+2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (List Report Selection Fields/Line Items/Sorting, Object Page Facets per composition-tree node, toolbar buttons per facet with their enable/visibility condition).
 
-2.B BUSINESS LOGIC & LIFECYCLE EXTRACTION: [Skill: ABAP Logic & Behavior Translator] → Business Logic Draft covering: **Status Machine** (every valid status value, every transition, the action/event that triggers it, and its precondition — if the FS implies a lifecycle at all), **Numbering** (which field, by which mechanism — Number Range vs. BDEF managed/early/late — and whether it's scoped per-parent, e.g. a child row counter that restarts per header), **Actions/Determinations/Validations** across the whole tree (not just the root), Clean Core violations + released replacements, Authorization Check needs (both DCL-level and any per-action custom Authorization Object the FS implies, e.g. "only role X can press button Y"). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check.
+2.B BUSINESS LOGIC & LIFECYCLE EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft covering: **Status Machine** (every valid status value, every transition, the action/event that triggers it, and its precondition — if the FS implies a lifecycle at all), **Numbering** (which field, by which mechanism — Number Range vs. BDEF managed/early/late — and whether it's scoped per-parent, e.g. a child row counter that restarts per header), **Actions/Determinations/Validations** across the whole tree (not just the root), Clean Core violations + released replacements, Authorization Check needs (both DCL-level and any per-action custom Authorization Object the FS implies, e.g. "only role X can press button Y"). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check.
 
-2.C INTEGRATION & API ANALYSIS: [Skill: Integration & API Analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently.
+2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently.
 
 2.D RECONCILIATION: Cross-check the three drafts against the Verified Data Model — every field name referenced in 2.A/2.B/2.C must exist in the Verified Data Model (new table OR reference view) under the same name. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field/entity is genuinely missing) before proceeding to Phase 3.
 
@@ -56,7 +56,7 @@ Output: **Verified Data Model** — (a) the New Table Design (entity → field �
 
 3.0 ARCHITECTURE BRAINSTORM: always resolve these transactional-app-specific decisions explicitly (they don't exist in the read-only fs-analytic flow): numbering mechanism per key field (Number Range vs. managed/early/late numbering, and batch-safety if multiple child rows can be created in one request), draft-enabled vs. not, and — only when genuinely complex/ambiguous (e.g. a multi-branch status machine, a real choice between CDS Virtual Element vs. Behavior Pool vs. Custom Entity + Query Provider) — generate 2-3 candidate architectures with explicit trade-offs (Clean Core compliance / Performance / Maintainability), pick one, and state why. For straightforward pieces with no such ambiguity, skip the multi-option comparison and go straight to the obvious design.
 
-3.1 CODING IMPLEMENTATION PLAN (the section `/sap-dev-create-transactional-app` depends on entirely): using [Skill: Naming Conventions] for every object name (TS-explicit names always win, see Phase 1.1), produce a complete table of every object to be created:
+3.1 CODING IMPLEMENTATION PLAN (the section `/sap-dev-create-transactional-app` depends on entirely): using [Skill: naming-convention] for every object name (TS-explicit names always win, see Phase 1.1), produce a complete table of every object to be created:
 
 | # | Object Name | Type | Purpose | Source/Base + Join/Association | Field Mapping (which TS output field(s) it delivers) | Corresponding create-transactional-app Step |
 |---|---|---|---|---|---|---|
@@ -92,7 +92,7 @@ PASS → Phase 6. FAIL → fix the specific gap in the phase it belongs to, then
 
 ## Phase 6 — Handoff
 
-6.0 Save the TS, mark the ledger fully DONE. If the session ends here before `/sap-dev-create-transactional-app` runs, use [Skill: Handoff] to summarize state for the next session.
+6.0 Save the TS, mark the ledger fully DONE. If the session ends here before `/sap-dev-create-transactional-app` runs, use [Skill: handoff] to summarize state for the next session.
 
 [OUTPUT FORMAT — CRITICAL]
 Save the final TS as Markdown directly under `artifacts/technical_specifications/TS_[AppName].md` (relative to workspace root). Do not add introductory or concluding remarks outside the template. Use CamelCase for `[AppName]`.
@@ -127,7 +127,7 @@ Base object name: [Tên gốc + suffix theo từng node, vd _H/_FG/_RM]
 - **Numbering**: mỗi key field không phải user-input → cơ chế sinh số (Number Range / managed / early / late), scope (toàn cục hay theo từng parent), batch-safety nếu tạo nhiều dòng 1 lần
 - Derived/Calculated Fields (CDS): [List]
 - Complex Logic (Virtual Elements / ABAP / Supporting Class cần thiết): [List — nêu rõ class nào Behavior Pool sẽ gọi]
-- Authorization Check: [DCL baseline + Authorization Object custom nếu có, theo từng action]
+- Authorization Check: [chi tiết tập trung tại §10 — không liệt kê lại ở đây để tránh lệch 2 nơi]
 
 ## 6. Integration & API
 [Từ Phase 2.C — hoặc "N/A — FS has no integration requirements"]

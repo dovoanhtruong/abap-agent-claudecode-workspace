@@ -114,8 +114,7 @@ DATA(user) = xco_cp=>sy->user( )->name.
 
 ## Detailed Reference
 
-For comprehensive code examples and all available classes, read:
-- [references/Released_ABAP_Classes.md](references/Released_ABAP_Classes.md)
+For comprehensive code examples and all available classes, consult [references/Released_ABAP_Classes.md](references/Released_ABAP_Classes.md) — but it is ~9,800 lines: **never Read the whole file**; grep it with the section patterns below (or a class name) and read only the matching region.
 
 ### Reference File Structure
 

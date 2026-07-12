@@ -47,7 +47,7 @@ This is what actually prevents "N+1 breaks because N changed."
   - Class/program: `SAP(action="analyze", params={"type": "callers", "object_uri": "..."})`
   - Broader multi-hop impact: `SAP(action="analyze", params={"type": "impact", "object_type": "...", "object_name": "...", "max_depth": 3})`
 - **This matters most when the object you just touched is a fix/edit to something already built EARLIER in this same ledger.** Cross-check every dependent that is ALSO already in this ledger's scope: is it still active with no new error? Re-run Gate 1 + Gate 2 on each one that's downstream and already marked DONE.
-- If a previously-DONE ledger row now fails because of this change, do not silently re-fix it and move on — mark it `REGRESSED` in the ledger first (see [Skill: Scratchpad] Ledger Format), noting which step caused it, THEN fix it in dependency order, then flip it back to `DONE` only once it re-passes all 3 gates.
+- If a previously-DONE ledger row now fails because of this change, do not silently re-fix it and move on — mark it `REGRESSED` in the ledger first (see [Skill: scratchpad] Ledger Format), noting which step caused it, THEN fix it in dependency order, then flip it back to `DONE` only once it re-passes all 3 gates.
 - If the connected tool has no impact/where-used capability for this object type, do not silently skip this gate — record in the ledger: "Ripple check unavailable for this object type via the connected tool; dependents not automatically re-verified" so the gap is visible, not hidden.
 
 ## Ledger integration
@@ -56,4 +56,4 @@ Only mark a ledger row `DONE` after all 3 gates pass. A regression found by Gate
 
 ## What this replaces
 
-Any workflow step that previously said just "Execute: Lint → Push → Activate" now reads "Execute: Lint → Push → Activate → [Skill: Activation Guard]." A bare "Activated" claim without having run all 3 gates is not sufficient completion evidence.
+Any workflow step that previously said just "Execute: Lint → Push → Activate" now reads "Execute: Lint → Push → Activate → [Skill: activation-guard]." A bare "Activated" claim without having run all 3 gates is not sufficient completion evidence.

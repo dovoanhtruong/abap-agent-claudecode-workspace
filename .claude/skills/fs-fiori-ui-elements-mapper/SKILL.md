@@ -1,6 +1,6 @@
 ---
-name: Fiori UI Elements Mapper
-description: Kỹ năng quét tài liệu FS để dịch các yêu cầu về biểu mẫu báo cáo, tham số đầu vào và bộ lọc thành các khái niệm Annotation của SAP Fiori Elements (@UI.selectionField, @UI.lineItem, v.v.).
+name: fs-fiori-ui-elements-mapper
+description: Kỹ năng quét tài liệu FS để dịch các yêu cầu về biểu mẫu báo cáo, tham số đầu vào, bộ lọc và toolbar buttons thành các khái niệm Annotation của SAP Fiori Elements (@UI.selectionField, @UI.lineItem, @UI.facet, v.v.). Use when translating an FS document's screen layouts/mockup tables into Fiori Elements UI specifications during TS creation. Triggers include "map UI từ FS", "selection fields từ FS", "layout FS sang annotation". For writing/consulting on CDS UI annotations outside FS analysis, use cds-view-entities; for transcribing mockup IMAGES first, use fs-vision-extractor.
 ---
 
 # ROLE
@@ -17,7 +17,10 @@ Analyze the provided FS focusing on report layouts, mockups, and parameter table
    - Note the exact field mapping from the data model to the UI column.
 3. **Map Object Page (if applicable):**
    - If the report allows clicking into a detail view, identify the facets (blocks of information) and the fields within them.
-4. **Identify Sorting & Grouping:**
+4. **Map Toolbar Buttons / Actions (transactional apps):**
+   - For each button in the mockup: its label, placement (List Report toolbar / Object Page header / line-item inline), the RAP action it triggers, and its enable/visibility condition (usually status-dependent — cross-check the status machine from [Skill: fs-logic-behavior-translator]).
+   - Map placement to annotations: `@UI.lineItem: [{ type: #FOR_ACTION }]` for table toolbar/inline, `@UI.identification: [{ type: #FOR_ACTION }]` for Object Page header.
+5. **Identify Sorting & Grouping:**
    - Extract the default sorting sequence (e.g., Sort by Date DESC).
    - Identify if the data needs to be grouped by a specific field by default.
 
@@ -25,5 +28,6 @@ Analyze the provided FS focusing on report layouts, mockups, and parameter table
 Provide a mapped UI structure:
 - **Selection Fields:** [List with mandatory/optional flags]
 - **Line Items:** [List in numerical order of appearance]
+- **Toolbar Buttons/Actions:** [Label | placement | RAP action | enable condition; or "None"]
 - **Default Sorting/Grouping:** [Criteria]
 - **Object Page Facets:** [List if applicable, otherwise state "None"]

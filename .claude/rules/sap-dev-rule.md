@@ -1,38 +1,39 @@
 # SAP CLOUD DEV RULES (STRICT)
 
-**1. SKILL ROUTING:** Skills auto-activate by description match — Claude Code loads `.claude/skills/<name>/SKILL.md` automatically when its description matches the task. Workflows live in `.claude/commands/` as slash commands (`/sap-dev-fs-analytic`, etc.). No manual routing table needed.
-**2. SCOPE & SAFETY:**
-- Consent before any CUD op. Z/Y custom objects only — never touch Standard objects. Stay strictly in task scope, no side-effects.
-- Check names globally before creating; if taken, propose a new name and ask.
-- TR + Package mandatory for every new/modified object — ask if missing.
+**§1 ROUTING:** Skills auto-activate by description match (`.claude/skills/<name>/SKILL.md`); workflows are slash commands in `.claude/commands/`. Reference skills as `[Skill: x]` — meaning "invoke skill `x` (exact kebab directory name) via the Skill tool"; never re-embed another skill's content.
+
+**§2 SCOPE & SAFETY:**
+- **DEV only**: this workspace assumes every SAP connection is a DEV system. If a connection is ever anything else, STOP and ask before any operation.
+- Consent before any CUD op. Z/Y custom objects only — never touch Standard objects *(hook-enforced)*. Stay strictly in task scope, no side effects.
+- Check names globally before creating; if taken, propose a new name and ask. Default names per [Skill: naming-convention]; an explicit TS/user-specified name always wins over the default.
+- TR + Package mandatory for every new/modified object — ask if missing *(hook-enforced)*. Never create/delete/modify a Transport Request itself *(hook-enforced)* — if none is supplied, stop and ask; never auto-generate a TR.
 - Business data is read-only unless explicitly testing a RAP BO.
-**3. CODE STANDARDS:**
-- Modern ABAP (VALUE/COND/REDUCE) + GoF patterns; reject legacy procedural code.
-- Read via CDS Views only, never physical tables. Write via EML or Released APIs only, never direct INSERT/UPDATE.
-**4. WORKFLOW & FILES:**
-- Draft complex architecture in a scratchpad first.
-- All outputs under `artifacts/` (never `.claude/` or root): FS inputs → `fs_docs/` · TS → `technical_specifications/` · Scratchpads → `scratchpads/` · Walkthroughs → `walkthroughs/` · Metadata Ext → `metadata_extensions/` · System Analysis → `system_analysis/`.
-**5. VALIDATION & ERRORS:**
-- Trigger activation; on failure extract the exact SAP error, don't guess the cause.
-- Post-CUD final check: no mutation outside scope, no syntax errors, activated, isolated — run `[Skill: Activation Guard]`'s 3 gates (full activation log incl. warnings, confirmed active state, ripple/cross-impact check on dependents) after every single object create/edit/delete, not just at the end of a workflow. This is what "isolated" means in practice: an object breaking something it's connected to is a failure of this check, even if the object itself activated with no error.
-**6. IRON LAWS (NO EXCEPTIONS):**
+
+**§3 CODE STANDARDS:** Modern ABAP (VALUE/COND/REDUCE) — reject legacy procedural code; GoF patterns only where genuinely warranted ([Skill: oo-design-patterns]). Read via CDS views only, never physical tables. Write via EML or Released APIs only, never direct INSERT/UPDATE.
+
+**§4 WORKFLOW & FILES:** Draft complex architecture in a scratchpad first. All outputs under `artifacts/` — never `.claude/` or the workspace root *(hook-enforced: new files outside `artifacts/` are blocked)*: FS inputs → `fs_docs/` · TS → `technical_specifications/` · Scratchpads & Handoffs → `scratchpads/` · Walkthroughs → `walkthroughs/` · Metadata Ext → `metadata_extensions/` · System Analysis → `system_analysis/`.
+
+**§5 VALIDATION & ERRORS:** On activation failure extract the exact SAP error, don't guess the cause. After EVERY single object create/edit/delete (not just at workflow end), run [Skill: activation-guard]'s 3 gates — full activation log incl. every warning assessed, confirmed active state, ripple/cross-impact check on dependents — before marking that step DONE. "Isolated" means dependents unbroken: an object that breaks something it's connected to fails this check even if it activated clean itself.
+
+**§6 IRON LAWS (NO EXCEPTIONS):**
 - No TS handoff without a passed Verify Loop (or a FAIL the user explicitly accepted in writing).
-- No object/logic creation absent from the TS's Coding Implementation Plan — missing info means STOP, don't improvise; go back to the user or `/sap-dev-fs-analytic`.
-- No activation-only claims — see §8 (Activated ≠ Correct).
-- No object marked DONE in a build ledger without passing all 3 `[Skill: Activation Guard]` gates — a warning waved through without assessment, or a downstream object silently broken by this change, is not a completed step.
-**7. RED FLAGS — STOP if you catch yourself thinking:**
-- "Simple FS, skip a step" → still run every step, just faster.
-- "Missing a field, I'll infer it while coding" → patch the TS first, don't improvise.
-- "It activated, so it's probably correct" → unverified until the Verify step actually runs.
-- "Just a warning, moving on" → run `[Skill: Activation Guard]` Gate 1's assessment first; a warning waved through unassessed is exactly how a later object inherits a silent defect.
-- "That object's not mine, no need to recheck it" → if it's downstream of what you just changed, `[Skill: Activation Guard]` Gate 3 re-checks it anyway — that's the whole point.
-- "One more fix" after ≥3 attempts → stop, it's an architecture/TS problem — ask the user.
-**8. REPORTING LANGUAGE:** Never say "should work / probably fine / likely correct." Every "Activated/Passed/Correct" claim needs cited evidence (command run, output observed) — Activated ≠ Correct, state both separately.
-**9. MCP TOOL USAGE:** Skills dispatch whatever MCP server/tool their function needs. Verify a tool actually exists before its first use in a session — never assume another skill's tool name/syntax applies here. In Claude Code specifically, a not-yet-loaded MCP tool appears as a deferred stub — use the `ToolSearch` tool with a relevant query to find and load its schema before calling it.
-**10. TOKEN EFFICIENCY:**
-- Chat narration (progress, status, completion summaries) uses **[Skill: Caveman]** — scope and exceptions are defined in `caveman/SKILL.md` (never applies to code, saved deliverable files, or security/consent warnings).
-- Never re-print a full TS/scratchpad — quote only the section needed, reference the path for the rest.
-- Reference other skills as `[Skill: X]` — this means "invoke the `x` skill via the Skill tool" (auto-discovered from `.claude/skills/x/`); don't re-embed their content.
-- `[Skill: Grill Me]`: 1-3 targeted questions per round, not open interviews.
-- `[Skill: Handoff]`: mandatory before a session is likely to be compacted/interrupted mid-workflow.
-**11. EVIDENCE FLOOR FOR USER VERIFICATION:** A bare "looks fine / ok / works" is not a PASS — ask again for the actual evidence the step requires (payload, field values, screenshot) before recording a result. If the user insists without it, record "PASS — unverified, user-accepted", never a plain PASS.
+- No object/logic creation absent from the TS's Coding Implementation Plan — missing info means STOP; go back to the user or the fs-analytic workflow, don't improvise.
+- No activation-only claims (§8). No ledger row DONE without all 3 [Skill: activation-guard] gates — a warning waved through unassessed, or a downstream object silently broken, is not a completed step.
+
+**§7 RED FLAGS — STOP if you catch yourself thinking:** "Simple FS, skip a step" (run every step, just faster) · "Missing a field, I'll infer it while coding" (patch the TS first) · "It activated, so it's probably correct" (unverified until Verify runs) · "Just a warning, moving on" (assess it via Gate 1 first) · "That object's not mine, no need to recheck" (Gate 3 exists precisely for this) · "One more fix" after ≥3 attempts (it's an architecture/TS problem — ask the user).
+
+**§8 REPORTING LANGUAGE:** Never say "should work / probably fine / likely correct." Every "Activated/Passed/Correct" claim needs cited evidence (command run, output observed). Activated ≠ Correct — state both separately.
+
+**§9 MCP TOOL USAGE:** Skills dispatch whatever MCP server/tool their function needs. Verify a tool actually exists before its first use in a session — never assume another skill's tool name/syntax applies. A not-yet-loaded MCP tool appears as a deferred stub — use `ToolSearch` to load its schema before calling it.
+
+**§10 TOKEN EFFICIENCY:** Chat narration (progress, status, completion summaries) uses [Skill: caveman] — scope and exceptions per its SKILL.md (never code, saved deliverable files, or security/consent warnings). Never re-print a full TS/scratchpad — quote only the section needed, reference the path for the rest. [Skill: grill-me]: 1-3 targeted questions per round, max ~3 rounds. [Skill: handoff]: mandatory before a session is likely to be compacted/interrupted mid-workflow.
+
+**§11 EVIDENCE FLOOR:** A bare "looks fine / ok / works" is not a PASS — ask for the actual evidence the step requires (payload, field values, screenshot) before recording a result. If the user insists without it, record "PASS — unverified, user-accepted", never a plain PASS.
+
+**§12 SUBAGENTS:** Dispatch parallel agents only for independent work over read-only shared inputs; each agent writes ONLY its own output file — no shared state. An agent's completion claim is unverified until you read its output on disk; never mark a ledger row DONE from the completion message alone. If an agent dies mid-task (spend limit, timeout), inspect the disk for partial writes, then finish the remainder inline — never assume it completed.
+
+**§13 LANGUAGE:** Chat with the user: tiếng Việt. Code, identifiers, code comments, commit messages: English. TS/reports: bilingual per their templates. Skill/rule file bodies: English (trigger and instruction accuracy).
+
+**§14 SELF-MODIFICATION & MEMORY:** `.claude/` (rules/skills/hooks/settings) may only be changed when the user explicitly requested it AND the user has manually created `.claude/.unlock` *(hook-enforced; the agent is permanently blocked from creating that sentinel)* — remind the user to delete `.unlock` when done. After any `.claude/` change, re-run the integrity check: every skill's frontmatter `name:` equals its directory name, every `[Skill: x]` reference resolves. Lessons learned from a workflow → propose a skill/rule patch for the user to approve, never silently apply or stash. Memory holds user preferences/feedback only — task state belongs in the ledger/handoff, business data nowhere.
+
+**HOOK-ENFORCED (code, not promises):** `.claude/hooks/pre-cud-guard.sh` — Z/Y-only naming, TR+Package presence, no agent TR CUD · `.claude/hooks/workspace-write-guard.sh` — `.claude/` lock via `.unlock` sentinel, new workspace files under `artifacts/` only.

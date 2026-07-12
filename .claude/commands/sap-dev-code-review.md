@@ -28,7 +28,7 @@ Action:
 - Identify the ABAP version context (e.g. ABAP Cloud restrictions, Classic ABAP).
 
 Step 1: Risk & Security Analysis (Code Linting & Bug Hunting)
-Required Skill: [Skill: ABAP Lint & Review]
+Required Skill: [Skill: abap]
 Action: Scrutinize the code line-by-line to identify:
 - Missing `AUTHORITY-CHECK` or authorization validations.
 - Missing or improper `TRY-CATCH` blocks (e.g. catching `CX_ROOT` without proper logging, or missing specific exception classes).
@@ -36,7 +36,7 @@ Action: Scrutinize the code line-by-line to identify:
 - Input validation vulnerabilities.
 
 Step 2: Performance Profiling
-Required Skill: [Skill: ABAP SQL & AMDP]
+Required Skill: [Skill: abap-sql-amdp]
 Action: Evaluate the execution efficiency:
 - Identify unoptimized Database queries (e.g., `SELECT *`, missing `WHERE` clauses).
 - Identify anti-patterns like `SELECT` within a `LOOP`.
@@ -44,7 +44,7 @@ Action: Evaluate the execution efficiency:
 - Recommend modern AMDP/CDS pushdown strategies if applicable.
 
 Step 3: Maintainability & Clean Core Audit
-Required Skill: [Skill: Clean ABAP], [Skill: Modern ABAP Syntax], [Skill: OO Design Patterns]
+Required Skill: [Skill: abap], [Skill: modern-abap-syntax], [Skill: oo-design-patterns]
 Action: 
 - Verify naming conventions and method length/complexity.
 - Enforce the use of Modern ABAP syntax (Constructor expressions, inline declarations) instead of legacy statements.
@@ -86,5 +86,5 @@ Format the document exactly as follows:
 - Gợi ý sử dụng các class chuẩn SAP.
 
 [OUTPUT FORMAT]
-- All chat progress narration throughout this workflow uses `[Skill: Caveman]` style per `sap-dev-rule.md` §10 — short, evidence-based, narration only (the saved report content and any code excerpts stay verbatim). This is read-only/advisory; avoid "chắc là/should be" language per `sap-dev-rule.md` §8.
+- All chat progress narration throughout this workflow uses `[Skill: caveman]` style per `sap-dev-rule.md` §10 — short, evidence-based, narration only (the saved report content and any code excerpts stay verbatim). This is read-only/advisory; avoid "chắc là/should be" language per `sap-dev-rule.md` §8.
 - Provide the clickable link to the generated Code Review Report.
