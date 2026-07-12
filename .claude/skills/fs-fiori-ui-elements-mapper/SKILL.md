@@ -25,7 +25,9 @@ Analyze the provided FS focusing on report layouts, mockups, and parameter table
    - Identify if the data needs to be grouped by a specific field by default.
 
 # EXPECTED OUTPUT
-Provide a mapped UI structure:
+Lead the file with a **Field Name Index** — the very first section, before anything else — a flat comma-separated list of every field name referenced anywhere in this draft (Selection Fields + Line Items + Object Page Facets, no descriptions). This lets the dispatching Manager cross-check field names against the Verified Data Model by reading only this one line (per `sap-dev-rule.md` §12 Phase 2.D), without opening the full breakdown unless a mismatch is suspected.
+
+Then provide the mapped UI structure:
 - **Selection Fields:** [List with mandatory/optional flags]
 - **Line Items:** [List in numerical order of appearance]
 - **Toolbar Buttons/Actions:** [Label | placement | RAP action | enable condition; or "None"]

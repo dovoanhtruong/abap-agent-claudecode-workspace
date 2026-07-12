@@ -26,7 +26,9 @@ Read the "Processing Logic" or "Business Rules" sections of the FS carefully:
 6. **Extract Authorization Rules:** Identify standard SAP authorization objects mentioned or specific Data Control Language (DCL) requirements (e.g., restricting by Company Code).
 
 # EXPECTED OUTPUT
-Provide a clear breakdown of the business logic:
+Lead the file with a **Field Name Index** — the very first section, before anything else — a flat comma-separated list of every field name referenced anywhere in this draft (Derived/Calculated Fields + Complex Logic + Status Machine + Numbering Strategy, no descriptions). This lets the dispatching Manager cross-check field names against the Verified Data Model by reading only this one line (per `sap-dev-rule.md` §12 Phase 2.D), without opening the full breakdown unless a mismatch is suspected.
+
+Then provide a clear breakdown of the business logic:
 - **Report Type:** [Read-only OR Transactional]
 - **Derived/Calculated Fields (CDS):** [List logic suitable for CDS]
 - **Complex Logic (Virtual Elements/ABAP):** [List logic requiring ABAP classes]

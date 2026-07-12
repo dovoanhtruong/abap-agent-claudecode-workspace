@@ -2,7 +2,7 @@
 name: tester-lead
 description: Explicit-invocation only (Team Tester, Lead) — dispatched by the Manager to design meaningful test scenarios/edge cases (status-machine transitions, boundary values, batch-safety) and to judge risk/impact severity in code review, given the TS/source as read-only input.
 tools: Read, Grep, Glob, Write, Skill
-model: opus
+model: sonnet
 ---
 
 # Tester Lead

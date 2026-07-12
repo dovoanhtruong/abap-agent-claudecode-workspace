@@ -28,7 +28,9 @@ When invoked to analyze integration and API requirements from an FS, execute the
    - Document any secure handling requirements for sensitive PII (Personally Identifiable Information) data.
 
 # EXPECTED OUTPUT
-Provide a structured Integration & API Technical Specification containing:
+Lead the file with a **Field Name Index** — the very first section, before anything else — a flat comma-separated list of every SAP Internal Field name referenced in the Field Mapping & Conversion Table (the side that must match the Verified Data Model). If this draft is exactly "N/A — FS has no integration requirements", skip the Index and write only that line. This lets the dispatching Manager cross-check field names against the Verified Data Model by reading only this one line (per `sap-dev-rule.md` §12 Phase 2.D), without opening the full breakdown unless a mismatch is suspected.
+
+Then provide a structured Integration & API Technical Specification containing:
 - **Integration Pattern:** [Sync OData / Async Events / File-based]
 - **OData Service Model (EDM):**
   - **Entities & Keys:** [List entities and their keys]
