@@ -20,29 +20,29 @@ This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rule
 
 0.0 TASK LEDGER: Use [Skill: scratchpad] to create `artifacts/scratchpads/scratchpad_[ReportName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
 
-0.1 DOCUMENT PRE-PROCESSING: Use [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
+0.1 DOCUMENT PRE-PROCESSING: Dispatch `[Agent: consultant-executor]` with [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
 
-0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), use [Skill: fs-vision-extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
+0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), dispatch `[Agent: consultant-executor]` with [Skill: fs-vision-extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
 
 0.3 DATA COMPLETENESS GATE (HARD GATE): Review `fs_markdown.md`. If the FS explicitly references fields/tables/requirements that live in an unprocessed image, an external link, or a table that failed conversion, STOP and ask the user to provide the missing information. Do not guess or use placeholder ranges (e.g. "Fields 1 to 39"). Do not proceed to Phase 1 until this gate passes.
 
 ## Phase 1 — Data Model Foundation (sequential — every later phase reuses this vocabulary)
 
-1.0 DATA MODELING ANALYSIS: Use [Skill: fs-data-model-extractor] on `fs_markdown.md` → Data Model Draft (Base Views/Tables, Joins & Conditions, Key Fields, Hardcoded Filters, Output Fields).
+1.0 DATA MODELING ANALYSIS: Dispatch `[Agent: consultant-lead]` with [Skill: fs-data-model-extractor] on `fs_markdown.md` → Data Model Draft (Base Views/Tables, Joins & Conditions, Key Fields, Hardcoded Filters, Output Fields).
 
-1.1 RELEASED CDS VALIDATION: Use [Skill: find-released-cds-view] to verify every source in the Data Model Draft is a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). Replace any unreleased/internal table or view with the best released alternative matching grain and field coverage. Output: **Verified Data Model** — the field/source vocabulary every later phase must reuse verbatim (identical field and view names) to avoid drift.
+1.1 RELEASED CDS VALIDATION: Dispatch `[Agent: consultant-lead]` with [Skill: find-released-cds-view] to verify every source in the Data Model Draft is a released Clean-Core-Level-A CDS view (S/4HANA Cloud Public). Replace any unreleased/internal table or view with the best released alternative matching grain and field coverage. Output: **Verified Data Model** — the field/source vocabulary every later phase must reuse verbatim (identical field and view names) to avoid drift. Persist it as a `## Verified Data Model` section in `artifacts/scratchpads/scratchpad_[ReportName].md` — Phase 2's dispatched agents read this file, not conversation history.
 
-## Phase 2 — Domain Analysis (parallel if subagents available, sequential otherwise — identical output either way)
+## Phase 2 — Domain Analysis (parallel via dedicated subagents)
 
-2.A/2.B/2.C each take `fs_markdown.md` + the Verified Data Model as read-only input and produce one independent draft. In Claude Code, dispatch these three via the Agent tool (parallel Task calls in one message) when the task warrants it; each agent scope: read-only input, write only its own draft, no shared state. If parallel dispatch isn't warranted for a small FS, run them sequentially in the order below — the result is identical, only slower.
+2.A/2.B/2.C each take `fs_markdown.md` + the `## Verified Data Model` section of the scratchpad ledger as read-only input and produce one independent draft. Dispatch all three via `[Agent: consultant-lead]` (parallel Task calls in one message, `subagent_type: consultant-lead`, no `isolation: "worktree"`); each dispatch prompt must name the one skill to invoke, the input path(s), and its own output path — read-only input, write only its own draft, no shared state. For a small FS where parallel dispatch isn't warranted, dispatch them sequentially in the order below instead — the result is identical, only slower.
 
-2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (Selection Fields, Line Items, Sorting/Grouping, Object Page Facets).
+2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (Selection Fields, Line Items, Sorting/Grouping, Object Page Facets). Output: `artifacts/scratchpads/draft_ui_[ReportName].md`.
 
-2.B BUSINESS LOGIC EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft (Report Type, CDS-level derived fields, Virtual Elements/ABAP-level complex logic, Actions/Determinations, Clean Core violations + released replacements, Authorization Check). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check.
+2.B BUSINESS LOGIC EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft (Report Type, CDS-level derived fields, Virtual Elements/ABAP-level complex logic, Actions/Determinations, Clean Core violations + released replacements, Authorization Check). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check. Output: `artifacts/scratchpads/draft_logic_[ReportName].md`.
 
-2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently.
+2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently. Output: `artifacts/scratchpads/draft_integration_[ReportName].md`.
 
-2.D RECONCILIATION: Cross-check the three drafts against the Verified Data Model — every field name referenced in 2.A/2.B/2.C must exist in the Verified Data Model under the same name. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field is genuinely missing) before proceeding to Phase 3.
+2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence) before cross-checking. Cross-check the three drafts against the Verified Data Model — every field name referenced in 2.A/2.B/2.C must exist in the Verified Data Model under the same name. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field is genuinely missing) before proceeding to Phase 3.
 
 ## Phase 3 — Architecture & Coding Implementation Plan (the phase create-report depends on most)
 
