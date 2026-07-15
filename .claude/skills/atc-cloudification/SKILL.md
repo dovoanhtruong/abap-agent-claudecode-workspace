@@ -87,3 +87,7 @@ Use the online viewers to browse released APIs interactively:
 - **SAP Cloud ERP**: https://sap.github.io/abap-atc-cr-cv-s4hc/
 - **SAP Cloud ERP Private**: https://sap.github.io/abap-atc-cr-cv-s4hc/?version=objectReleaseInfo_PCELatest.json
 - **Classic API Clean Core Model**: https://sap.github.io/abap-atc-cr-cv-s4hc/?version=objectClassifications_SAP.json
+
+## Deep Dive
+
+For decision guidance on choosing the right JSON URL (public vs. FPS-versioned vs. historical/audit), a 404-troubleshooting procedure, and a note on repository file relocations already corrected in `references/quick-reference.md`, read [references/deep-dive.md](references/deep-dive.md).

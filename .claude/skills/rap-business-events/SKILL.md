@@ -46,9 +46,13 @@ External consumers subscribe via Event Mesh webhooks, SAP Integration Suite, or 
 3. Raise events only after validation — the commit coupling handles rollback, but don't queue events for data you already know is invalid.
 4. Consumers must be idempotent — delivery can repeat.
 
+## Deep Dive
+
+For the raising-vs-consumption release gap (roughly 3 quarters apart), two producer/consumer patterns not shown in `event-code-examples.md`, new event types (derived events, side-effect events), and decision criteria for local-only vs. enterprise Event Mesh publishing, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - [references/event-code-examples.md](references/event-code-examples.md) — BDEF event definition, raising (handler/saver, with/without parameters), local + external consumption code
-- RAP Business Events Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets/blob/main/08_RAP_Business_Events.md
+- RAP Business Events / EML Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets/blob/main/08_EML_ABAP_for_RAP.md (corrected 2026-07-14 — the previously-cited filename `08_RAP_Business_Events.md` does not exist in the repo, verified 404)
 - Enterprise Event Enablement: https://help.sap.com/docs/abap-cloud/abap-rap/enterprise-event-enablement
 - SAP Event Mesh: https://help.sap.com/docs/event-mesh

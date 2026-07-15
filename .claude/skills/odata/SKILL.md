@@ -76,25 +76,9 @@ Binds a service definition to a specific OData protocol and provides a URL:
 
 ## Consuming External OData Services
 
-### In ABAP Cloud (using HTTP Client and Communication Arrangements)
+### Getting the HTTP Client
 
-```abap
-"1. Get HTTP client via communication arrangement
-DATA(lo_dest) = cl_http_destination_provider=>create_by_comm_arrangement(
-  comm_scenario  = 'Z_MY_OUTBOUND_SCENARIO'
-  service_id     = 'Z_MY_HTTP_SERVICE' ).
-
-DATA(lo_client) = cl_web_http_client_manager=>create_by_http_destination( lo_dest ).
-
-"2. Build request
-DATA(lo_request) = lo_client->get_http_request( ).
-lo_request->set_uri_path( '/sap/opu/odata4/sap/api_business_partner/srvd_a2x/sap/api_business_partner/0001/A_BusinessPartner?$top=10' ).
-
-"3. Execute and parse response
-DATA(lo_response) = lo_client->execute( if_web_http_client=>get ).
-DATA(lv_json) = lo_response->get_text( ).
-lo_client->close( ).
-```
+The canonical HTTP-client-via-communication-arrangement pattern (`cl_http_destination_provider=>create_by_comm_arrangement(...)` → `cl_web_http_client_manager=>create_by_http_destination(...)`) is owned by [Skill: btp-abap-environment] — read it there rather than duplicating the code here. Once you have `lo_client`, set the OData resource path on `get_http_request( )` as usual, or use the OData Client Proxy below for a typed alternative.
 
 ### Using OData Client Proxy (V2/V4)
 
@@ -117,7 +101,7 @@ lo_response->get_business_data( IMPORTING et_business_data = lt_data ).
 
 ## OData/UI Annotations
 
-UI and value-help annotations (`@UI.*`, `@Consumption.valueHelpDefinition`) live on the CDS side — [Skill: cds-view-entities] owns their syntax and the metadata-extension pattern.
+UI and value-help annotations (`@UI.*`, `@Consumption.valueHelpDefinition`) live on the CDS side — [Skill: cds-analytical-views] owns their syntax and the metadata-extension pattern.
 
 ## Troubleshooting
 
@@ -152,6 +136,10 @@ When helping with OData topics, structure responses as:
 
 [How to test the service]
 ```
+
+## Deep Dive
+
+For version-gating on the BDL/SDL constructs that shape real OData behavior (repeatable actions, draft additions, service extensions), the concurrency-control (ETag) topic missing above, service-binding decision criteria beyond the protocol table, and troubleshooting additions, read [references/deep-dive.md](references/deep-dive.md).
 
 ## References
 

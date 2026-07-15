@@ -41,8 +41,9 @@ Arguments: $ARGUMENTS
 - **HALT and wait for the User's explicit approval** of the proposed solution.
 
 ### Phase 4: Fix Implementation & Quality Assurance
-4. **Load `cds-view-entities`, `rap`, `modern-abap-syntax`, `oo-design-patterns` & `abap`**:
+4. **Load `cds-view-entities`, `cds-analytical-views`, `rap`, `modern-abap-syntax`, `oo-design-patterns` & `abap`**:
    - Implement the code changes based on the approved solution. Ensure the code uses modern ABAP syntax and strictly follows Clean ABAP principles (checked via `abap`). Apply an OO design pattern only if refactoring complex logic genuinely warrants one.
+   - If the approved fix's root cause requires extending SAP standard behavior rather than editing a Z/Y object directly, also load `[Skill: badi-enhancement]` to find/implement the appropriate released BAdI instead of any other extension mechanism.
 5. **Load `abap-unit-testing`**:
    - Create or update the Local Test Class (`cl_abap_unit_assert`) using Test Doubles and the Mock Data provided by the User.
    - **Note:** Creating an ABAP Unit Test using Mock Data is mandatory to compensate for the lack of real data in DEV and to prevent future regressions.

@@ -112,6 +112,10 @@ DATA(user_name) = cl_abap_context_info=>get_user_formatted_name( ).
 DATA(user) = xco_cp=>sy->user( )->name.
 ```
 
+## Deep Dive
+
+For decision criteria between overlapping classes in 4 high-traffic categories — JSON/XML (`XCO_CP_JSON` vs `/UI2/CL_JSON` vs sXML/iXML), HTTP calls (the demo code's `create_by_url` trap), UUID (which format, not just which class), and Date/Time (the `sy-datum`/`sy-uzeit` restriction plus which class for which need) — and version-gating for 2 of them, read [references/deep-dive.md](references/deep-dive.md). The other 20 categories stay flat lookup, per this file's own catalog below.
+
 ## Detailed Reference
 
 For comprehensive code examples and all available classes, consult [references/Released_ABAP_Classes.md](references/Released_ABAP_Classes.md) — but it is ~9,800 lines: **never Read the whole file**; grep it with the section patterns below (or a class name) and read only the matching region.

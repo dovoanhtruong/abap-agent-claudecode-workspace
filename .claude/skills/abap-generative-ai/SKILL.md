@@ -39,10 +39,21 @@ Key types: `CL_AIC_ISLM_COMPL_API_FACTORY` (entry point), `IF_AIC_COMPLETION_API
 
 For reusable prompts with placeholders, use `CL_AIC_ISLM_PROMPT_TPL_FACTORY` to create/fill a prompt template bound to the scenario, then execute it via the completion API (exception: `CX_AIC_PROMPT_TEMPLATE`). Prefer templates over string concatenation when the same prompt shape is used in multiple places — they keep prompt text out of code and versionable.
 
+## Setting Parameters (correction: ad-hoc setters DO exist)
+
+Sampling parameters are settable per-call from code via the instance's parameter setter — this is NOT locked to ISLM scenario/model configuration alone:
+
+```abap
+FINAL(params) = lo_api->get_parameter_setter( ).
+params->set_maximum_tokens( 500 ).
+params->set_temperature( '0.5' ). "Value must be between 0 and 1
+```
+
+The ISLM scenario still governs which *models* are reachable and the governance/lifecycle boundary — but temperature/max-tokens themselves are ad-hoc, per-call settings, not something frozen by scenario config. See [references/deep-dive.md](references/deep-dive.md) for the full multi-turn/message-container API, prompt-template retrieval code, and result-metadata methods (token counts, runtime).
+
 ## What the SDK does NOT (yet) offer
 
 - **No documented embeddings API** in the ISLM-based ABAP AI SDK. If a requirement needs embeddings/RAG vectors, do not fabricate `*_embedding_*` classes — route via the Generative AI Hub orchestration service (HTTP, outbound communication arrangement) and say explicitly that this is outside the AI SDK.
-- Fine-grained sampling parameters (temperature, max tokens) are governed by the ISLM scenario/model configuration, not ad-hoc setters — check the current SDK API reference before promising a parameter is settable from code.
 
 ## Best Practices
 
@@ -51,5 +62,6 @@ For reusable prompts with placeholders, use `CL_AIC_ISLM_PROMPT_TPL_FACTORY` to 
 
 ## References
 
+- [references/deep-dive.md](references/deep-dive.md) — multi-turn/message-container API, prompt-template retrieval code, result-metadata methods, call-shape decision criteria
 - SAP ABAP Cheat Sheets — [30_Generative_AI.md](https://github.com/SAP-samples/abap-cheat-sheets/blob/main/30_Generative_AI.md) (canonical code patterns)
 - SAP Help — [API Reference Guide for ABAP AI SDK](https://help.sap.com/docs/abap-ai/generative-ai-in-abap-cloud/api-reference-guide-for-abap-ai-sdk)

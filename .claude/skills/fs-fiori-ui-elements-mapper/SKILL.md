@@ -1,6 +1,6 @@
 ---
 name: fs-fiori-ui-elements-mapper
-description: Kỹ năng quét tài liệu FS để dịch các yêu cầu về biểu mẫu báo cáo, tham số đầu vào, bộ lọc và toolbar buttons thành các khái niệm Annotation của SAP Fiori Elements (@UI.selectionField, @UI.lineItem, @UI.facet, v.v.). Use when translating an FS document's screen layouts/mockup tables into Fiori Elements UI specifications during TS creation. Triggers include "map UI từ FS", "selection fields từ FS", "layout FS sang annotation". For writing/consulting on CDS UI annotations outside FS analysis, use cds-view-entities; for transcribing mockup IMAGES first, use fs-vision-extractor.
+description: Kỹ năng quét tài liệu FS để dịch các yêu cầu về biểu mẫu báo cáo, tham số đầu vào, bộ lọc và toolbar buttons thành các khái niệm Annotation của SAP Fiori Elements (@UI.selectionField, @UI.lineItem, @UI.facet, v.v.). Use when translating an FS document's screen layouts/mockup tables into Fiori Elements UI specifications during TS creation. Triggers include "map UI từ FS", "selection fields từ FS", "layout FS sang annotation". For writing/consulting on CDS UI annotations outside FS analysis, use cds-analytical-views; for transcribing mockup IMAGES first, use fs-vision-extractor.
 ---
 
 # ROLE

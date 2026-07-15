@@ -89,6 +89,10 @@ Provisioning-side setup (communication users, systems) → [Skill: btp-abap-envi
 - Approach: [CDS DCL / AUTHORITY-CHECK / RAP auth handler / IAM]
 - Implementation with code, then role configuration steps
 
+## Deep Dive
+
+For version-gating on DCL/RAP-authorization additions, a 3-way decision between `SELECT ... PRIVILEGED ACCESS` vs. RAP's scoped `authorization context ... for disable` vs. EML `PRIVILEGED` mode, and a worked example chaining DCL row-level control with the full IAM App → Business Catalog → Business Role admin model, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - [references/rap-authorization-examples.md](references/rap-authorization-examples.md) — RAP instance/global handler code, PFCG walkthrough

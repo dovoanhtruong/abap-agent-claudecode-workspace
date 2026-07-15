@@ -194,6 +194,10 @@ When helping with migration topics, structure responses as:
 [Objects needing Tier 2 wrappers]
 ```
 
+## Deep Dive
+
+For a longer, verified list of concretely invalid/deprecated constructs (sourced from SAP's own official demo of broken Cloud-restricted code), a "released API but still risky" type-compatibility trap, and a decision bridge to `atc-cloudification`'s Clean Core level table, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - Custom Code Migration Guide: https://help.sap.com/docs/abap-cloud/abap-development-tools-user-guide/custom-code-migration

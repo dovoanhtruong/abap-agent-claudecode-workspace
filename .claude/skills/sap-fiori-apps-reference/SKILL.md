@@ -68,9 +68,13 @@ The complete SAP Fiori Launchpad URL follows this pattern:
 
 - **SEMANTIC_OBJECT-ACTION**: Extracted from the app details returned by the MCP fetch tool.
 
+## Deep Dive
+
+For a quantified analysis of the bundled snapshot (7.4% of apps have no launchable Semantic Object-Action; 8.1% share a Semantic Object-Action with another app, so a match alone doesn't guarantee which app launches), why single-shot generation on a keyword can silently pick the wrong app, and what to do when MCP and the offline snapshot disagree, read [references/deep-dive.md](references/deep-dive.md).
+
 ## Implementation Steps for the Agent
 
-1. **Search for the App**: search the Fiori apps reference library (query: app name/keywords, e.g. "Create Maintenance Request").
+1. **Search for the App**: search the Fiori apps reference library (query: app name/keywords, e.g. "Create Maintenance Request") — never skip straight to single-shot generation on a partial/keyword term; see the deep-dive for why.
 2. **Fetch App Details**: from the search results, find the matching App ID (e.g., "F1511A") and fetch its full details.
 3. **Extract Semantic Object-Action**
    Look for the `SemanticObject` and `Action` fields in the returned data. If they are missing, report that the app cannot be launched via URL intent.

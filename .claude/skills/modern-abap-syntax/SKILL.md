@@ -28,6 +28,10 @@ Prefer functional/expression style when it stays readable; fall back to a classi
 - Clean-code review of existing ABAP → [Skill: abap]
 - EML (RAP entity manipulation) → [Skill: rap]
 
+## Deep Dive
+
+For the full `CORRESPONDING` addition reference (`BASE`/`MAPPING`/`EXCEPT`/`DEEP APPENDING`/...), which of these constructs are ever actually release-gated on a real ABAP Cloud target (most aren't — see the deep-dive for the ones that are), and a verified table-expression performance trade-off, read [references/deep-dive.md](references/deep-dive.md) — only when the rules-of-thumb table above isn't enough for the case at hand.
+
 ## Reference
 
 Full syntax with examples: [SAP ABAP Cheat Sheets](https://github.com/SAP-samples/abap-cheat-sheets) — constructor expressions (05), string processing (07), internal tables (01), dynamic programming (06). Consult when unsure of an edge case rather than guessing.

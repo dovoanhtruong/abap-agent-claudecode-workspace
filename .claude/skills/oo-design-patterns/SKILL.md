@@ -34,6 +34,10 @@ Only where the ABAP realization is non-obvious:
 - **Strategy/State class explosion**: in ABAP each class is a repository object with TR overhead — before splitting per-state/per-strategy classes, confirm the variability is real and in the TS.
 - **Observer in RAP**: `RAISE ENTITY EVENT` + event handler class replaces hand-rolled observer registries.
 
+## Deep Dive
+
+For real, short skeletons of the 4 realizations above (Singleton, Factory, Strategy/State, Observer) and the one genuine version-gating finding (RAP business events are newer than RAP itself), read [references/deep-dive.md](references/deep-dive.md) — this does not turn into a full GoF cookbook, only the 4 already flagged as non-obvious.
+
 ## Output Format
 
 When recommending a pattern: name it, state the forces that justify it (one sentence, tied to the TS/FS requirement), then give the ABAP skeleton. If no pattern is warranted, say so explicitly — "plain class, no pattern" is a valid recommendation.

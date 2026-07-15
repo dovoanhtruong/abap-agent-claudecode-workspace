@@ -5169,58 +5169,7 @@ ENDLOOP.
 
 ## ABAP Unit
 
-<table>
-<tr>
-<td> Class </td> <td> Details/Code Snippet </td>
-</tr>
-<tr>
-<td> <code>CL_ABAP_UNIT_ASSERT</code> </td>
-<td>
-
-Provides methods to verify test expectations in ABAP Unit tests. For more information, see the [ABAP Unit Tests](14_ABAP_Unit_Tests.md) cheat sheet.
-
-
-```abap
-"Code in a test class
-
-...
-
-DATA(result) = 100.
-
-...
-
-cl_abap_unit_assert=>assert_equals(
-  act = result
-  exp = 100
-  msg = `The value does not match the expected result`
-  quit = if_abap_unit_constant=>quit-no ).
-```
-
-</td>
-</tr>
-<tr>
-<td> <code>CL_ABAP_TESTDOUBLE</code><br><code>CL_OSQL_TEST_ENVIRONMENT</code><br><code>CL_CDS_TEST_ENVIRONMENT</code><br><code>CL_BOTD_TXBUFDBL_BO_TEST_ENV</code><br><code>CL_BOTD_MOCKEMLAPI_BO_TEST_ENV</code> </td>
-<td>
-
-
-- The classes can be used in the context of ABAP Unit to create test doubles in a standardized way. 
-- The test doubles replace dependent-on components (DOC) during unit tests.
-- DOCs:
-  - Classes and interfaces: 
-    - `CL_ABAP_TESTDOUBLE`: ABAP OO Test Double Framework
-  - Database (e.g. database tables or CDS view entities) 
-    - `CL_OSQL_TEST_ENVIRONMENT`: ABAP SQL Test Double Framework; to test ABAP SQL statements that depend on data sources such as database tables or CDS view entities
-    - `CL_CDS_TEST_ENVIRONMENT`: ABAP CDS Test Double Framework; to test logic implemented in CDS entities
-  - RAP business objects
-    - `CL_BOTD_TXBUFDBL_BO_TEST_ENV`: Creating transactional buffer test doubles
-    - `CL_BOTD_MOCKEMLAPI_BO_TEST_ENV`: Mocking ABAP EML APIs
-
-- Note that more classes are available for other use cases. 
-- For more information, see the [ABAP Unit Tests](14_ABAP_Unit_Tests.md) cheat sheet and the [documentation](https://help.sap.com/docs/abap-cloud/abap-development-tools-user-guide/managing-dependencies-with-abap-unit).
-
-</td>
-</tr>
-</table>
+> Full decision guidance (which test-double approach per situation), class reference, and worked test-double examples for ABAP Unit now live in **[Skill: abap-unit-testing]** — read that skill instead of this section; kept here only as a pointer to avoid a shallower duplicate copy.
 
 <p align="right"><a href="#top">⬆️ back to top</a></p>
 
@@ -5467,6 +5416,8 @@ SELECT *
 
 ## Programmatic ABAP Test Cockpit (ATC) Check
 
+> This section shows running an ATC check **programmatically from code**. For *configuring* the "Usage of Released APIs (Cloudification Repository)" check variant itself (which JSON URL, Clean Core level mapping), see **[Skill: atc-cloudification]**; for running the same `ABAP_CLOUD_READINESS` variant manually via ADT as part of a migration assessment, see **[Skill: abap-cloud-migration]**.
+
 <table>
 <tr>
 <td> Class </td> <td> Details/Code Snippet </td>
@@ -5615,6 +5566,8 @@ ENDTRY.
 <p align="right"><a href="#top">⬆️ back to top</a></p>
 
 ## Releasing APIs
+
+> This section shows releasing a custom object as an API **programmatically from code**. For the ADT-based (manual) way to release a Tier-2 wrapper class as part of the migration workflow, see **[Skill: abap-cloud-migration]**.
 
 <table>
 <tr>
@@ -6059,33 +6012,7 @@ ENDCLASS.
 
 ## Generative AI
 
-<table>
-<tr>
-<td> Class </td> <td> Details/Code Snippet </td>
-</tr>
-<tr>
-<td> <code>CL_AIC_ISLM_COMPL_API_FACTORY</code><br><code>CL_AIC_ISLM_PROMPT_TPL_FACTORY</code> </td>
-<td>
-
-- ABAP classes available in the *ABAP AI SDK powered by Intelligent Scenario Lifecycle Management* for interacting with large language models (LLMs) in custom implementations
-- Find more information in the [documentation](https://help.sap.com/docs/abap-ai/generative-ai-in-abap-cloud/generative-ai-in-abap-cloud?locale=en-US) and the [Generative AI](30_Generative_AI.md) cheat sheet.
-- The following method calls create an instance of the ISLM completion API, use a prompt as string, and retrieve the LLM answer.
-
- <br>
-
-```abap
-TRY.
-    FINAL(ai_api) = cl_aic_islm_compl_api_factory=>get( )->create_instance( 'ZDEMO_ABAP_INT_SCEN' ).
-    FINAL(result) = ai_api->execute_for_string( `Tell me a joke.` ).
-    FINAL(completion) = result->get_completion( ).
-  CATCH cx_aic_api_factory cx_aic_completion_api INTO FINAL(error).
-    FINAL(error_text) = error->get_text( ).
-ENDTRY.
-```
- 
-</td>
-</tr>
-</table>
+> Prerequisites, the Completion API pattern, prompt templates, and the "what the SDK does NOT offer" anti-hallucination guardrails now live in **[Skill: abap-generative-ai]** — read that skill instead of this section; kept here only as a pointer to avoid a shallower duplicate copy.
 
 <p align="right"><a href="#top">⬆️ back to top</a></p>
 

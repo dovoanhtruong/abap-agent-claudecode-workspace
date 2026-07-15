@@ -28,7 +28,7 @@ Follow AAA (Arrange → Act → Assert). Tests must not depend on persistent dat
 
 | Attribute    | Options                               | Purpose                                                |
 | ------------ | ------------------------------------- | ------------------------------------------------------ |
-| `DURATION`   | `SHORT` / `MEDIUM` / `LONG`           | Expected execution time; `SHORT` < 1s (default for CI) |
+| `DURATION`   | `SHORT` / `MEDIUM` / `LONG`           | Expected execution time; `SHORT` < 1 min (default), `MEDIUM` 1-10 min, `LONG` 10-60 min — exceeding the band stops the test run |
 | `RISK LEVEL` | `HARMLESS` / `DANGEROUS` / `CRITICAL` | Impact on system data; `HARMLESS` = no DB changes      |
 
 Fixture methods: `class_setup`/`class_teardown` (once per class — create/destroy test environments here), `setup`/`teardown` (per test — fresh CUT instance, `clear_doubles( )`).
@@ -58,6 +58,10 @@ Less obvious ones:
 - Local test include in ADT; prefix `ltc_` (test class) / `ltd_` (test double)
 - **Test**: business logic, validations, edge cases (empty/boundary/null), CDS calculations, RAP handler logic
 - **Don't test**: framework-provided managed CRUD, trivial getters/setters, ABAP runtime behavior
+
+## Deep Dive
+
+For `CL_ABAP_TESTDOUBLE` (the dynamic alternative to a manual test double), external/global test classes via `"! @testing`, the `PARTIALLY IMPLEMENTED` addition, and version-safety framing, read [references/deep-dive.md](references/deep-dive.md).
 
 ## References
 

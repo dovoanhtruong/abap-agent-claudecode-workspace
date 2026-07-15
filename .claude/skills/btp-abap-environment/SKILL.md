@@ -67,9 +67,13 @@ Access chain: `IAM App → Business Catalog → Business Role → Business User`
 
 Building the actual RAP application (table → CDS → BDEF → service binding) is owned by the workflows `/sap-dev-create-report` and `/sap-dev-create-transactional-app` — don't improvise a parallel scaffold here.
 
+## Deep Dive
+
+For the one genuine ABAP-language version-gate touching this skill's content (Controlled SAP LUW / `CL_ABAP_TX` and its transactional-phase restrictions), decision guidance on where in a RAP transaction an outbound call should live, and communication-scenario sizing guidance, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - [references/btp-setup-walkthroughs.md](references/btp-setup-walkthroughs.md) — provisioning, ADT connection, software components, scenario definition, inbound setup, Fiori apps
 - SAP BTP ABAP Environment: https://help.sap.com/docs/btp/sap-business-technology-platform/abap-environment
 - Communication Management: https://help.sap.com/docs/btp/sap-business-technology-platform/communication-management
-- Getting Started Tutorial: https://developers.sap.com/group.abap-env-get-started.html
+- Getting Started Tutorial: https://developers.sap.com/tutorials/abap-environment-trial-onboarding.html (corrected 2026-07-14 — the previously-cited `group.abap-env-get-started.html` returned 404, verified independently before swapping)

@@ -92,6 +92,10 @@ define table function ZDEMO_AMDP_TF
 
 Forgetting the client-handling addition (or `USING`) is the #1 AMDP activation failure — declare every consumed entity and match its client handling.
 
+## Deep Dive
+
+For which window-function/set-operation/AMDP-client-safety additions are actually release-gated (several are notably younger than AMDP/CTE themselves), the full window-function availability picture, and CDS Hierarchies (a topic not covered above at all), read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - ABAP SQL Cheat Sheet: https://github.com/SAP-samples/abap-cheat-sheets (03_ABAP_SQL)

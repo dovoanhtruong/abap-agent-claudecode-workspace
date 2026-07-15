@@ -33,6 +33,10 @@ With a Custom Entity, data retrieval is entirely delegated to your `select` meth
 3. **Deterministic fallback sort**: when the client sends no `$orderby`, sort by the entity's semantic key anyway — paging slices the table, and an unstable order makes pages overlap or skip rows between requests.
 4. **Wrap in TRY...CATCH `cx_rap_query_provider`** — errors must flow through the OData pipeline, not dump.
 
+## Deep Dive
+
+For decision criteria on the edge cases the safety net alone doesn't resolve (skip the count when not requested, filtering on a field your source doesn't carry, why the fallback sort matters), version-gating for CDS custom entities, and when to reach for a Custom Entity at all vs. a plain CDS view, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - [references/query-provider-template.md](references/query-provider-template.md) — complete class template with all four phases (retrieve → logic → sort/page → respond)

@@ -153,6 +153,10 @@ Structure analysis results as:
 [Brief summary of code quality and main areas for improvement]
 ```
 
+## Deep Dive
+
+For version-safety framing (which checklist items are actually release-gated — almost none are), a decision rule for when abaplint's configured target and Clean ABAP's recommendation disagree, an abaplint dependency-currency note, and a worked end-to-end review example, read [references/deep-dive.md](references/deep-dive.md).
+
 ## References
 
 - **abaplint config & setup**: Read `references/abaplint.md` for installation, configuration options, and starter configs

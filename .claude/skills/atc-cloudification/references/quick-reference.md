@@ -41,8 +41,8 @@
 | File                                      | URL                                                                                                        |
 | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | **Object Classifications (SAP)**          | `https://raw.githubusercontent.com/SAP/abap-atc-cr-cv-s4hc/main/src/objectClassifications_SAP.json`        |
-| **Object Classifications (3-Tier Model)** | `https://raw.githubusercontent.com/SAP/abap-atc-cr-cv-s4hc/main/src/objectClassifications_3TierModel.json` |
-| **Object Classifications (General)**      | `https://raw.githubusercontent.com/SAP/abap-atc-cr-cv-s4hc/main/src/objectClassifications.json`            |
+| **Object Classifications (3-Tier Model)** | `https://raw.githubusercontent.com/SAP/abap-atc-cr-cv-s4hc/main/src/archive/objectClassifications_3TierModel.json` (moved to `src/archive/` — verified 2026-07-14, the old `main/src/` path now 404s) |
+| **Object Classifications (General)**      | `https://raw.githubusercontent.com/SAP/abap-atc-cr-cv-s4hc/main/src/archive/objectClassifications.json` (moved to `src/archive/` — verified 2026-07-14, the old `main/src/` path now 404s) |
 
 **ATC Check**: "Usage of APIs" and "Allowed Enhancement Technologies" (Note [3565942](https://me.sap.com/notes/3565942))
 

@@ -51,20 +51,19 @@ Wrap the unreleased API in a Z-class/interface written in Standard ABAP, expose 
 | **find-released-cds-view skill**| Map a business field/table to its released CDS view           |
 | **XCO Library**                 | `XCO_CP_*` classes provide cloud-ready alternatives           |
 
-## Common Unreleased → Released Replacements (quick reference)
+## Common Unreleased → Released Replacements (illustrative, not exhaustive)
 
 | Unreleased (Classic)        | Released Alternative (ABAP Cloud)                 |
 | --------------------------- | ------------------------------------------------- |
 | `sy-uname`                  | `cl_abap_context_info=>get_user_technical_name()` |
-| `sy-datum` / `sy-uzeit`     | `cl_abap_context_info=>get_system_date/time()`    |
-| `cl_gui_frontend_services`  | Not available — use Fiori UI instead              |
-| `CALL TRANSACTION`          | RAP action or Fiori navigation                    |
-| `SUBMIT ... AND RETURN`     | Background job via `CL_APJ_RT_API`                |
+| `CALL TRANSACTION`          | RAP action or Fiori navigation                     |
 | Direct SAP table `SELECT`   | Released CDS view (I\_\* views)                   |
-| `BAPI_*` function modules   | Released APIs or RAP BO consumption (EML)         |
-| Classic `MESSAGE` statement | RAP messages via `REPORTED`                       |
 
-Fuller tables (FM→class mappings, construct replacements) live in the abap-cloud-migration skill.
+These 3 rows are only a taste of the pattern (unreleased construct → released alternative). The **full** replacement tables (Database Access, Function Modules → Released Classes, Language Constructs — 28 rows total) live in **[Skill: abap-cloud-migration]** — go there for anything beyond a quick illustration.
+
+## Deep Dive
+
+For concrete "is X allowed" edge cases beyond the headline restrictions (e.g. `cl_salv_table`, `READ REPORT`, `GET REFERENCE OF`), the non-obvious "a C1-released class can still warn" type-compatibility trap, and verified C0/C1 release-contract history, read [references/deep-dive.md](references/deep-dive.md).
 
 ## References
 

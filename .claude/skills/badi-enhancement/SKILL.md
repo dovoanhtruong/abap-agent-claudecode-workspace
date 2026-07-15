@@ -13,7 +13,7 @@ Guide for extending SAP standard functionality via BAdIs. Recipes and decision t
 | -------------------- | ------------------------------- | ---------------------- |
 | **Transactions**     | ADT or `SE18`/`SE19`            | `SE18`/`SE19`          |
 | **Enhancement Spot** | Required container              | Not applicable         |
-| **Multiple Use**     | Always multiple-use             | Configurable           |
+| **Multiple Use**     | Configurable (single- or multiple-use, via a checkbox on the BAdI Definition) | Configurable |
 | **Filter**           | Filter types supported          | Filter values          |
 | **Fallback Class**   | Supported                       | Not available          |
 | **ABAP Cloud**       | Supported (released BAdIs only) | Not available          |
@@ -41,6 +41,10 @@ Guide for extending SAP standard functionality via BAdIs. Recipes and decision t
 2. Provide fallback classes for default behavior.
 3. One concern per implementation; test each with [Skill: abap-unit-testing].
 4. Classic explicit/implicit enhancements: legacy-maintenance-only knowledge — details in the reference file, out of scope for new Clean Core work.
+
+## Deep Dive
+
+For the signature constraint that actually drives single-use vs. multiple-use (why multiple-use can only have IMPORTING/CHANGING), the filter-resolution search order, fallback-class design guidance, the `api.sap.com` Explore-catalog discovery route, `FILTER-TABLE`/`PARAMETER-TABLE` dynamic calls, and BAdI-specific exception handling (including a single-use/multiple-use asymmetry when calling through an initial reference), read [references/deep-dive.md](references/deep-dive.md).
 
 ## References
 

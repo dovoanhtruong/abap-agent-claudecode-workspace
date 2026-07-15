@@ -95,6 +95,10 @@ EML is the ABAP language for programmatically interacting with RAP BOs. Key oper
 - Keep handler methods focused; use ABP auxiliary classes for shared logic
 - For managed BOs, only implement handler methods for non-standard operations
 
+## Deep Dive
+
+For managed-vs-unmanaged decision criteria, the numbering-strategy decision tree, determination trigger timing (`on modify` vs `on save` vs `determine action` — genuinely not covered above), which of these BDL constructs are release-gated (several "foundational-feeling" ones like `with additional save`/`numbering:managed`/`determine action` are newer than RAP itself), and a real (non-stub) unmanaged-save class body, read [references/deep-dive.md](references/deep-dive.md) — only when the sections above aren't enough for the case at hand.
+
 ## References
 
 - [SAP ABAP Cheat Sheets — RAP BDL](https://github.com/SAP-samples/abap-cheat-sheets/blob/main/36_RAP_Behavior_Definition_Language.md)
