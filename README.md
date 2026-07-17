@@ -3,11 +3,11 @@
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-native-7A5AF8)
 ![SAP](https://img.shields.io/badge/SAP-ABAP%20Cloud%20%C2%B7%20Clean%20Core-0FAAFF)
 ![Skills](https://img.shields.io/badge/skills-53-2EA44F)
-![Workflows](https://img.shields.io/badge/workflows-9-E8590C)
+![Workflows](https://img.shields.io/badge/workflows-11-E8590C)
 ![Subagents](https://img.shields.io/badge/subagents-6-8957E5)
 ![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
 
-Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 53 domain skills auto-activate by description (35 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 10 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text.
+Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 53 domain skills auto-activate by description (35 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 11 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks and a project-init command), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text. All documents are managed **per project**: every input/output lives under `projects/<customer>-<workstream>/` with a standard subfolder set and a `project.md` metadata file.
 
 > Sibling to `abap_antigravity_workspace` — same governance and domain knowledge, re-plumbed for Claude Code's native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports).
 
@@ -22,12 +22,12 @@ flowchart LR
     end
     subgraph ONDEMAND["Loaded on demand"]
         SK["53 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
-        WF["10 workflows<br/>.claude/commands/*"]
+        WF["11 workflows<br/>.claude/commands/*"]
         AG["6 subagents<br/>.claude/agents/*<br/>Consultant/Dev/Tester × Lead/Executor"]
     end
     subgraph ENFORCE["Hook-enforced (code)"]
         H1["pre-cud-guard.sh<br/>Z/Y-only · TR+Package · no TR CUD"]
-        H2["workspace-write-guard.sh<br/>.claude/ lock · artifacts/-only outputs"]
+        H2["workspace-write-guard.sh<br/>.claude/ lock · per-project projects/-only outputs"]
     end
     USER((User)) --> WF
     USER --> SK
@@ -41,7 +41,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    FS["📄 FS document<br/>artifacts/fs_docs/"] --> A{"New Z-tables<br/>needed?"}
+    FS["📄 FS document<br/>projects/&lt;project&gt;/fs_docs/"] --> A{"New Z-tables<br/>needed?"}
     A -->|"no — data in released CDS"| FA["/sap-dev-fs-analytic"]
     A -->|"yes — brand-new app"| FAT["/sap-dev-fs-analytic-transactional-app"]
     FA --> TS["📋 TS_*.md + Verify Loop<br/>(max 3 iterations)"]
@@ -52,7 +52,7 @@ flowchart LR
     CR --> BUILD["Sequential RAP build<br/>every object: Lint → Activate<br/>→ activation-guard 3 gates"]
     CTA --> BUILD
     BUILD --> G2{{"👤 Manual runtime verify<br/>evidence required, max 3 iterations"}}
-    G2 --> WT["📦 Walkthrough + risk report<br/>artifacts/walkthroughs/"]
+    G2 --> WT["📦 Walkthrough + risk report<br/>projects/&lt;project&gt;/walkthroughs/"]
 ```
 
 ---
@@ -84,16 +84,18 @@ abap-agent-claudecode-workspace/
 │   │   └── <team>-<layer>.md        #    dispatched by workflows via [Agent: y]; Manager keeps sole SAP CUD authority
 │   ├── hooks/                      # 🔒 Hard-enforced guardrails (PreToolUse) — code, not prompt text
 │   │   ├── pre-cud-guard.sh         # Blocks non-Z/Y CUD, missing TR/Package, and any TR create/delete/modify
-│   │   └── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → artifacts/ only
+│   │   └── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → projects/<existing-project>/<standard-subfolder>/ only
 │   ├── settings.json               # Hook wiring
-│   └── commands/                   # ⚙️ 10 workflows as slash commands (see Quick Start)
-├── artifacts/                      # 📦 Single root for all input/output artifacts (gitignored)
-│   ├── fs_docs/                     # Input Functional Specification (FS) documents
-│   ├── technical_specifications/    # Technical Specifications (TS_*.md)
-│   ├── scratchpads/                 # Drafts, progress ledgers, handoff notes (+ review/ for code reviews)
-│   ├── walkthroughs/                # Deployment guides, testing & task checklists
-│   ├── metadata_extensions/         # Generated Metadata Extension (DDLX) source, pending manual ADT creation
-│   └── system_analysis/             # System/package analysis & audit reports
+│   └── commands/                   # ⚙️ 11 workflows as slash commands (see Quick Start)
+├── projects/                       # 📦 Per-project document root — one folder per <customer>-<workstream>
+│   └── <customer>-<workstream>/     # e.g. bmw-zbom, nfg-zsd09 — created ONLY via /sap-project-init
+│       ├── project.md               # Project metadata: SAP system/MCP tool, default package, current TR, object status — the ONLY tracked file per project (everything else below is gitignored: customer FS/TS/scratchpads never enter git history)
+│       ├── fs_docs/                 # Input Functional Specification (FS) documents
+│       ├── technical_specifications/ # Technical Specifications (TS_*.md)
+│       ├── scratchpads/             # Drafts, progress ledgers, handoff notes (+ review/ for code reviews)
+│       ├── walkthroughs/            # Deployment guides, testing & task checklists
+│       ├── metadata_extensions/     # Generated Metadata Extension (DDLX) source, pending manual ADT creation
+│       └── system_analysis/         # System/package analysis & audit reports
 ├── .gitignore
 └── README.md                       # 📖 This file
 ```
@@ -128,16 +130,16 @@ abap-agent-claudecode-workspace/
 Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 53. The 18 `sap-process-*` skills take this one layer further: a lean `SKILL.md` (process grounding, always safe to auto-load) + an on-demand `references/deep-dive.md` (functional-consulting depth) that only the agent that judges it necessary reads — kept separate specifically so every FS analysis doesn't pay for depth it doesn't need.
 
 ### 2. Always-On Rules (`CLAUDE.md` → `.claude/rules/sap-dev-rule.md`)
-`CLAUDE.md` `@imports` the rule file, so it's unconditionally in context every turn. The 14 sections cover: DEV-only assumption, consent + Z/Y-only + TR/Package discipline, CDS-read/EML-write standards, `artifacts/`-only outputs, activation-guard gates after every object mutation, Iron Laws (no improvising beyond the TS), Red Flags, evidence-based reporting ("Activated ≠ Correct"), MCP tool verification, token efficiency, evidence floor for user verification, subagent policy, language policy (chat VN · code EN), and self-modification rules (`.claude/` locked behind user-created `.unlock`).
+`CLAUDE.md` `@imports` the rule file, so it's unconditionally in context every turn. The 14 sections cover: DEV-only assumption, consent + Z/Y-only + TR/Package discipline, CDS-read/EML-write standards, per-project `projects/<project>/`-only outputs (active-project resolution + `project.md` context), activation-guard gates after every object mutation, Iron Laws (no improvising beyond the TS), Red Flags, evidence-based reporting ("Activated ≠ Correct"), MCP tool verification, token efficiency, evidence floor for user verification, subagent policy, language policy (chat VN · code EN), and self-modification rules (`.claude/` locked behind user-created `.unlock`).
 
 ### 3. Workflows as Slash Commands (`.claude/commands/`)
-Each workflow is a phase-gated protocol: input validation gate (grill-me on gaps) → ledger-tracked build (activation-guard after every object) → evidence-based verify loop (max 3 iterations, then stop and ask) → walkthrough report. See Quick Start for all 10.
+Each workflow is a phase-gated protocol: input validation gate (grill-me on gaps) → ledger-tracked build (activation-guard after every object) → evidence-based verify loop (max 3 iterations, then stop and ask) → walkthrough report. Every workflow takes the target **project** as its first argument (asks once if missing) and reads `projects/<project>/project.md` before anything else. See Quick Start for all 11.
 
 ### 4. Hard-Enforced Guardrails (`.claude/hooks/`)
-Prompt rules can be ignored; hooks can't. `pre-cud-guard.sh` fires on every call to any connected SAP MCP server matching `mcp__sap_<project>_dev__*` and blocks: non-Z/Y object CUD, object CUD without TR+Package, and any agent-driven create/delete/modify of a Transport Request itself. It's heuristic (regex over the tool payload) — tighten the field lookups once you've inspected one real call. `workspace-write-guard.sh` fires on `Write|Edit|NotebookEdit|Bash` and blocks: any change inside `.claude/` unless the **user** has manually created the sentinel `.claude/.unlock` (the agent is permanently blocked from creating that sentinel itself), and creation of new files outside `artifacts/` (editing existing files stays allowed). Hooks enforce "did this happen" — the rule file still governs "was it done well".
+Prompt rules can be ignored; hooks can't. `pre-cud-guard.sh` fires on every call to any connected SAP MCP server matching `mcp__sap_<project>_dev__*` and blocks: non-Z/Y object CUD, object CUD without TR+Package, and any agent-driven create/delete/modify of a Transport Request itself. It's heuristic (regex over the tool payload) — tighten the field lookups once you've inspected one real call. `workspace-write-guard.sh` fires on `Write|Edit|NotebookEdit|Bash` and blocks: any change inside `.claude/` unless the **user** has manually created the sentinel `.claude/.unlock` (the agent is permanently blocked from creating that sentinel itself), and creation of new files outside `projects/<project>/<standard-subfolder>/` — where the project directory must already exist (created via `/sap-project-init`) and the subfolder is one of the 6 standard ones (a project's own `project.md` is also allowed; editing existing files stays allowed). Hooks enforce "did this happen" — the rule file still governs "was it done well".
 
 ### 5. Subagent Team (`.claude/agents/`)
-Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every analytical step in the main session: **Team Consultant** (business/FS analysis — `consultant-lead` for judgment-heavy translation, `consultant-executor` for mechanical pre-processing), **Team Dev**, **Team Tester** — each split **Lead** (opus, judgment) / **Executor** (sonnet, template-driven). The Manager (this session) is the only one holding SAP CUD authority; every subagent only drafts/analyzes and writes to `artifacts/scratchpads/`, never calling an SAP object-mutation tool, and never marking a ledger row DONE — the Manager reads their output file from disk before trusting it. `consultant-lead` additionally runs the Process-Domain Skill Check described above during FS-analytic Phase 1.
+Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every analytical step in the main session: **Team Consultant** (business/FS analysis — `consultant-lead` for judgment-heavy translation, `consultant-executor` for mechanical pre-processing), **Team Dev**, **Team Tester** — each split **Lead** (opus, judgment) / **Executor** (sonnet, template-driven). The Manager (this session) is the only one holding SAP CUD authority; every subagent only drafts/analyzes and writes to the active project's `projects/<project>/scratchpads/` (exact path passed in the dispatch prompt), never calling an SAP object-mutation tool, and never marking a ledger row DONE — the Manager reads their output file from disk before trusting it. `consultant-lead` additionally runs the Process-Domain Skill Check described above during FS-analytic Phase 1.
 
 ---
 
@@ -150,43 +152,50 @@ Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every an
 3. One-time venv for binary FS conversion: `python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdown[all]'`.
 4. Know the lock: if you ask Claude to modify `.claude/` (rules/skills/hooks), first run `touch .claude/.unlock`, and delete it when done.
 
-### The 10 workflows
+### The 11 workflows
+
+**Step zero — one project per `<customer>-<workstream>` (everything else writes into it):**
+
+```bash
+# Create the project skeleton + project.md (system/package/TR metadata, all TBD-able)
+/sap-project-init saper-inventory "PM inventory report — system mcp__sap_saper_dev__SAP, package ZREPORT_PM"
+```
 
 **Pipeline A — report/screen over existing released CDS data:**
 
 ```bash
 # FS → Technical Specification
-/sap-dev-fs-analytic artifacts/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT
-# Review artifacts/technical_specifications/TS_*.md, then TS → activated RAP objects
-/sap-dev-create-report ZREPORT_PM DEVK900123 artifacts/technical_specifications/TS_InventoryReport.md
+/sap-dev-fs-analytic saper-inventory projects/saper-inventory/fs_docs/SAPER_2025_PM_FS.docx Z_INVENTORY_REPORT
+# Review projects/saper-inventory/technical_specifications/TS_*.md, then TS → activated RAP objects
+/sap-dev-create-report saper-inventory ZREPORT_PM DEVK900123 projects/saper-inventory/technical_specifications/TS_InventoryReport.md
 ```
 
 **Pipeline B — brand-new transactional app (no existing Z-table/CDS):**
 
 ```bash
 # FS → Technical Specification incl. DDIC Foundation design (tables/domains/number range/status machine)
-/sap-dev-fs-analytic-transactional-app artifacts/fs_docs/SAPER_2025_ZBOM_FS.docx ZPRODX_ZBOM
+/sap-dev-fs-analytic-transactional-app saper-zbom projects/saper-zbom/fs_docs/SAPER_2025_ZBOM_FS.docx ZPRODX_ZBOM
 # TS → DDIC Foundation + full RAP composition tree + OData binding
-/sap-dev-create-transactional-app ZPRODX_ZBOM DEVK900124 artifacts/technical_specifications/TS_ZBom.md
+/sap-dev-create-transactional-app saper-zbom ZPRODX_ZBOM DEVK900124 projects/saper-zbom/technical_specifications/TS_ZBom.md
 ```
 
 **Maintenance & integration:**
 
 ```bash
 # Root-cause + regression-safe fix (halts for your approval before touching code)
-/sap-dev-bug-fix ZC_INVENTORY_REPORT "SO Type ZOR2: expected qty 10, got 0"
+/sap-dev-bug-fix saper-inventory ZC_INVENTORY_REPORT "SO Type ZOR2: expected qty 10, got 0"
 
 # Inbound API on Z_API_FWK (external system calls SAP)
-/sap-dev-api-inbound CREATE_SALES_ORDER
+/sap-dev-api-inbound saper-integration CREATE_SALES_ORDER
 
 # Outbound API via Z_API_FWK=>execute_api (SAP calls external system)
-/sap-dev-api-outbound NOTIFY_WMS
+/sap-dev-api-outbound saper-integration NOTIFY_WMS
 
 # Deep-dive documentation of an existing object/package
-/sap-dev-code-analysis ZPRODX_ZBOM "data flow + call graph"
+/sap-dev-code-analysis saper-zbom ZPRODX_ZBOM "data flow + call graph"
 
 # Strict advisory QA review (no auto-refactor)
-/sap-dev-code-review ZCL_BOM_PROCESSOR "performance, security"
+/sap-dev-code-review saper-zbom ZCL_BOM_PROCESSOR "performance, security"
 ```
 
 **Single-prompt micro tasks (~70% of real interactions):**
@@ -207,5 +216,5 @@ Every build workflow asks for anything missing (Package, TR, TS gaps) before tou
 
 * **Relative paths** everywhere — the workspace moves between machines without breaking.
 * **Adding a skill:** `touch .claude/.unlock`, drop `.claude/skills/<name>/SKILL.md` with `name` (= folder name) + `description` frontmatter, keep the body lean with heavy content in `references/`, then re-run the integrity check (frontmatter name = dir name; every `[Skill: x]` reference resolves) and delete `.unlock`. Claude Code picks it up automatically.
-* **Audit trail:** the full skill/workflow/rule audit and upgrade history lives in `artifacts/system_analysis/skill_audit_*.md`.
+* **Workspace-governance docs** (audits, refactor scratchpads, meta-work on the workspace itself) live in their own project: `projects/workspace-governance/` — the workspace is treated as a project like any other.
 * **Relationship to `abap_antigravity_workspace`:** ported from it, maintained separately — fixes do not auto-propagate between the two.

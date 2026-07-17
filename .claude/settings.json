@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__sap_[a-z0-9]+_dev__.*",
+        "matcher": "mcp__(sap|abap)_[a-z0-9_]+_dev__.*",
         "hooks": [
           {
             "type": "command",

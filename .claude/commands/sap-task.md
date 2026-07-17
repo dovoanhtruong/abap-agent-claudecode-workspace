@@ -30,5 +30,6 @@ If classification reveals this is actually a multi-object build, a full FS→TS 
 
 [SCOPE GUARDS]
 - All of `sap-dev-rule.md` still applies — this command lowers ceremony, never the rules (§2 consent/Z-Y-only/TR, §5 activation-guard, §6 iron laws, §8 reporting language are all in force).
+- File outputs (if any) follow §4: they belong to ONE named project (`projects/<project>/<standard-subfolder>/`). If the task produces a file and the project is unknown, ask which project (or point to `/sap-project-init`) before writing. A micro task with no file output needs no project. When a project IS known, read its `projects/<project>/project.md` for default system/package/TR before asking the user for them.
 - No object/logic invention beyond what the user asked (§6). Missing info → one focused question ([Skill: grill-me] style, max 1 round for a micro task), not an assumption.
 - If ≥3 fix attempts fail on the same object, stop and escalate per §7 — a micro task that fights back is not micro anymore.

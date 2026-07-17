@@ -8,15 +8,27 @@
 # not available to verify at write time (server was disconnected). Once connected,
 # inspect one real call's tool_input and tighten the field lookups below instead of
 # blind regex — see README "Notes for Developers".
-set -euo pipefail
+#
+# DEPENDENCY-FREE ON PURPOSE: an earlier version used `jq` both to slice out
+# tool_input and to emit the deny JSON; `jq` does not exist on this machine, so
+# the guard silently failed open (payload fell back to '{}' → every check
+# passed, and deny() printed nothing even when triggered). Pure bash/sed below —
+# do not reintroduce external binaries without verifying they exist in the
+# HOOK's execution environment.
+set -uo pipefail
 
 input=$(cat)
-tool_input=$(echo "$input" | jq -c '.tool_input // {}' 2>/dev/null || echo '{}')
-payload=$(echo "$tool_input" | tr '[:upper:]' '[:lower:]')
+# Slice from "tool_input": onward (sed, no jq). Slightly wider than the exact
+# object if other envelope fields follow it — acceptable for a heuristic guard,
+# and infinitely better than the '{}' fail-open. Falls back to the whole input.
+tool_input=$(printf '%s' "$input" | sed -nE 's/.*"tool_input"[[:space:]]*:[[:space:]]*(\{.*)/\1/p')
+[[ -z "$tool_input" ]] && tool_input="$input"
+payload=$(printf '%s' "$tool_input" | tr '[:upper:]' '[:lower:]')
 
 deny() {
-  jq -n --arg reason "$1" \
-    '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":$reason}}'
+  local reason="${1//\\/ }"
+  reason="${reason//\"/\'}"
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' "$reason"
   exit 0
 }
 

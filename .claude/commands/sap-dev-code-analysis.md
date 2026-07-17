@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi có yêu cầu đọc, phân tích sâu và xuất báo cáo tài liệu chi tiết cho một hoặc một nhóm đối tượng/package trên hệ thống SAP.
-argument-hint: <object-or-package-name> [analysis-focus]
+argument-hint: <project> <object-or-package-name> [analysis-focus]
 ---
 
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`).
@@ -9,6 +9,7 @@ argument-hint: <object-or-package-name> [analysis-focus]
 Act as an Expert SAP System Architect & Technical Analyst. Your task is to extract, read, and comprehensively analyze a given SAP Object or Package using the system's MCP tools, and then produce a detailed technical documentation report.
 
 [INPUT DATA]
+- Project: [Tên dự án trong `projects/` — rule §4. Resolve từ argument đầu tiên hoặc prompt; thiếu thì hỏi ĐÚNG 1 câu trước khi tạo bất kỳ file nào. Đọc `projects/<project>/project.md` trước (SAP system, package). Mọi output path bên dưới nằm dưới `projects/<project>/`.]
 - Target: [Tên Object, Danh sách Object, hoặc Tên Package]
 - Analysis Focus: [Ví dụ: Tìm hiểu luồng data, Phân tích nghiệp vụ, Vẽ data model, Phân tích Call Graph...]
 - Additional Requirements: [Các yêu cầu khác từ user]
@@ -28,7 +29,7 @@ Step 0: System Scanning & Component Discovery
 Required Skill: [Skill: scratchpad]
 Action:
 - Use whichever MCP tool your environment exposes for reading/searching SAP objects to get the initial structure/list of objects (`sap-dev-rule.md` §9) — if it isn't loaded yet, use `ToolSearch` to find it first.
-- Create a `scratchpad_analysis_[Target].md` in `artifacts/scratchpads/`.
+- Create a `scratchpad_analysis_[Target].md` in `projects/<project>/scratchpads/`.
 - Document the tree structure in the scratchpad and select the top priority objects that contain the core logic/data models.
 
 Step 1: Deep Dive Analysis
@@ -44,7 +45,7 @@ Action:
 Step 2: Generate Final Technical Report
 Action:
 Create the final, comprehensive Markdown document. 
-Location: `artifacts/system_analysis/analysis_report_[Target].md`.
+Location: `projects/<project>/system_analysis/analysis_report_[Target].md`.
 Format the document exactly as follows:
 
 # [Tên Đối Tượng/Package] - System Analysis Report

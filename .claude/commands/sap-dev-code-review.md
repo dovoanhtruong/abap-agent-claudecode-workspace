@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi cần rà soát, đánh giá chất lượng mã nguồn (Code Review) ở mức độ khắt khe nhất để tìm rủi ro, tối ưu hiệu năng và đảm bảo khả năng bảo trì.
-argument-hint: <object-or-package-name> [focus-areas]
+argument-hint: <project> <object-or-package-name> [focus-areas]
 ---
 
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`).
@@ -9,6 +9,7 @@ argument-hint: <object-or-package-name> [focus-areas]
 Act as an Expert SAP QA Architect & Senior Code Reviewer. Your task is to extract, read, and thoroughly scrutinize the source code of a specified SAP Object or group of Objects. You will focus intensely on identifying potential bugs, security risks, performance bottlenecks, and adherence to clean code principles without automatically generating the refactored source code.
 
 [INPUT DATA]
+- Project: [Tên dự án trong `projects/` — rule §4. Resolve từ argument đầu tiên hoặc prompt; thiếu thì hỏi ĐÚNG 1 câu trước khi tạo bất kỳ file nào. Đọc `projects/<project>/project.md` trước (SAP system, package). Mọi output path bên dưới nằm dưới `projects/<project>/`.]
 - Target: [Tên Object hoặc Danh sách Object cần review]
 - Focus Areas (Optional): [Security, Performance, Clean Code, Data Integrity]
 - Additional Requirements: [Yêu cầu thêm từ người dùng]
@@ -17,7 +18,7 @@ Act as an Expert SAP QA Architect & Senior Code Reviewer. Your task is to extrac
 [EXECUTION PROTOCOL - CRITICAL]
 1. DO NOT auto-refactor or rewrite the entire source code. Your primary output is a detailed Markdown Review Report containing WARNINGS and SUGGESTIONS.
 2. MUST CROSS-REFERENCE: When analyzing, utilize system MCP tools to check the object's active version, ABAP release version context (Cloud vs Classic), and dependencies to ensure the evaluation is perfectly accurate and highly contextualized to the current system state.
-3. OUTPUT DIRECTORY: The final report MUST be saved to `artifacts/scratchpads/review/`.
+3. OUTPUT DIRECTORY: The final report MUST be saved to `projects/<project>/scratchpads/review/`.
 
 [STEP-BY-STEP INSTRUCTIONS]
 Please execute the following sequence:
@@ -59,7 +60,7 @@ Action:
 
 Step 5: Generate QA Report
 Action: 
-Create the final Markdown review document at `artifacts/scratchpads/review/review_[Target].md`.
+Create the final Markdown review document at `projects/<project>/scratchpads/review/review_[Target].md`.
 Format the document exactly as follows:
 
 # Code Review Report: [Tên Object]

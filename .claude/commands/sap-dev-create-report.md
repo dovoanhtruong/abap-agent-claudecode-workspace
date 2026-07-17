@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi người dùng yêu cầu tạo mới report dựa trên ABAP RAP Model, đọc Technical Specification (TS) do `/sap-dev-fs-analytic` sinh ra và triển khai đúng theo Coding Implementation Plan trong TS — không tự thiết kế hay tự tìm kiếm thêm thông tin ngoài TS.
-argument-hint: <package> <transport-request> <ts-file-path>
+argument-hint: <project> <package> <transport-request> <ts-file-path>
 ---
 
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`). Where a step needs an MCP tool not yet loaded (e.g. an ADT/system-connection tool), use `ToolSearch` first (see `sap-dev-rule.md` §9).
@@ -9,6 +9,7 @@ argument-hint: <package> <transport-request> <ts-file-path>
 Act as an Expert SAP ABAP Cloud Developer with SYSTEM EXECUTION PRIVILEGES. CREATE, VALIDATE, and ACTIVATE the complete ABAP RAP Model artifacts described in the TS's Coding Implementation Plan (§9). Use your equipped skills (rap, cds-view-entities, cds-analytical-views, abap, abap-cloud, naming-convention, abap-unit-testing) to guarantee ABAP Cloud syntax, Clean Core, and strict(2) compliance.
 
 [INPUT DATA]
+Project: [Tên dự án trong `projects/` — rule §4. Resolve từ argument đầu tiên hoặc prompt; thiếu thì hỏi ĐÚNG 1 câu trước khi tạo bất kỳ file nào. Đọc `projects/<project>/project.md` trước — nguồn context mặc định cho SAP system/Package/TR. Mọi output path bên dưới nằm dưới `projects/<project>/`.]
 Package Name: [Điền tên Package]
 Transport Request: [Điền TR, hoặc "Local Object"]
 Technical Specification: [Đường dẫn tới TS_[ReportName].md sinh ra bởi /sap-dev-fs-analytic]
@@ -32,7 +33,7 @@ If ANY check fails → 0.1. If all pass → 0.2.
 
 0.1 GRILL-ME ON GAPS: Use [Skill: grill-me] (max 1-3 targeted questions) to collect exactly the missing information from 0.0. Do not proceed until 0.0 fully passes. If the gap is in the TS content itself (not just Package/TR), tell the user to re-run/patch `/sap-dev-fs-analytic` instead of improvising here.
 
-0.2 TASK LEDGER: Use [Skill: scratchpad] (Ledger Format) to create `artifacts/scratchpads/scratchpad_[ReportName].md`, one row per object from TS §9 in the TS's specified order, status TODO/DOING/DONE/FAILED/REGRESSED. This ledger is the single source of truth for build progress — if the session is interrupted or context is compacted, re-read the ledger instead of re-deriving progress from memory.
+0.2 TASK LEDGER: Use [Skill: scratchpad] (Ledger Format) to create `projects/<project>/scratchpads/scratchpad_[ReportName].md`, one row per object from TS §9 in the TS's specified order, status TODO/DOING/DONE/FAILED/REGRESSED. This ledger is the single source of truth for build progress — if the session is interrupted or context is compacted, re-read the ledger instead of re-deriving progress from memory.
 
 0.3 TR BINDING: Extract the TR from [INPUT DATA]. Every tool call that creates or edits an SAP object must explicitly pass the transport/correction-number parameter matching this TR, to prevent an unwanted auto-generated TR. Verify the exact parameter name/tool signature available in your environment before first use (`sap-dev-rule.md` §9) — if the tool isn't loaded yet, use `ToolSearch` to find it; do not assume a hardcoded tool name.
 
@@ -52,7 +53,7 @@ Per step: GENERATE (draft per the row's spec) → check the name against [Skill:
 
 **Step 4.5 — Side-task (optional, non-blocking):** [Skill: abap-unit-testing] — generate a test class skeleton for the Step 4 class. In Claude Code, dispatch this via the Agent tool as a background/parallel task if the codebase warrants it; otherwise run inline right after Step 4 without blocking Step 5.
 
-**Step 5 — Projection View & Metadata Extension:** [Skill: cds-view-entities] for the projection view itself; [Skill: cds-analytical-views] owns the `@UI`/value-help annotation syntax for the Metadata Extension. Create the projection (`AS PROJECTION ON`) with `@Search`, `@EndUserText`, `@Metadata.allowExtensions: true`. Do NOT put `@UI` annotations in the projection — generate the full Metadata Extension source and save it to `artifacts/metadata_extensions/ZMD_[ReportName].md`; tell the user to create the DDLX object manually in Eclipse ADT (the automated tool cannot create DDLX objects directly). Execute: Lint → Push → Activate → [Skill: activation-guard] (Projection View only).
+**Step 5 — Projection View & Metadata Extension:** [Skill: cds-view-entities] for the projection view itself; [Skill: cds-analytical-views] owns the `@UI`/value-help annotation syntax for the Metadata Extension. Create the projection (`AS PROJECTION ON`) with `@Search`, `@EndUserText`, `@Metadata.allowExtensions: true`. Do NOT put `@UI` annotations in the projection — generate the full Metadata Extension source and save it to `projects/<project>/metadata_extensions/ZMD_[ReportName].md`; tell the user to create the DDLX object manually in Eclipse ADT (the automated tool cannot create DDLX objects directly). Execute: Lint → Push → Activate → [Skill: activation-guard] (Projection View only).
 
 **Step 6 — Projection Behavior:** [Skill: rap]. Skip if no Base BDEF. Execute: Lint → Push → Activate → [Skill: activation-guard].
 
@@ -68,7 +69,7 @@ Per step: GENERATE (draft per the row's spec) → check the name against [Skill:
 
 ## Phase 3 — Walkthrough & Risk Report
 
-3.0 Save `artifacts/walkthroughs/walkthrough_[ReportName].md`: what was built (object list from the ledger, all DONE), what was verified and how (cite the actual filter values and results from Phase 2 — never "should work"), and any known risks/manual steps outstanding (e.g. "Metadata Extension pending manual creation in ADT"). If a UI Service Binding (Step 7) was created, optionally use [Skill: sap-fiori-apps-reference] to generate the Fiori Launchpad URL from its Semantic Object/Action and include it in the walkthrough.
+3.0 Save `projects/<project>/walkthroughs/walkthrough_[ReportName].md`: what was built (object list from the ledger, all DONE), what was verified and how (cite the actual filter values and results from Phase 2 — never "should work"), and any known risks/manual steps outstanding (e.g. "Metadata Extension pending manual creation in ADT"). If a UI Service Binding (Step 7) was created, optionally use [Skill: sap-fiori-apps-reference] to generate the Fiori Launchpad URL from its Semantic Object/Action and include it in the walkthrough.
 
 [OUTPUT FORMAT]
 For each Phase-1 step, report in the chat using [Skill: caveman] style for the narration only (short, evidence-based, no filler) — the source code and log content below stay verbatim, never compressed (`sap-dev-rule.md` §10):

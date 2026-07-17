@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi cần phân tích tài liệu Functional Specification (FS) mô tả một Chức năng (Transactional App) xây MỚI HOÀN TOÀN — chưa có Z-table/CDS nào tồn tại — để tạo ra bản Technical Specification (TS) đầy đủ cho `/sap-dev-create-transactional-app` thực thi mà không cần tự thiết kế thêm, bao gồm cả tầng DDIC Foundation (table/domain/data element/number range) chứ không chỉ tầng RAP trên CDS có sẵn.
-argument-hint: <fs-file-path> <package-name>
+argument-hint: <project> <fs-file-path> <package-name>
 ---
 
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`). Where a step needs an MCP tool not yet loaded, use `ToolSearch` first (see `sap-dev-rule.md` §9).
@@ -11,7 +11,8 @@ argument-hint: <fs-file-path> <package-name>
 Act as an Expert SAP Solution Architect and Technical Analyst. Deeply read and analyze a Functional Specification (FS) document describing a brand-new transactional business object, then translate its data structure, status/lifecycle rules, UI requirements, and actions into a Technical Specification (TS) strictly aligned with SAP ABAP Cloud, Clean Core, and RAP architecture. The TS you produce is the ONLY input `/sap-dev-create-transactional-app` will read — it must be complete enough (down to DDIC field/type/key level) that create-transactional-app never has to guess or design on its own.
 
 [INPUT DATA]
-- Functional Specification (FS): file(s) in `artifacts/fs_docs/`, or FS text pasted directly. Arguments: $ARGUMENTS
+- Project: the target project name under `projects/` (rule §4). Resolve from the first argument or the user's prompt; if absent, ask ONE question before creating any file. The directory `projects/<project>/` must already exist (`/sap-project-init` otherwise). Read `projects/<project>/project.md` first — it supplies the default SAP system, package, and TR context. Every output path below lives under `projects/<project>/`.
+- Functional Specification (FS): file(s) in `projects/<project>/fs_docs/`, or FS text pasted directly. Arguments: $ARGUMENTS
 
 [GOVERNING RULES]
 This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: no TS handoff without passing the Verify Loop (Phase 5); progress updates use [Skill: caveman]; never re-print full drafts already saved to a file, reference the path instead. A structural gap (an entity/field with no table, key, or type decided) is a HARD BLOCK — do not placeholder it; a business-value gap (e.g. an exact config value still pending from another app/team) may be recorded as `[assumption]`/`TBD` per `sap-dev-rule.md` §11 as long as it doesn't stop the build.
@@ -20,9 +21,9 @@ This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rule
 
 ## Phase 0 — Intake & Pre-processing
 
-0.0 TASK LEDGER: Use [Skill: scratchpad] to create `artifacts/scratchpads/scratchpad_[AppName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
+0.0 TASK LEDGER: Use [Skill: scratchpad] to create `projects/<project>/scratchpads/scratchpad_[AppName].md` with the Ledger Format (TODO/DOING/DONE/FAILED) covering Phases 0-6. Update it immediately after each phase — it is the single source of truth for progress, not this conversation's history.
 
-0.1 DOCUMENT PRE-PROCESSING: Dispatch `[Agent: consultant-executor]` with [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `artifacts/fs_docs/` into `artifacts/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
+0.1 DOCUMENT PRE-PROCESSING: Dispatch `[Agent: consultant-executor]` with [Skill: document-markdown-converter] to convert binary FS files (PDF/DOCX/XLSX) in `projects/<project>/fs_docs/` into `projects/<project>/scratchpads/fs_markdown.md`. Skip if the FS is already plain text/Markdown. From here on, read `fs_markdown.md` only — never the original binary.
 
 0.2 VISUAL EXTRACTION: If the FS contains images (UI mockups, flowcharts, Excel screenshots), dispatch `[Agent: consultant-executor]` with [Skill: fs-vision-extractor] to transcribe them into Markdown and append the result into `fs_markdown.md` under a clearly labeled heading (e.g. `## Extracted from Image: <name>`). Skip if the FS has no images.
 
@@ -42,7 +43,7 @@ Unlike `/sap-dev-fs-analytic` (which only *looks up* an existing view), this pha
 
 (d) PROCESS-DOMAIN SKILL CHECK: check whether any `sap-process-*` skill (business-process domain knowledge, `.claude/skills/sap-process-*/` — auto-discovered by description match against the FS content) is relevant to this FS's business domain, and invoke any that apply; if none apply, say so explicitly rather than skipping the check silently.
 
-Output: **Verified Data Model** — (a) the New Table Design (entity → field → type/key/domain) and (b) the released reference views and the field they supply — the vocabulary every later phase must reuse verbatim (identical field/table/view names) to avoid drift. Persist it as a `## Verified Data Model` section in `artifacts/scratchpads/scratchpad_[AppName].md`, plus a `## Relevant Process-Domain Skill(s)` section naming exactly which `sap-process-*` skill(s) applied from (d) (or "None") — Phase 2's dispatched agents read this file, not conversation history, and reuse this list instead of re-discovering it themselves (this is the one and only domain-discovery pass — keeps token cost to one check instead of one per Phase-2 dispatch).
+Output: **Verified Data Model** — (a) the New Table Design (entity → field → type/key/domain) and (b) the released reference views and the field they supply — the vocabulary every later phase must reuse verbatim (identical field/table/view names) to avoid drift. Persist it as a `## Verified Data Model` section in `projects/<project>/scratchpads/scratchpad_[AppName].md`, plus a `## Relevant Process-Domain Skill(s)` section naming exactly which `sap-process-*` skill(s) applied from (d) (or "None") — Phase 2's dispatched agents read this file, not conversation history, and reuse this list instead of re-discovering it themselves (this is the one and only domain-discovery pass — keeps token cost to one check instead of one per Phase-2 dispatch).
 
 ## Phase 2 — Domain Analysis (parallel via dedicated subagents)
 
@@ -50,11 +51,11 @@ Output: **Verified Data Model** — (a) the New Table Design (entity → field �
 
 Threshold (starting heuristic — tighten once real dispatch-timing data exists): dispatch sequentially instead of in parallel only if the Verified Data Model lists fewer than ~15 fields total across all new tables AND `fs_markdown.md` is under ~2 pages — below that size, three parallel dispatches cost more in spin-up overhead than they save. At or above the threshold, always dispatch in parallel — the result is identical content either way, only faster.
 
-2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (List Report Selection Fields/Line Items/Sorting, Object Page Facets per composition-tree node, toolbar buttons per facet with their enable/visibility condition). Output: `artifacts/scratchpads/draft_ui_[AppName].md`.
+2.A UI/UX ANALYSIS: [Skill: fs-fiori-ui-elements-mapper] → UI Layout Draft (List Report Selection Fields/Line Items/Sorting, Object Page Facets per composition-tree node, toolbar buttons per facet with their enable/visibility condition). Output: `projects/<project>/scratchpads/draft_ui_[AppName].md`.
 
-2.B BUSINESS LOGIC & LIFECYCLE EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft covering: **Status Machine** (every valid status value, every transition, the action/event that triggers it, and its precondition — if the FS implies a lifecycle at all), **Numbering** (which field, by which mechanism — Number Range vs. BDEF managed/early/late — and whether it's scoped per-parent, e.g. a child row counter that restarts per header), **Actions/Determinations/Validations** across the whole tree (not just the root), Clean Core violations + released replacements, Authorization Check needs (both DCL-level and any per-action custom Authorization Object the FS implies, e.g. "only role X can press button Y"). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check. Output: `artifacts/scratchpads/draft_logic_[AppName].md`.
+2.B BUSINESS LOGIC & LIFECYCLE EXTRACTION: [Skill: fs-logic-behavior-translator] → Business Logic Draft covering: **Status Machine** (every valid status value, every transition, the action/event that triggers it, and its precondition — if the FS implies a lifecycle at all), **Numbering** (which field, by which mechanism — Number Range vs. BDEF managed/early/late — and whether it's scoped per-parent, e.g. a child row counter that restarts per header), **Actions/Determinations/Validations** across the whole tree (not just the root), Clean Core violations + released replacements, Authorization Check needs (both DCL-level and any per-action custom Authorization Object the FS implies, e.g. "only role X can press button Y"). This skill already mandates MCP-verified replacements for any unreleased API it flags — do not skip that check. Output: `projects/<project>/scratchpads/draft_logic_[AppName].md`.
 
-2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently. Output: `artifacts/scratchpads/draft_integration_[AppName].md`.
+2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently. Output: `projects/<project>/scratchpads/draft_integration_[AppName].md`.
 
 2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence). To keep this cheap on context, read only each file's **Field Name Index** (the flat list at the very top of the file) first and cross-check those names against the Verified Data Model; open the full draft body only for a file whose Index shows a name that doesn't match, to get the context needed to resolve it. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field/entity is genuinely missing) before proceeding to Phase 3.
 
@@ -101,7 +102,7 @@ PASS → Phase 6. FAIL → fix the specific gap in the phase it belongs to, then
 6.0 Save the TS, mark the ledger fully DONE. If the session ends here before `/sap-dev-create-transactional-app` runs, use [Skill: handoff] to summarize state for the next session.
 
 [OUTPUT FORMAT — CRITICAL]
-Save the final TS as Markdown directly under `artifacts/technical_specifications/TS_[AppName].md` (relative to workspace root). Do not add introductory or concluding remarks outside the template. Use CamelCase for `[AppName]`.
+Save the final TS as Markdown directly under `projects/<project>/technical_specifications/TS_[AppName].md` (relative to workspace root). Do not add introductory or concluding remarks outside the template. Use CamelCase for `[AppName]`.
 
 ```
 # Technical Specification: [AppName]

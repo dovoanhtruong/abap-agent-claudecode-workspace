@@ -23,14 +23,14 @@ python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdo
 ```
 
 ### 2. Document Conversion
-Locate the input file (usually inside `artifacts/fs_docs/`).
-Execute the conversion command and output to the `artifacts/scratchpads/` directory:
+Locate the input file (usually inside the active project's `projects/<project>/fs_docs/`).
+Execute the conversion command and output to the same project's `scratchpads/` directory:
 ```bash
-./.venv_markitdown/bin/markitdown "artifacts/fs_docs/[Your_File_Name.ext]" -o "artifacts/scratchpads/fs_markdown.md"
+./.venv_markitdown/bin/markitdown "projects/<project>/fs_docs/[Your_File_Name.ext]" -o "projects/<project>/scratchpads/fs_markdown.md"
 ```
 
 ### 3. Handoff to Analysis
-Once `fs_markdown.md` is generated successfully, **stop reading the original document**. Read `artifacts/scratchpads/fs_markdown.md` instead (with the Read tool).
+Once `fs_markdown.md` is generated successfully, **stop reading the original document**. Read `projects/<project>/scratchpads/fs_markdown.md` instead (with the Read tool).
 The resulting markdown will contain preserved headings, lists, and tables which you can easily parse for Data Model and UI elements extraction.
 
 ## Optional: LLM OCR for Images

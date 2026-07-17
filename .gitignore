@@ -1,5 +1,11 @@
-# Ignore workspace artifacts (FS inputs + all agent-generated outputs)
-artifacts/
+# Per-project documents: ignore all content (FS inputs, TS, scratchpads — customer
+# data stays local), EXCEPT each project's project.md metadata so other machines
+# cloning the repo get the project list + TR/package/system context.
+# Note: "projects/" (dir-ignore) would make the re-includes impossible — git never
+# descends into an ignored directory, hence the ** + !dir/ + !file pattern trio.
+projects/**
+!projects/*/
+!projects/*/project.md
 
 # Ignore scratchpad/temporary files
 scratch/

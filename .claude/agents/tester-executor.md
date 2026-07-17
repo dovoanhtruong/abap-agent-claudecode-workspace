@@ -26,7 +26,7 @@ Per `sap-dev-rule.md` §8/§11 — facts only, but the facts must include scope,
 
 ## Output discipline
 
-- Write your complete output (test skeleton, or raw scan findings) to the exact output path given, under `artifacts/scratchpads/` (review scans go under `artifacts/scratchpads/review/`).
+- Write your complete output (test skeleton, or raw scan findings) to the exact output path given, under the active project's `projects/<project>/scratchpads/` (review scans go under `projects/<project>/scratchpads/review/`; the dispatch prompt always names the full path including the project).
 - Your final chat message back to the Manager must be SHORT: the output file path + a one-line summary of what you produced/found.
 
 ## Typical dispatch shapes

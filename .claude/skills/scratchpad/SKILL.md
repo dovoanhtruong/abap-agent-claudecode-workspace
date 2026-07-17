@@ -10,7 +10,7 @@ description: Uses a persistent scratchpad file to plan, draft, and track complex
 **Description:** Utilizes a persistent artifact or scratch file to meticulously plan, track, and draft work before committing changes to the main codebase.
 
 ## Instructions
-1. Before starting a complex task, create or open a scratchpad file under `artifacts/scratchpads/` (rule §4 — fixed location so any later session/agent can find it; workflows may specify an exact filename).
+1. Before starting a complex task, create or open a scratchpad file under the active project's `projects/<project>/scratchpads/` (rule §4 — fixed per-project location so any later session/agent can find it; workflows may specify an exact filename). If no project is resolved yet, resolve it first (argument → ask) — never write a project-less scratchpad.
 2. Outline the step-by-step implementation plan within the scratchpad.
 3. Draft code snippets, queries, or API payloads in the scratchpad for validation.
 4. Use the scratchpad as a working memory space to keep track of variables, file paths, and intermediate states.

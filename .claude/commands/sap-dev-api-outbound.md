@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi có yêu cầu tạo mới một API Outbound (SAP gọi hệ thống bên ngoài) sử dụng framework Z_API_FWK để đảm bảo cấu trúc thiết kế, logging tự động, chuẩn hóa.
-argument-hint: <api-name>
+argument-hint: <project> <api-name>
 ---
 
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`). Where a step needs an MCP tool not yet loaded, use `ToolSearch` first (see `sap-dev-rule.md` §9).
@@ -9,6 +9,7 @@ argument-hint: <api-name>
 Act as an Expert SAP Integration Architect & ABAP Cloud Developer. Design, implement, and validate an OUTBOUND API integration that adheres strictly to the `Z_API_FWK` framework.
 
 [INPUT DATA]
+- Project: [Tên dự án trong `projects/` — rule §4. Resolve từ argument đầu tiên hoặc prompt; thiếu thì hỏi ĐÚNG 1 câu (gộp vào 0.1 nếu đang grill). Đọc `projects/<project>/project.md` trước (SAP system, package, TR mặc định). Mọi output path bên dưới nằm dưới `projects/<project>/`.]
 - Package Name: [Điền tên Package]
 - Transport Request: [Điền TR]
 - Trigger Point: [RAP Action, Report, or Batch Job]
@@ -29,7 +30,7 @@ After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> 
 
 0.1 GRILL-ME ON GAPS: [Skill: grill-me] (max 1-3 targeted questions).
 
-0.2 PLANNING & DRAFTING: [Skill: scratchpad] + [Skill: fs-integration-api-analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; analyze trigger points, data extraction logic, payload structure, response handling. Save to `artifacts/scratchpads/scratchpad_outbound_[API_Name].md` (doubles as the build ledger — TODO/DOING/DONE/FAILED/REGRESSED per step).
+0.2 PLANNING & DRAFTING: [Skill: scratchpad] + [Skill: fs-integration-api-analyzer] — check the SAP Accelerator Hub for an existing standard API before assuming a custom one is needed; analyze trigger points, data extraction logic, payload structure, response handling. Save to `projects/<project>/scratchpads/scratchpad_outbound_[API_Name].md` (doubles as the build ledger — TODO/DOING/DONE/FAILED/REGRESSED per step).
 
 ## Phase 1 — Build
 
@@ -49,7 +50,7 @@ Step 3 — Framework Configuration: instruct the user to configure the Outbound 
 
 ## Phase 3 — Walkthrough
 
-Save `artifacts/walkthroughs/walkthrough_outbound_[API_Name].md`: objects built, the actual Phase 2 call evidence (payload sent + target response — never "should work"), and any outstanding risks.
+Save `projects/<project>/walkthroughs/walkthrough_outbound_[API_Name].md`: objects built, the actual Phase 2 call evidence (payload sent + target response — never "should work"), and any outstanding risks.
 
 [OUTPUT FORMAT]
 Per step, narrate in [Skill: caveman] style (short, evidence-based); the source code and results below stay verbatim, never compressed (`sap-dev-rule.md` §10): Object Name & Applied Skill (e.g., `ZR_MY_OUTBOUND` — [Skill: rap]); the validated ABAP source code (markdown, verbatim); SYSTEM EXECUTION RESULT (Validation Log, Activation Status, [Skill: activation-guard] gate results).

@@ -26,7 +26,7 @@ Applies to BOTH outputs (scenario list and severity synthesis) — per `sap-dev-
 
 ## Output discipline
 
-- Write your complete scenario list / severity assessment to the exact output path given, under `artifacts/scratchpads/` (review findings go under `artifacts/scratchpads/review/`).
+- Write your complete scenario list / severity assessment to the exact output path given, under the active project's `projects/<project>/scratchpads/` (review findings go under `projects/<project>/scratchpads/review/`; the dispatch prompt always names the full path including the project).
 - Your final chat message back to the Manager must be SHORT: the output file path + a one-line summary. The Manager reads the full content from the file itself.
 
 ## Typical dispatch shapes

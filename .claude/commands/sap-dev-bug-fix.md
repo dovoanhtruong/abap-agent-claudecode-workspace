@@ -1,6 +1,6 @@
 ---
 description: Sử dụng workflow này khi cần chẩn đoán và sửa lỗi (bug) trên object SAP hiện có, dựa trên mock data do user cung cấp, đảm bảo phân tích root cause và đánh giá rủi ro trước khi sửa.
-argument-hint: <object-name> <observed-vs-expected-behavior>
+argument-hint: <project> <object-name> <observed-vs-expected-behavior>
 ---
 
 > **Claude Code note:** `[Skill: X]`/"Load `X`" below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`).
@@ -12,6 +12,7 @@ argument-hint: <object-name> <observed-vs-expected-behavior>
 - **No Live Business Data:** The Agent is connected to the DEV environment only. Testing and bug verification must rely on source code logic analysis or **Mock Data / Sample Data** provided manually by the User.
 - **Cross-Impact Analysis (Mandatory):** Any logic/condition change must be evaluated for regression risks affecting other objects or business flows that reuse this component. If a risk is detected, the Agent **MUST report and request User approval** before making any code changes.
 - **Governing Rules:** Operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10) — in particular, a root-caused fix is not a verified fix until Phase 4's unit test evidence exists, and it is not a *safe* fix until `[Skill: activation-guard]` confirms the edited object activated clean AND nothing that depends on it broke as a side effect; progress updates use `[Skill: caveman]`.
+- **Project (rule §4):** resolve the target project under `projects/` from the first argument or the user's prompt; if absent, ask ONE question during Phase 1 before creating any file. Read `projects/<project>/project.md` first (SAP system, default package, current TR). All file outputs of this workflow live under `projects/<project>/`.
 
 Arguments: $ARGUMENTS
 
@@ -54,4 +55,4 @@ Arguments: $ARGUMENTS
 
 ## Output Format
 
-Report chat progress in `[Skill: caveman]` style (short, evidence-based) — narration only. Save a Fix Report to `artifacts/walkthroughs/walkthrough_bugfix_[ObjectName].md` in full detail, NOT caveman-compressed (`sap-dev-rule.md` §10): the root cause, the approved fix applied, the ABAP Unit Test evidence (not "should work"), the Cross-Impact Report, the `[Skill: activation-guard]` gate results for the edited object and every re-checked consumer, and the exact list of objects with their confirmed Activation Status.
+Report chat progress in `[Skill: caveman]` style (short, evidence-based) — narration only. Save a Fix Report to `projects/<project>/walkthroughs/walkthrough_bugfix_[ObjectName].md` in full detail, NOT caveman-compressed (`sap-dev-rule.md` §10): the root cause, the approved fix applied, the ABAP Unit Test evidence (not "should work"), the Cross-Impact Report, the `[Skill: activation-guard]` gate results for the edited object and every re-checked consumer, and the exact list of objects with their confirmed Activation Status.
