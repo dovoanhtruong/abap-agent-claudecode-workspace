@@ -1,6 +1,6 @@
 ---
 name: abap-unit-testing
-description: Help with ABAP Unit testing including test class setup, assertions, test doubles, mocking frameworks, dependency injection, CDS test environments, SQL test environments, RAP BO test doubles, and test fixtures. Use when users ask about ABAP unit tests, test classes, test methods, CL_ABAP_UNIT_ASSERT, test doubles, mocking, CDS test environment, SQL test environment, RAP testing, ABAP test injection, test seams, behavior-driven testing, TDD in ABAP, test isolation, or writing automated tests for ABAP code. Triggers include "write a unit test", "create test class", "mock a dependency", "test a CDS view", "test a RAP BO", "test double", "assertion", "test fixture", "test isolation", or "ABAP unit".
+description: Help with ABAP Unit testing including test class setup, assertions, test doubles, mocking frameworks, dependency injection, CDS test environments, SQL test environments, RAP BO test doubles, and test fixtures. Use when users ask about ABAP unit tests, test classes, test methods, CL_ABAP_UNIT_ASSERT, test doubles, mocking, CDS test environment, SQL test environment, RAP testing, ABAP test injection, test seams, behavior-driven testing, TDD in ABAP, test isolation, or writing automated tests for ABAP code. Triggers include "write a unit test", "create test class", "mock a dependency", "test a CDS view", "test a RAP BO", "test double", "assertion", "test fixture", "test isolation", or "ABAP unit". Use even for a single quick test ask — Vietnamese triggers: "viết unit test", "tạo test class", "mock dependency", "test method này", "kiểm thử RAP BO".
 ---
 
 # ABAP Unit Testing
@@ -61,7 +61,7 @@ Less obvious ones:
 
 ## Deep Dive
 
-For `CL_ABAP_TESTDOUBLE` (the dynamic alternative to a manual test double), external/global test classes via `"! @testing`, the `PARTIALLY IMPLEMENTED` addition, and version-safety framing, read [references/deep-dive.md](references/deep-dive.md).
+For `CL_ABAP_TESTDOUBLE` (the dynamic alternative to a manual test double), external/global test classes via `"! @testing`, the `PARTIALLY IMPLEMENTED` addition, version-safety framing, designing diverse/realistic test cases (boundary value analysis, RAP status-machine/batch-safety scenarios, the "how many scenarios is enough" stopping rule), and recording/analyzing test results (ADT result semantics, code coverage, completion-vs-goal reporting, known limitations), read [references/deep-dive.md](references/deep-dive.md).
 
 ## References
 

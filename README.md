@@ -2,12 +2,12 @@
 
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-native-7A5AF8)
 ![SAP](https://img.shields.io/badge/SAP-ABAP%20Cloud%20%C2%B7%20Clean%20Core-0FAAFF)
-![Skills](https://img.shields.io/badge/skills-52-2EA44F)
+![Skills](https://img.shields.io/badge/skills-53-2EA44F)
 ![Workflows](https://img.shields.io/badge/workflows-9-E8590C)
 ![Subagents](https://img.shields.io/badge/subagents-6-8957E5)
 ![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
 
-Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 52 domain skills auto-activate by description (34 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 9 slash-command workflows drive FS-to-deployed-code pipelines, a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text.
+Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 53 domain skills auto-activate by description (35 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 10 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text.
 
 > Sibling to `abap_antigravity_workspace` — same governance and domain knowledge, re-plumbed for Claude Code's native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports).
 
@@ -21,8 +21,8 @@ flowchart LR
         CM["CLAUDE.md (hub)"] --> RULE["sap-dev-rule.md<br/>§1-§14 strict rules"]
     end
     subgraph ONDEMAND["Loaded on demand"]
-        SK["52 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
-        WF["9 workflows<br/>.claude/commands/*"]
+        SK["53 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
+        WF["10 workflows<br/>.claude/commands/*"]
         AG["6 subagents<br/>.claude/agents/*<br/>Consultant/Dev/Tester × Lead/Executor"]
     end
     subgraph ENFORCE["Hook-enforced (code)"]
@@ -78,7 +78,7 @@ abap-agent-claudecode-workspace/
 ├── .claude/
 │   ├── rules/
 │   │   └── sap-dev-rule.md         # 🛡️ 14 strict rules (Clean Core, Custom Only, TR, evidence, subagents, language, self-modification)
-│   ├── skills/                     # 📚 52 skills, FLAT — auto-discovered & matched by description (catalog below)
+│   ├── skills/                     # 📚 53 skills, FLAT — auto-discovered & matched by description (catalog below)
 │   │   └── <name>/SKILL.md          #    + references/ subfolders for heavy templates (loaded only when needed)
 │   ├── agents/                     # 🤖 6 subagents — Team Consultant/Dev/Tester × Lead (opus)/Executor (sonnet)
 │   │   └── <team>-<layer>.md        #    dispatched by workflows via [Agent: y]; Manager keeps sole SAP CUD authority
@@ -86,7 +86,7 @@ abap-agent-claudecode-workspace/
 │   │   ├── pre-cud-guard.sh         # Blocks non-Z/Y CUD, missing TR/Package, and any TR create/delete/modify
 │   │   └── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → artifacts/ only
 │   ├── settings.json               # Hook wiring
-│   └── commands/                   # ⚙️ 9 workflows as slash commands (see Quick Start)
+│   └── commands/                   # ⚙️ 10 workflows as slash commands (see Quick Start)
 ├── artifacts/                      # 📦 Single root for all input/output artifacts (gitignored)
 │   ├── fs_docs/                     # Input Functional Specification (FS) documents
 │   ├── technical_specifications/    # Technical Specifications (TS_*.md)
@@ -100,9 +100,9 @@ abap-agent-claudecode-workspace/
 
 ---
 
-## 📚 Skill Catalog (52, by category)
+## 📚 Skill Catalog (53, by category)
 
-**🔎 FS Analysis / Consultant (7)** — `fs-data-model-extractor` (data model from FS: extract / design new Z-tables / trace lineage) · `fs-fiori-ui-elements-mapper` (FS layouts → Fiori Elements annotations + toolbar buttons) · `fs-logic-behavior-translator` (business rules → CDS vs Virtual Element vs Behavior Pool; status machine, numbering) · `fs-integration-api-analyzer` (FS integration specs → API design + payload mapping) · `fs-vision-extractor` (transcribe mockups/flowcharts/screenshots embedded in FS) · `document-markdown-converter` (binary FS → Markdown via MarkItDown) · `find-released-cds-view` (map a business field to its released Clean-Core CDS view).
+**🔎 FS Analysis / Consultant (8)** — `fs-data-model-extractor` (data model from FS: extract / design new Z-tables / trace lineage) · `fs-fiori-ui-elements-mapper` (FS layouts → Fiori Elements annotations + toolbar buttons) · `fs-logic-behavior-translator` (business rules → CDS vs Virtual Element vs Behavior Pool; status machine, numbering) · `fs-integration-api-analyzer` (FS integration specs → API design + payload mapping) · `fs-vision-extractor` (transcribe mockups/flowcharts/screenshots embedded in FS) · `document-markdown-converter` (binary FS → Markdown via MarkItDown) · `find-released-cds-view` (map a business field to its released Clean-Core CDS view) · `cds-data-model-analysis` (keys/foreign keys/cardinality/join-tree design + fan-out risk analysis across I_* views and Z-tables — the design step before CDS authoring).
 
 **🌐 SAP Process Domain Knowledge (18)** — `sap-process-<area>-<item>` family, one skill per scope-item/sub-process, giving `consultant-lead` real SAP Public Cloud functional-consulting grounding during FS analysis (not just CDS/text parsing). Each has a lean always-loaded `SKILL.md` (process flow, CDS grounding, config touchpoints, cross-LOB "Related Processes" links) plus an on-demand `references/deep-dive.md` (business logic depth: partner determination, pricing, planning strategy, MRP, document splitting, etc.) — read only when the FS needs that depth. Auto-invoked once per FS during `/sap-dev-fs-analytic(-transactional-app)` Phase 1's Process-Domain Skill Check, then reused by name (no re-discovery cost) in Phase 2.
 - **O2C**: `sap-process-o2c-sell-from-stock` (BD9) · `sap-process-o2c-customer-returns` (BKP) · `sap-process-o2c-down-payment-billing` (7S7)
@@ -125,13 +125,13 @@ abap-agent-claudecode-workspace/
 ## 🛠️ Core Components & How They Work
 
 ### 1. Skill Auto-Discovery (`.claude/skills/`)
-Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 52. The 18 `sap-process-*` skills take this one layer further: a lean `SKILL.md` (process grounding, always safe to auto-load) + an on-demand `references/deep-dive.md` (functional-consulting depth) that only the agent that judges it necessary reads — kept separate specifically so every FS analysis doesn't pay for depth it doesn't need.
+Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 53. The 18 `sap-process-*` skills take this one layer further: a lean `SKILL.md` (process grounding, always safe to auto-load) + an on-demand `references/deep-dive.md` (functional-consulting depth) that only the agent that judges it necessary reads — kept separate specifically so every FS analysis doesn't pay for depth it doesn't need.
 
 ### 2. Always-On Rules (`CLAUDE.md` → `.claude/rules/sap-dev-rule.md`)
 `CLAUDE.md` `@imports` the rule file, so it's unconditionally in context every turn. The 14 sections cover: DEV-only assumption, consent + Z/Y-only + TR/Package discipline, CDS-read/EML-write standards, `artifacts/`-only outputs, activation-guard gates after every object mutation, Iron Laws (no improvising beyond the TS), Red Flags, evidence-based reporting ("Activated ≠ Correct"), MCP tool verification, token efficiency, evidence floor for user verification, subagent policy, language policy (chat VN · code EN), and self-modification rules (`.claude/` locked behind user-created `.unlock`).
 
 ### 3. Workflows as Slash Commands (`.claude/commands/`)
-Each workflow is a phase-gated protocol: input validation gate (grill-me on gaps) → ledger-tracked build (activation-guard after every object) → evidence-based verify loop (max 3 iterations, then stop and ask) → walkthrough report. See Quick Start for all 9.
+Each workflow is a phase-gated protocol: input validation gate (grill-me on gaps) → ledger-tracked build (activation-guard after every object) → evidence-based verify loop (max 3 iterations, then stop and ask) → walkthrough report. See Quick Start for all 10.
 
 ### 4. Hard-Enforced Guardrails (`.claude/hooks/`)
 Prompt rules can be ignored; hooks can't. `pre-cud-guard.sh` fires on every call to any connected SAP MCP server matching `mcp__sap_<project>_dev__*` and blocks: non-Z/Y object CUD, object CUD without TR+Package, and any agent-driven create/delete/modify of a Transport Request itself. It's heuristic (regex over the tool payload) — tighten the field lookups once you've inspected one real call. `workspace-write-guard.sh` fires on `Write|Edit|NotebookEdit|Bash` and blocks: any change inside `.claude/` unless the **user** has manually created the sentinel `.claude/.unlock` (the agent is permanently blocked from creating that sentinel itself), and creation of new files outside `artifacts/` (editing existing files stays allowed). Hooks enforce "did this happen" — the rule file still governs "was it done well".
@@ -150,7 +150,7 @@ Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every an
 3. One-time venv for binary FS conversion: `python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdown[all]'`.
 4. Know the lock: if you ask Claude to modify `.claude/` (rules/skills/hooks), first run `touch .claude/.unlock`, and delete it when done.
 
-### The 9 workflows
+### The 10 workflows
 
 **Pipeline A — report/screen over existing released CDS data:**
 
@@ -188,6 +188,16 @@ Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every an
 # Strict advisory QA review (no auto-refactor)
 /sap-dev-code-review ZCL_BOM_PROCESSOR "performance, security"
 ```
+
+**Single-prompt micro tasks (~70% of real interactions):**
+
+```bash
+# One small task — auto-classified (small mutation / lookup / how-to / snippet review),
+# routed through the §15 skill map, minimal governance (TR check + activation-guard on mutations)
+/sap-task "thêm field ProfitCenter vào ZI_INVENTORY và expose ra projection"
+```
+
+Bare prompts (no slash command) get the same routing via rule §15 — every SAP-domain answer must open with a `Skills: [...]` declaration line naming what was consulted.
 
 Every build workflow asks for anything missing (Package, TR, TS gaps) before touching the system, and refuses to mark work done without activation evidence.
 

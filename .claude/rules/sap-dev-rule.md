@@ -36,4 +36,18 @@
 
 **§14 SELF-MODIFICATION & MEMORY:** `.claude/` (rules/skills/hooks/settings) may only be changed when the user explicitly requested it AND the user has manually created `.claude/.unlock` *(hook-enforced; the agent is permanently blocked from creating that sentinel)* — remind the user to delete `.unlock` when done. After any `.claude/` change, re-run the integrity check: every skill's frontmatter `name:` equals its directory name, every `[Skill: x]` reference resolves; every subagent's frontmatter `name:` equals its filename (`.claude/agents/<name>.md`), every `[Agent: y]` reference resolves. Lessons learned from a workflow → propose a skill/rule patch for the user to approve, never silently apply or stash. Memory holds user preferences/feedback only — task state belongs in the ledger/handoff, business data nowhere.
 
+**§15 SINGLE-PROMPT ROUTING (no workflow running):** Most real interactions are single prompts, not workflows — the skill set applies to them just as much, and "answered from background knowledge without checking skills" is the failure this section exists to prevent.
+- **Mandatory declaration**: every answer to a SAP-domain prompt STARTS with one line — `Skills: [x, y]` naming each skill actually invoked this turn, or `Skills: none — <reason>` when genuinely none matches. No declaration = routing not done; an undeclared answer to a SAP prompt is an incomplete answer. (Non-SAP prompts are exempt.)
+- **Route by task shape** (invoke the matched skill BEFORE answering — its content wins over background knowledge; deep templates/references only when actually producing that object):
+
+| Single-prompt shape | Consult first | Governance floor (unchanged rules, just the floor that still applies) |
+|---|---|---|
+| Create/modify any SAP object (field, method, view, table…) | The object-type skill (`rap`, `cds-view-entities`, `cds-analytical-views`, `abap-sql-amdp`, `odata`, `badi-enhancement`…) + [Skill: naming-convention] for new names | §2 TR+Package ask · §5 [Skill: activation-guard] after EVERY change · §8 evidence-based claims |
+| Read/look up system or SAP content | [Skill: find-released-cds-view] (field→view), [Skill: released-abap-classes] (class lookup), [Skill: cds-data-model-analysis] (keys/relationships), [Skill: sap-fiori-apps-reference] (FLP URL) | §2 read-only, business data untouched |
+| How-to / consulting question | The domain skill (`rap`, `modern-abap-syntax`, `abap-sql-amdp`, `abap-cloud`, `abap-unit-testing`, `authorization-iam`, `rap-business-events`…) — read it, answer from it, cite version-gates from its deep-dive when release matters | §8 no "should work"; `[unverified]` for anything the skill doesn't cover |
+| Review/debug a pasted snippet | [Skill: abap] (lint+Clean ABAP) + the domain skill of the code's object type | §8 findings cite line/evidence; severity separate from facts |
+
+- `/sap-task <mô tả>` is the explicit entry point running this same table deterministically — use it when in doubt; a bare prompt gets the same routing via this section.
+- If a prompt spans multiple shapes, declare and consult the union. If the task turns out to need multi-object orchestration, say so and hand off to the proper workflow instead of improvising one inline.
+
 **HOOK-ENFORCED (code, not promises):** `.claude/hooks/pre-cud-guard.sh` — Z/Y-only naming, TR+Package presence, no agent TR CUD · `.claude/hooks/workspace-write-guard.sh` — `.claude/` lock via `.unlock` sentinel, new workspace files under `artifacts/` only.
