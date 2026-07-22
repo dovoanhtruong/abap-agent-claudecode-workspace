@@ -11,6 +11,10 @@
 #      name fails loudly instead of spawning a junk folder. Editing files that
 #      already exist is allowed, and paths outside the workspace (session
 #      scratchpad, memory dir) are not this hook's business.
+#      Exception: a small whitelist of root-level TOOL config (`.mcp.json`,
+#      `.gitignore`, `.env`, `.env.*`) is exempt — these are Claude Code/repo
+#      infra, not FS/TS/scratchpad deliverables, so §4's containment intent
+#      doesn't apply to them. Root-level only (not matched inside subfolders).
 # Matched on Write|Edit|NotebookEdit and on Bash (destructive commands touching
 # .claude/ only).
 #
@@ -39,13 +43,18 @@ json_str() {
 # (Windows filesystems are case-insensitive; there is no symlink resolution —
 # acceptable on this Windows workspace, where the old python3 realpath never
 # actually ran anyway).
+# NOTE: lowercasing uses `tr`, not `${var,,}` — macOS ships /bin/bash 3.2
+# (no GPLv3 upgrades), which doesn't support bash 4+ case-conversion
+# expansion; `${var,,}` there is a silent "bad substitution" that makes this
+# function always return "", corrupting every path comparison below it.
 norm_path() {
   local p="${1//\\//}"
   if [[ "$p" =~ ^([A-Za-z]):(/.*)?$ ]]; then
     local d="${BASH_REMATCH[1]}"
-    p="/${d,,}${BASH_REMATCH[2]:-}"
+    d=$(printf '%s' "$d" | tr '[:upper:]' '[:lower:]')
+    p="/${d}${BASH_REMATCH[2]:-}"
   fi
-  printf '%s' "${p,,}"
+  printf '%s' "$p" | tr '[:upper:]' '[:lower:]'
 }
 
 deny() {
@@ -100,6 +109,12 @@ case "$fp_n" in
     # Inside the workspace but outside .claude/: block NEW file creation outside
     # projects/<existing-project>/<standard-subfolder>/ (or that project's project.md).
     if [[ "$tool_name" == "Write" && ! -e "$fp_fs" ]]; then
+      base="${fp_n##*/}"
+      if [[ "$fp_n" == "$root_n/$base" ]]; then
+        case "$base" in
+          .mcp.json|.gitignore|.env|.env.*) exit 0 ;;
+        esac
+      fi
       case "$fp_n" in
         "$root_n/projects/"*)
           rel="${fp_n#"$root_n"/projects/}"

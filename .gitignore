@@ -15,6 +15,11 @@ scratch/
 # Claude Code local-only settings (personal overrides, not shared with the team)
 .claude/settings.local.json
 
+# Project-scoped MCP config: machine-specific binary paths + secrets — private per machine
+.mcp.json
+.env
+.env.local
+
 # Python bytecode cache
 __pycache__/
 *.pyc

@@ -1,6 +1,6 @@
 ---
 name: sap-process-production-discrete-planning
-description: SAP Production Planning process knowledge for Discrete Manufacturing — scope item BJ5 (Make-to-Stock Production - Discrete), planning side — MRP, Planned Order, BOM/Routing, Production Order creation/release, on SAP S/4HANA Cloud Public Edition. Use when an FS describes production planning, MRP run, BOM/routing maintenance, or production order creation for discrete/unit-based products. Paired with [Skill: sap-process-manufacturing-discrete-execution] (same scope item, execution side). Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Production Planning process knowledge for Discrete Manufacturing — scope item BJ5 (Make-to-Stock Production - Discrete), planning side — MRP, Planned Order, BOM/Routing, Production Order creation/release, on SAP S/4HANA Cloud Public Edition. Use when an FS describes production planning, MRP run, BOM/routing maintenance, or production order creation for discrete/unit-based products. Paired with [Skill: sap-process-manufacturing-discrete-execution] (same scope item, execution side). Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

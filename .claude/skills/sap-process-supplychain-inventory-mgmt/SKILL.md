@@ -1,6 +1,6 @@
 ---
 name: sap-process-supplychain-inventory-mgmt
-description: SAP Supply Chain process knowledge for Core Inventory Management (scope item BMC) — goods movements, material documents, stock types, physical inventory, on SAP S/4HANA Cloud Public Edition. Use when an FS describes stock levels, goods movement postings, stock transfer, physical inventory count, or explicitly "Inventory Management"/"BMC". Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Supply Chain process knowledge for Core Inventory Management (scope item BMC) — goods movements, material documents, stock types, physical inventory, on SAP S/4HANA Cloud Public Edition. Use when an FS describes stock levels, goods movement postings, stock transfer, physical inventory count, or explicitly "Inventory Management"/"BMC". Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

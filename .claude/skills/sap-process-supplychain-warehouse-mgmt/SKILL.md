@@ -1,6 +1,6 @@
 ---
 name: sap-process-supplychain-warehouse-mgmt
-description: SAP Supply Chain process knowledge for embedded Warehouse Management — Inbound Processing (scope item 3BR) and Outbound Processing (scope item 3BS) — putaway/goods receipt and picking/goods issue via Warehouse Tasks, on SAP S/4HANA Cloud Public Edition. Use when an FS describes physical warehouse operations (putaway, picking, warehouse tasks, bin location), not just accounting-level stock. Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Supply Chain process knowledge for embedded Warehouse Management — Inbound Processing (scope item 3BR) and Outbound Processing (scope item 3BS) — putaway/goods receipt and picking/goods issue via Warehouse Tasks, on SAP S/4HANA Cloud Public Edition. Use when an FS describes physical warehouse operations (putaway, picking, warehouse tasks, bin location), not just accounting-level stock. Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

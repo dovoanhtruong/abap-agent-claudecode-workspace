@@ -1,6 +1,6 @@
 ---
 name: sap-process-manufacturing-discrete-execution
-description: SAP Manufacturing process knowledge for Discrete Manufacturing — scope item BJ5 (Make-to-Stock Production - Discrete), execution/shop-floor side — order confirmation, component backflush, goods receipt of finished goods, on SAP S/4HANA Cloud Public Edition. Use when an FS describes shop-floor confirmation, production order execution, backflushing, or goods receipt from production. Paired with [Skill: sap-process-production-discrete-planning] (same scope item, planning side). Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Manufacturing process knowledge for Discrete Manufacturing — scope item BJ5 (Make-to-Stock Production - Discrete), execution/shop-floor side — order confirmation, component backflush, goods receipt of finished goods, on SAP S/4HANA Cloud Public Edition. Use when an FS describes shop-floor confirmation, production order execution, backflushing, or goods receipt from production. Paired with [Skill: sap-process-production-discrete-planning] (same scope item, planning side). Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

@@ -1,6 +1,6 @@
 ---
 name: sap-process-o2c-sell-from-stock
-description: SAP Order-to-Cash process knowledge for the "Sell from Stock" scope item (BD9) — standard sales order → outbound delivery → billing flow for goods delivered from existing warehouse stock, on SAP S/4HANA Cloud Public Edition. Use when an FS describes selling a stocked product to a customer, a standard sales order/quotation flow, delivery-related billing, or explicitly mentions "Sell from Stock", "BD9", "sales order processing", "order to cash". Complements (does not replace) [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view]/[Skill: fs-integration-api-analyzer] — this skill supplies the SAP process/domain grounding those skills consume.
+description: SAP Order-to-Cash process knowledge for the "Sell from Stock" scope item (BD9) — standard sales order → outbound delivery → billing flow for goods delivered from existing warehouse stock, on SAP S/4HANA Cloud Public Edition. Use when an FS describes selling a stocked product to a customer, a standard sales order/quotation flow, delivery-related billing, or explicitly mentions "Sell from Stock", "BD9", "sales order processing", "order to cash". Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

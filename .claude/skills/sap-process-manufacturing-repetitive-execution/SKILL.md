@@ -1,6 +1,6 @@
 ---
 name: sap-process-manufacturing-repetitive-execution
-description: SAP Manufacturing process knowledge for Repetitive Manufacturing — scope item BJH (Make-to-Stock Production - Repetitive Manufacturing), execution side — lean confirmation, backflush against Product Cost Collector, reporting points, on SAP S/4HANA Cloud Public Edition. Use when an FS describes mass-production confirmation, flow manufacturing, or backflush without order-by-order tracking. Paired with [Skill: sap-process-production-repetitive-planning] (same scope item, planning side). Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Manufacturing process knowledge for Repetitive Manufacturing — scope item BJH (Make-to-Stock Production - Repetitive Manufacturing), execution side — lean confirmation, backflush against Product Cost Collector, reporting points, on SAP S/4HANA Cloud Public Edition. Use when an FS describes mass-production confirmation, flow manufacturing, or backflush without order-by-order tracking. Paired with [Skill: sap-process-production-repetitive-planning] (same scope item, planning side). Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

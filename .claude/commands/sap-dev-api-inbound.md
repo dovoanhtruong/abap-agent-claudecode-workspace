@@ -21,6 +21,8 @@ Act as an Expert SAP Integration Architect & ABAP Cloud Developer. Design, imple
 [GOVERNING RULES]
 This workflow operates under the Iron Laws, Red Flags, and Token Efficiency rules in `sap-dev-rule.md` (§6-10). In particular: activation success is not completion evidence — Phase 3 below verifies with a real inbound call, and [Skill: activation-guard] verifies activation itself is genuinely clean and hasn't broken anything downstream before that; progress/log output uses [Skill: caveman].
 
+**Framework usage contract: [Skill: z-api-fwk]** is the canonical source for how `Z_API_FWK` works (object map, `ZIF_API_INBOUND_HANDLER` contract, the single `Z_API_INBOUND_HTTP` dispatcher + `x-api-id` routing, config header fields, logging behavior, the 400/404/405/500 framework error matrix, JSON/XML utils). Consult it — specifically its `references/inbound-guide.md` — at the build steps below INSTEAD of re-reading the `Z_API_FWK` package source. If observed system behavior ever contradicts the skill, trust the system, then propose a skill patch (rule §14).
+
 [EXECUTION PROTOCOL — CRITICAL]
 After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> DEPLOY & ACTIVATE -> [Skill: activation-guard] (all 3 gates must pass before the step counts as done). All errors MUST be caught using `CX_ROOT` or `ZCX_API_FWK` and returned explicitly.
 
@@ -36,9 +38,9 @@ After generating the ABAP code for each step: GENERATE -> VALIDATE (LINTING) -> 
 
 Step 1 — Data Dictionary Objects: [Skill: abap-cloud] + [Skill: naming-convention]. Create DDLS/TABL/TTYP for Request/Response payloads. Execute: Lint → Push → Activate → [Skill: activation-guard].
 
-Step 2 — Handler Class: [Skill: abap], [Skill: released-abap-classes], [Skill: modern-abap-syntax], [Skill: oo-design-patterns], [Skill: naming-convention]. Create a global class (e.g. `ZCL_IB_[API_NAME]`) implementing `ZIF_API_INBOUND_HANDLER`. Apply OO patterns (e.g. Strategy) for multiple payload types. Implement `handle_request`: parse payload (e.g. `xco_cp_json` or `zcl_api_fwk=>json_to_abap`), execute core business logic (EML), catch all exceptions (`cx_static_check`, `cx_root`) and return explicit HTTP status/error messages. Execute: Lint → Push → Activate → [Skill: activation-guard] (Gate 3 re-checks Step 1's DDIC objects are still clean under this class's usage).
+Step 2 — Handler Class: [Skill: z-api-fwk] (read `references/inbound-guide.md` for the `ZIF_API_INBOUND_HANDLER` handler template, `handle_request` signature/return contract, and binary/base64 payload behavior) + [Skill: abap], [Skill: released-abap-classes], [Skill: modern-abap-syntax], [Skill: oo-design-patterns], [Skill: naming-convention]. Create a global class (e.g. `ZCL_IB_[API_NAME]`) implementing `ZIF_API_INBOUND_HANDLER`. Apply OO patterns (e.g. Strategy) for multiple payload types. Implement `handle_request`: parse payload (e.g. `xco_cp_json` or `zcl_api_fwk=>json_to_abap`), execute core business logic (EML), catch all exceptions (`cx_static_check`, `cx_root`) and return explicit HTTP status/error messages per the skill's error matrix. Execute: Lint → Push → Activate → [Skill: activation-guard] (Gate 3 re-checks Step 1's DDIC objects are still clean under this class's usage).
 
-Step 3 — Framework Configuration: instruct the user to configure the API via Fiori App `ZUI_API_CONFIG_O4`, mapping the API ID to the new Handler Class.
+Step 3 — Framework Configuration: instruct the user to configure the API via Fiori App `ZUI_API_CONFIG_O4` (config header fields per [Skill: z-api-fwk]: `api_id` = the `x-api-id` value the partner sends, `direction='I'`, `inbound_class` = the new handler, `active`, `log_enable`), mapping the API ID to the new Handler Class. Never write config tables directly (rule §3).
 
 ## Phase 2 — Unit Test (mandatory, not sufficient alone)
 

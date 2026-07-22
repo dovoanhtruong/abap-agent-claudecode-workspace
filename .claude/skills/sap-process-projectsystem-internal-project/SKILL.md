@@ -1,6 +1,6 @@
 ---
 name: sap-process-projectsystem-internal-project
-description: SAP Project System process knowledge for Internal Project Management (scope item 1A8) — Enterprise Project/WBS structure for internal (non-customer-billable) projects, on SAP S/4HANA Cloud Public Edition. Use when an FS describes an internal project, cost-collection-only WBS, or explicitly "Internal Project Management"/"1A8". Paired with [Skill: sap-process-projectsystem-customer-project] (same structure, customer-billable variant). Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Project System process knowledge for Internal Project Management (scope item 1A8) — Enterprise Project/WBS structure for internal (non-customer-billable) projects, on SAP S/4HANA Cloud Public Edition. Use when an FS describes an internal project, cost-collection-only WBS, or explicitly "Internal Project Management"/"1A8". Paired with [Skill: sap-process-projectsystem-customer-project] (same structure, customer-billable variant). Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

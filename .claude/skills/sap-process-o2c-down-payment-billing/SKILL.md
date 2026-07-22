@@ -1,6 +1,6 @@
 ---
 name: sap-process-o2c-down-payment-billing
-description: SAP Order-to-Cash process knowledge for Advanced Down Payment Processing — "Sell from Stock with Down Payment Requests" (scope item 7S7) — milestone billing plan requesting a down payment before/alongside delivery, on SAP S/4HANA Cloud Public Edition. Use when an FS describes collecting an advance/deposit payment on a sales order, a milestone billing plan tied to a down payment request, or explicitly mentions "Down Payment", "7S7", "Advanced Down Payment Processing", "ADP". Complements (does not replace) [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view]/[Skill: fs-integration-api-analyzer] — this skill supplies the SAP process/domain grounding those skills consume.
+description: SAP Order-to-Cash process knowledge for Advanced Down Payment Processing — "Sell from Stock with Down Payment Requests" (scope item 7S7) — milestone billing plan requesting a down payment before/alongside delivery, on SAP S/4HANA Cloud Public Edition. Use when an FS describes collecting an advance/deposit payment on a sales order, a milestone billing plan tied to a down payment request, or explicitly mentions "Down Payment", "7S7", "Advanced Down Payment Processing", "ADP". Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

@@ -1,6 +1,6 @@
 ---
 name: abap-sql-amdp
-description: Help with advanced ABAP SQL and AMDP (ABAP Managed Database Procedures) — window functions, common table expressions (CTE), AMDP classes/procedures, AMDP table functions, CDS table functions, AMDP scalar functions, and PRIVILEGED ACCESS. Use when users ask about AMDP, SQLScript, table functions, window functions, CTE, UNION/INTERSECT/EXCEPT, advanced ABAP SQL expressions, or database-level performance optimization. Triggers include "AMDP", "SQLScript", "table function", "window function", "CTE", "advanced SQL", "database procedure". For constructor expressions, internal-table operations, and string templates use modern-abap-syntax. Use even for quick single-prompt SQL asks — Vietnamese triggers: "tối ưu SELECT", "viết/sửa câu SQL", "tính tổng theo nhóm trong SQL", "đẩy logic xuống DB".
+description: Help with advanced ABAP SQL and AMDP — window functions, CTEs, AMDP classes/procedures, AMDP/CDS table functions, scalar functions, UNION/INTERSECT/EXCEPT, PRIVILEGED ACCESS, SQLScript, database-level performance optimization. Use even for quick single-prompt SQL asks — "AMDP", "window function", "CTE", "table function", "advanced SQL", "tối ưu SELECT", "viết/sửa câu SQL", "tính tổng theo nhóm trong SQL", "đẩy logic xuống DB". For constructor expressions, internal-table operations, and string templates use modern-abap-syntax.
 ---
 
 # ABAP SQL & AMDP

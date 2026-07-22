@@ -1,6 +1,6 @@
 ---
 name: sap-process-production-repetitive-planning
-description: SAP Production Planning process knowledge for Repetitive Manufacturing — scope item BJH (Make-to-Stock Production - Repetitive Manufacturing), planning side — MRP, Planned Order, Production Version, Product Cost Collector setup, on SAP S/4HANA Cloud Public Edition. Use when an FS describes mass/flow production without discrete order-by-order tracking, repetitive manufacturing profile. Paired with [Skill: sap-process-manufacturing-repetitive-execution] (same scope item, execution side). Complements [Skill: fs-data-model-extractor]/[Skill: find-released-cds-view].
+description: SAP Production Planning process knowledge for Repetitive Manufacturing — scope item BJH (Make-to-Stock Production - Repetitive Manufacturing), planning side — MRP, Planned Order, Production Version, Product Cost Collector setup, on SAP S/4HANA Cloud Public Edition. Use when an FS describes mass/flow production without discrete order-by-order tracking, repetitive manufacturing profile. Paired with [Skill: sap-process-manufacturing-repetitive-execution] (same scope item, execution side). Complements the FS-analysis skills (domain grounding).
 ---
 
 # ROLE

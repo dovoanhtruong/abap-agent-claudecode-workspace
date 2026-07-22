@@ -1,6 +1,6 @@
 ---
 name: abap-unit-testing
-description: Help with ABAP Unit testing including test class setup, assertions, test doubles, mocking frameworks, dependency injection, CDS test environments, SQL test environments, RAP BO test doubles, and test fixtures. Use when users ask about ABAP unit tests, test classes, test methods, CL_ABAP_UNIT_ASSERT, test doubles, mocking, CDS test environment, SQL test environment, RAP testing, ABAP test injection, test seams, behavior-driven testing, TDD in ABAP, test isolation, or writing automated tests for ABAP code. Triggers include "write a unit test", "create test class", "mock a dependency", "test a CDS view", "test a RAP BO", "test double", "assertion", "test fixture", "test isolation", or "ABAP unit". Use even for a single quick test ask — Vietnamese triggers: "viết unit test", "tạo test class", "mock dependency", "test method này", "kiểm thử RAP BO".
+description: Help with ABAP Unit testing — test classes/methods, CL_ABAP_UNIT_ASSERT assertions, test doubles/mocking, dependency injection, CDS/OSQL test environments, RAP BO test doubles, test seams/injection, fixtures, test isolation, TDD in ABAP. Use even for a single quick test ask — "write a unit test", "create test class", "mock a dependency", "test a CDS view", "test a RAP BO", "viết unit test", "tạo test class", "mock dependency", "test method này", "kiểm thử RAP BO".
 ---
 
 # ABAP Unit Testing
