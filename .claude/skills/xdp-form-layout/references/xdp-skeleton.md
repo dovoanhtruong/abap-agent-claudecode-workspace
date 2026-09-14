@@ -1,6 +1,6 @@
 # XDP Text Skeleton — project standard frame
 
-Copy this frame for every new form; replace only `FORM_NAME`, the body table, and the data bindings. All measurements implement SKILL.md §1–§3 — do not change them per form. This is a **text skeleton**: element names, hierarchy, and measurements are the contract; minor XFA attribute details may need touch-up in ADT/LiveCycle Designer on first activation.
+Copy this frame for every new form; replace only `FORM_NAME`, the body tables' columns, and the data bindings. All measurements implement SKILL.md §1–§3; the structural patterns implement SKILL.md §8 (XFA hard rules) — **every one of them is traced to a real Acrobat/ADS render failure**, so do not "simplify" them away. Verified by render: this structure previewed clean in Acrobat with sample data (2026-09, form ZAF_CONSTR_CASHFLOW_DETAIL).
 
 ## 1. Frame — A4 portrait
 
@@ -8,19 +8,21 @@ Copy this frame for every new form; replace only `FORM_NAME`, the body table, an
 <?xml version="1.0" encoding="UTF-8"?>
 <xdp:xdp xmlns:xdp="http://ns.adobe.com/xdp/">
 <template xmlns="http://www.xfa.org/schema/xfa-template/3.3/">
-  <subform name="FORM_NAME" layout="tb" locale="ambient" restoreState="auto">
+  <!-- access="protected": print form, no fillable-field highlight in Acrobat -->
+  <subform name="FORM_NAME" layout="tb" locale="ambient" access="protected" restoreState="auto">
+    <font typeface="Roboto" size="11pt"/>   <!-- form-wide default; elements override size/weight only -->
 
     <!-- ======================= MASTER PAGE ======================= -->
     <pageSet>
       <pageArea name="pmMain" id="pmMain">
         <medium stock="a4" short="210mm" long="297mm"/>
-        <!-- flowed content: below Top area, above Footer band -->
         <contentArea name="caMain" x="15mm" y="35mm" w="185mm" h="244mm"/>
 
-        <!-- TOP: logo + company info, every page -->
+        <!-- TOP: logo + company info, every page (positioned subform, fixed h is fine here) -->
         <subform name="sfTop" x="15mm" y="10mm" w="185mm" h="25mm">
           <field name="imgLogo" x="0mm" y="0mm" w="20mm" h="20mm">
             <ui><imageEdit/></ui>
+            <bind match="dataRef" ref="$record.HEADER.LOGO"/>
           </field>
           <draw name="txtCompanyName" x="24mm" y="0mm" w="161mm" h="5mm">
             <font typeface="Roboto" size="10pt" weight="bold"/>
@@ -36,17 +38,22 @@ Copy this frame for every new form; replace only `FORM_NAME`, the body table, an
           </draw>
         </subform>
 
-        <!-- FOOTER: page number right, optional print date left, every page -->
+        <!-- FOOTER: print date left, page number right, every page -->
         <subform name="sfFooter" x="15mm" y="279mm" w="185mm" h="8mm">
-          <draw name="txtPrintDate" x="0mm" y="1mm" w="60mm" h="4mm">
+          <field name="dtPrintDate" x="0mm" y="1mm" w="60mm" h="4mm">
+            <ui><textEdit/></ui>
             <font typeface="Roboto" size="8pt"/><para hAlign="left"/>
-          </draw>
+            <bind match="dataRef" ref="$record.HEADER.PRINT_DATE"/>
+          </field>
+          <!-- Page number: activity MUST be "ready" ref="$layout" ("layout:ready" is an
+               invalid enum), and the object ref MUST be wrapped in Ref() — FormCalc passes
+               $ by VALUE, giving "Argument mismatch in property or function argument". -->
           <field name="txtPageNo" x="125mm" y="1mm" w="60mm" h="4mm">
             <ui><textEdit/></ui>
             <font typeface="Roboto" size="8pt"/><para hAlign="right"/>
-            <event activity="layout:ready" name="event__layoutready">
+            <event activity="ready" ref="$layout" name="event__ready">
               <script contentType="application/x-formcalc">
-                $ = concat("Trang ", xfa.layout.page($), "/", xfa.layout.pageCount())
+                $ = concat("Trang ", xfa.layout.page(Ref($)), "/", xfa.layout.pageCount())
               </script>
             </event>
           </field>
@@ -57,12 +64,12 @@ Copy this frame for every new form; replace only `FORM_NAME`, the body table, an
     <!-- ======================= FLOWED CONTENT ======================= -->
     <subform name="sfContent" layout="tb" w="185mm">
 
-      <!-- HEADER: first page only (flows once) -->
+      <!-- HEADER: title + detail line, first page only -->
       <subform name="sfHeader" layout="tb" w="185mm" h="15mm">
         <draw name="txtTitle" w="185mm" h="8mm">
           <font typeface="Roboto" size="14pt" weight="bold"/>
           <para hAlign="center"/>
-          <value><text>BÁO CÁO ...</text></value>   <!-- UPPERCASE -->
+          <value><text>TIÊU ĐỀ BÁO CÁO (UPPERCASE)</text></value>
         </draw>
         <field name="txtHeaderDetail" w="185mm" h="5mm">
           <ui><textEdit/></ui>
@@ -72,62 +79,131 @@ Copy this frame for every new form; replace only `FORM_NAME`, the body table, an
         </field>
       </subform>
 
-      <!-- BODY: the only per-form part. Column layout is free; frame rules are not. -->
+      <!-- BODY: the only per-form part.
+           HARD RULES (SKILL.md §8):
+           - every row subform sits inside a layout="table" subform; bare rows render
+             all cells overlapped at x=0
+           - ALL tables of the report share ONE columnWidths grid (columns align)
+           - rows/cells use minH (fixed h clips text); long-text cells multiLine="1"
+           - amount columns sized for the longest formatted value (>=30mm for 13-char VND)
+           - column header repeats on page break via overflow leader on sfBody -->
       <subform name="sfBody" layout="tb" w="185mm">
+        <overflow leader="tblHeader"/>
 
-        <!-- table header row: repeats on every page break -->
-        <subform name="rowTableHeader" layout="row" w="185mm">
-          <occur initial="1" min="1" max="1"/>
-          <break beforeTarget="" after="auto"/>  <!-- set overflow leader to this row -->
-          <!-- one draw per column: 10pt bold center, 10% grey fill, 0.5pt borders -->
-          <draw name="txtColHeader1" w="30mm" h="6mm">
-            <font typeface="Roboto" size="10pt" weight="bold"/>
-            <para hAlign="center" vAlign="middle"/>
-            <border><edge thickness="0.5pt"/><fill><color value="230,230,230"/></fill></border>
-            <value><text>Tài khoản</text></value>
-          </draw>
-          <!-- ... remaining columns ... -->
+        <!-- column header: own table, re-rendered as leader after each break -->
+        <subform name="tblHeader" layout="table" columnWidths="20mm 40mm 22mm 43mm 30mm 30mm" w="185mm">
+          <bind match="none"/>
+          <occur initial="1" min="1" max="-1"/>
+          <subform name="rowTableHeader" layout="row" minH="6mm">
+            <bind match="none"/>
+            <!-- one draw per column: 10pt bold center, 10% grey fill, 0.5pt borders;
+                 NO w attribute on cells - widths come from columnWidths -->
+            <draw name="txtCol1" minH="6mm">
+              <font typeface="Roboto" size="10pt" weight="bold"/>
+              <para hAlign="center" vAlign="middle"/>
+              <border><edge thickness="0.5pt"/><fill><color value="230,230,230"/></fill></border>
+              <value><text>Cột 1</text></value>
+            </draw>
+            <!-- ... one draw per remaining column ... -->
+          </subform>
         </subform>
 
-        <!-- optional GROUP level: bound to the group node -->
+        <!-- optional GROUP level: bound wrapper + its own table on the SAME grid -->
         <subform name="sfGroup" layout="tb" w="185mm">
           <occur min="0" max="-1"/>
           <bind match="dataRef" ref="$record.GROUPS.GROUP[*]"/>
 
-          <subform name="rowGroupHeader" layout="row" w="185mm">
-            <!-- merged descriptive cell, 11pt bold left; amount cells right -->
-          </subform>
+          <subform name="tblGroup" layout="table" columnWidths="20mm 40mm 22mm 43mm 30mm 30mm" w="185mm">
+            <bind match="none"/>   <!-- layout-only: pass the data context through -->
 
-          <subform name="rowItem" layout="row" w="185mm">
-            <occur min="0" max="-1"/>
-            <bind match="dataRef" ref="ITEMS.ITEM[*]"/>
-            <!-- cells: Roboto 11pt; numbers right / text left / dates center;
-                 0.5pt borders; padding 1mm v / 1.5mm h -->
-          </subform>
+            <subform name="rowGroupHeader" layout="row" minH="6mm">
+              <bind match="none"/>
+              <!-- merged descriptive cell spans the text columns -->
+              <field name="txtGroupLabel" colSpan="4" minH="6mm">
+                <ui><textEdit multiLine="1"/></ui>
+                <font typeface="Roboto" size="11pt" weight="bold"/>
+                <para hAlign="left" vAlign="middle"/>
+                <margin leftInset="1.5mm" rightInset="1.5mm" topInset="1mm" bottomInset="1mm"/>
+                <border><edge thickness="0.5pt"/></border>
+                <bind match="dataRef" ref="GROUP_LABEL"/>
+              </field>
+              <!-- group totals: display-ready from backend, no form-side math -->
+              <field name="numGroupTotal1" minH="6mm">
+                <ui><textEdit/></ui>
+                <font typeface="Roboto" size="11pt" weight="bold"/>
+                <para hAlign="right" vAlign="middle"/>
+                <margin leftInset="1.5mm" rightInset="1.5mm" topInset="1mm" bottomInset="1mm"/>
+                <border><edge thickness="0.5pt"/></border>
+                <bind match="dataRef" ref="TOTAL_1"/>
+              </field>
+              <!-- ... second amount cell ... -->
+            </subform>
 
-          <subform name="rowSubTotal" layout="row" w="185mm">
-            <occur min="0" max="1"/>   <!-- conditional presence, see §3 below -->
-            <!-- 11pt bold -->
+            <subform name="rowItem" layout="row" minH="6mm">
+              <occur min="0" max="-1"/>
+              <bind match="dataRef" ref="ITEMS.ITEM[*]"/>
+              <!-- cells: Roboto 11pt; numbers right / text left / dates center;
+                   0.5pt borders; padding 1mm v / 1.5mm h;
+                   long-text cells get <ui><textEdit multiLine="1"/></ui> -->
+              <field name="txtItemText" minH="6mm">
+                <ui><textEdit multiLine="1"/></ui>
+                <font typeface="Roboto" size="11pt"/>
+                <para hAlign="left" vAlign="middle"/>
+                <margin leftInset="1.5mm" rightInset="1.5mm" topInset="1mm" bottomInset="1mm"/>
+                <border><edge thickness="0.5pt"/></border>
+                <bind match="dataRef" ref="TEXT_FIELD"/>
+              </field>
+              <field name="numItemAmount" minH="6mm">
+                <ui><textEdit/></ui>
+                <font typeface="Roboto" size="11pt"/>
+                <para hAlign="right" vAlign="middle"/>
+                <margin leftInset="1.5mm" rightInset="1.5mm" topInset="1mm" bottomInset="1mm"/>
+                <border><edge thickness="0.5pt"/></border>
+                <bind match="dataRef" ref="AMOUNT_FIELD"/>
+              </field>
+              <!-- ... remaining cells ... -->
+            </subform>
           </subform>
         </subform>
 
-        <subform name="rowGrandTotal" layout="row" w="185mm">
-          <occur min="0" max="1"/>
-          <!-- 11pt bold; only when data exists -->
+        <!-- GRAND TOTAL: static structure => bind match="none" + occur min="1"
+             (an unbound subform with min="0" is DROPPED by the data merge and
+             silently vanishes from the output); hidden via presence when no data -->
+        <subform name="tblTotal" layout="table" columnWidths="20mm 40mm 22mm 43mm 30mm 30mm" w="185mm">
+          <bind match="none"/>
+          <occur min="1" max="1"/>
+          <event activity="initialize" name="event__initialize">
+            <script contentType="application/x-formcalc">
+              if (Count($record.GROUPS.GROUP[*]) == 0) then
+                $.presence = "hidden"
+              endif
+            </script>
+          </event>
+          <subform name="rowGrandTotal" layout="row" minH="6mm">
+            <bind match="none"/>
+            <draw name="txtGrandTotalLabel" colSpan="4" minH="6mm">
+              <font typeface="Roboto" size="11pt" weight="bold"/>
+              <para hAlign="left" vAlign="middle"/>
+              <margin leftInset="1.5mm" rightInset="1.5mm" topInset="1mm" bottomInset="1mm"/>
+              <border><edge thickness="0.5pt"/></border>
+              <value><text>Tổng cộng</text></value>
+            </draw>
+            <!-- amount cells bound to $record.TOTALS.* -->
+          </subform>
         </subform>
       </subform>
 
-      <!-- SIGNATURE: optional; never splits across pages -->
-      <subform name="sfSignature" layout="tb" w="185mm" h="35mm">
-        <occur min="0" max="1"/>
+      <!-- SIGNATURE: static => bind match="none" + occur min="1"; never splits -->
+      <subform name="sfSignature" w="185mm" h="35mm">
+        <bind match="none"/>
+        <occur min="1" max="1"/>
         <keep intact="contentArea"/>
-        <!-- top margin >= 10mm gap after body -->
         <subform name="sfSignLeft" x="10mm" y="10mm" w="60mm" h="25mm">
-          <draw name="txtSignRole1" w="60mm" h="5mm">
+          <draw name="txtSignRole1" x="0mm" y="0mm" w="60mm" h="5mm">
             <font typeface="Roboto" size="11pt" weight="bold"/><para hAlign="center"/>
             <value><text>Người lập</text></value>
           </draw>
-          <draw name="txtSignNote1" w="60mm" h="4mm">
+          <draw name="txtSignNote1" x="0mm" y="5mm" w="60mm" h="4mm">
             <font typeface="Roboto" size="9pt" posture="italic"/><para hAlign="center"/>
             <value><text>(Ký, họ tên)</text></value>
           </draw>
@@ -153,28 +229,40 @@ Copy this frame for every new form; replace only `FORM_NAME`, the body table, an
 | `sfTop` | `x="15mm" y="10mm" w="185mm"` | `x="10mm" y="10mm" w="277mm"` |
 | `sfFooter` | `x="15mm" y="279mm" w="185mm"` | `x="10mm" y="192mm" w="277mm"` |
 | `txtPageNo` x-offset | `125mm` | `217mm` |
-| Content subform widths | `185mm` | `277mm` |
+| Content subform / table widths | `185mm` | `277mm` |
 | `sfSignRight` x | `115mm` | `207mm` |
+
+`columnWidths` must sum exactly to the content width (185 / 277 mm).
 
 ## 3. Standard FormCalc snippets
 
 ```text
-// Page numbering (layout:ready on txtPageNo — already in the frame)
-$ = concat("Trang ", xfa.layout.page($), "/", xfa.layout.pageCount())
+// Page numbering (event activity="ready" ref="$layout" on txtPageNo — already in the frame)
+// Ref() is MANDATORY: FormCalc passes $ by value -> "Argument mismatch" without it
+$ = concat("Trang ", xfa.layout.page(Ref($)), "/", xfa.layout.pageCount())
 
-// Grand total over all items (calculate event on the total amount field)
-$ = Sum(sfBody.sfGroup[*].rowItem[*].numAmount)
-
-// Subtotal within one group
-$ = Sum(sfGroup.rowItem[*].numAmount)
-
-// Conditional presence: hide subtotal row when the group has no items
-// (initialize event on rowSubTotal)
-if (Count(sfGroup.rowItem[*]) == 0) then
+// Hide a static block when there is no data (initialize event)
+if (Count($record.GROUPS.GROUP[*]) == 0) then
   $.presence = "hidden"
 endif
+
+// Simple sums are allowed (SKILL.md §6), but prefer backend-computed totals
+$ = Sum(sfGroup.rowItem[*].numItemAmount)
 ```
 
-## 4. Font declaration reminder
+## 4. Render-error quick reference (seen live, with the fix)
 
-Default form font is set once on the root subform's `<font typeface="Roboto" size="11pt"/>`; every element above only overrides size/weight/posture, never typeface. If ADS lacks Roboto, replace the typeface globally with `Arial` — never per element.
+| Symptom (Acrobat/ADS) | Root cause | Fix |
+|---|---|---|
+| Popup `Invalid enumerated value: layout:ready` | `activity="layout:ready"` is not a valid XFA enum | `<event activity="ready" ref="$layout">` |
+| Popup `Argument mismatch in property or function argument` on the page-number script | FormCalc passed `$` by value into `xfa.layout.page()` | wrap it: `xfa.layout.page(Ref($))` |
+| All cells of a row drawn on top of each other at the left edge | `layout="row"` subform not inside a `layout="table"` subform | wrap rows in a table subform with `columnWidths` |
+| Long text truncated mid-word | fixed `h` on row/cell; single-line field | use `minH` + `<ui><textEdit multiLine="1"/></ui>` on text cells |
+| A whole block (signature, grand total) silently missing from output | unbound subform with `occur min="0"` dropped by data merge | `<bind match="none"/>` + `occur min="1"` (hide via `presence` script if data-dependent) |
+| Amount shows clipped (`1.250.000.00`) | column narrower than longest formatted value | size amount columns ≥ 30 mm (portrait grid) for 13-char VND values |
+| Bold/italic render as regular | that font face not installed (design PC) / not uploaded (ADS); Acrobat substitutes silently | install/upload all 4 Roboto faces; verify via PDF File > Properties > Fonts (no "substituted") |
+| Blue fillable highlight on every bound cell | fields are interactive by default | `access="protected"` on the root subform |
+
+## 5. Font declaration reminder
+
+Default form font is set once on the root subform's `<font typeface="Roboto" size="11pt"/>`; every element only overrides size/weight/posture, never typeface. If ADS lacks Roboto, replace the typeface globally with `Arial` — never per element. `weight="bold"` renders bold **only if the Bold face actually exists** on the rendering side — it degrades silently otherwise (see §4 table).

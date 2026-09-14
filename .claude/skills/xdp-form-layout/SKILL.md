@@ -69,6 +69,7 @@ No other sizes without user approval. Line spacing: single; cell padding 1 mm to
 - Borders: 0.5 pt solid black, all cells; outer frame same weight (no thick/double borders).
 - Header row: 10% grey shading; repeats on every page break.
 - Alignment: **numbers right**, **text left**, **dates center** — always, in header and data rows alike.
+- **Column sizing is data-driven**: size every column for its longest realistic formatted value, not for its header label. Amount columns ≥ 30 mm on the portrait grid (a 13-char VND amount `1.234.567.890` at 11 pt needs ~27 mm + padding); code/key columns fixed to their content width; free-text columns (names, descriptions) take the remainder and **must wrap** (multiLine, §8) instead of clipping. `columnWidths` must sum exactly to the content width (185 / 277 mm).
 - Group header row (e.g. "Mã công trình – Tên công trình"): bold, merged/spanning the descriptive columns, left-aligned; amount columns of the group row right-aligned like data.
 - Subtotal per group directly under its items; grand total last row, bold; both rendered only when data exists (conditional presence, §5).
 - No zebra striping, no color other than the grey header shading — print forms are B/W-safe.
@@ -94,15 +95,28 @@ No other sizes without user approval. Line spacing: single; cell padding 1 mm to
 - Alignment per §4 applies regardless of format.
 - Currency amounts always carry their currency reference from the interface; never a hardcoded "VND".
 
-## 8. Compliance checklist (run before declaring any form done)
+## 8. XFA hard rules — each one traced to a real render failure
+
+These are structural, not stylistic. Violating any of them produced a live Acrobat/ADS defect during this project (the error-to-fix mapping lives in the skeleton reference §4). Apply them to every form:
+
+1. **Rows only inside tables.** Every `layout="row"` subform must be a child of a `layout="table"` subform with explicit `columnWidths`. A bare row is rendered as positioned content — all cells overlap at x=0. All tables of one report (header / groups / totals) share the **same** `columnWidths` grid so columns align; cells carry no `w` of their own; merged cells use `colSpan`.
+2. **`minH`, never fixed `h`, on rows and cells** — fixed heights clip long content. Free-text cells additionally need `<ui><textEdit multiLine="1"/></ui>` so the row grows instead of truncating.
+3. **Static/unbound blocks need `<bind match="none"/>` + `occur min="1"`.** An unbound subform with `min="0"` is silently dropped by the data merge — the block (signature, grand total, column header) just disappears from the output. Data-dependent hiding is done with a `presence = "hidden"` script, never with `min="0"`.
+4. **Layout-only wrapper subforms get `<bind match="none"/>`** so the data context passes through to the bound rows inside them.
+5. **Page numbering**: `<event activity="ready" ref="$layout">` (the value `layout:ready` is an invalid enum) with FormCalc `$ = concat("Trang ", xfa.layout.page(Ref($)), "/", xfa.layout.pageCount())` — the `Ref()` wrapper is mandatory; FormCalc passes `$` by value and fails with "Argument mismatch" without it.
+6. **`access="protected"` on the root subform** — print forms must not render fillable-field highlights.
+7. **Bold/italic only render if that font face exists** on the rendering side (design PC and ADS). `weight="bold"` degrades silently to regular when the Bold face is missing — verify via the output PDF's File > Properties > Fonts (no "substituted" entries).
+8. **Field completeness against the mockup**: before handoff, walk the FS mockup element by element (logo, company block, title, header detail, every column, group rows, subtotals, grand total, every signature block, footer) and confirm each exists in the XDP — a mockup element with no counterpart is a defect, not an omission to mention later.
+
+## 9. Compliance checklist (run before declaring any form done)
 
 1. Page = A4, margins per §1 for its orientation.
-2. All 5 areas present/positioned per §2 (signature/footer optional but, if present, per spec).
+2. All 5 areas present/positioned per §2 (signature/footer optional but, if present, per spec); every mockup element implemented (§8.8).
 3. Every text element uses Roboto and a size from §3 only.
 4. Table header repeats on page break; signature block does not split.
-5. Numbers right / text left / dates center everywhere.
-6. Optional blocks use conditional presence, not blank space.
+5. Numbers right / text left / dates center everywhere; columns sized per §4 (no clipped amounts).
+6. Optional blocks use conditional presence, not blank space (and never `occur min="0"` on unbound blocks — §8.3).
 7. No hardcoded locale format; no business logic in scripts.
-8. Vietnamese diacritics render correctly in a test output.
+8. **Rendered preview with sample data is mandatory evidence**: open the form with a sample-data XML (delivered alongside every form, node names mirroring the bindings 1:1) — zero script-error popups, long text wraps, bold renders bold, Vietnamese diacritics correct. "The XML looks right" is not a pass; only a clean render is.
 
-A form failing any point is **not compliant** — fix or get explicit user sign-off on the deviation.
+A form failing any point is **not compliant** — fix or get explicit user sign-off on the deviation. Every form is delivered as a pair: the `.xdp` + its sample-data XML.

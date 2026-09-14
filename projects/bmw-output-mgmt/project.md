@@ -13,6 +13,7 @@
 ## Objects & Status
 | Object | Type | Status | Notes |
 |---|---|---|---|
+| ZAF_CONSTR_CASHFLOW_DETAIL | Adobe Form (XDP) | draft — local only, not on SAP | Test form per [Skill: xdp-form-layout]; files in `scratchpads/` (xdp + sample data xml + html preview). Name not yet checked against system; TR/Package pending. |
 
 ## Key documents
 - Config sheets: `scratchpads/step_*.xlsx` (6 files)
