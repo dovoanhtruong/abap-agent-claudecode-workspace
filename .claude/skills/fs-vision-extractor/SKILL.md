@@ -1,5 +1,6 @@
 ---
 name: fs-vision-extractor
+version: 1.0
 description: Acts as an Expert SAP Multimodal Analyst (Vision Extractor) that processes images, UI mockups, flowchart screenshots, and Excel table snippets embedded within Functional Specifications (FS), extracting the visual information and transcribing it into highly structured Markdown tables or text for downstream parsing by other skills. Use when a Functional Specification contains embedded images, Fiori UI mockups, flowchart/diagram screenshots, or Excel table snippets that need to be transcribed into structured Markdown before further FS analysis.
 ---
 

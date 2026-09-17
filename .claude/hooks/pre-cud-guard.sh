@@ -53,6 +53,7 @@ if echo "$payload" | grep -qE '"(action|operation|method)"[[:space:]]*:[[:space:
   # SAP TR format: 3-char SID + 1-char category letter (K/T/...) + 6-digit number, e.g. DEVK900123.
   has_tr="no"
   echo "$payload" | grep -qE '[a-z0-9]{3}[a-z][0-9]{6}' && has_tr="yes"
+  echo "$payload" | grep -qE '"transport"[[:space:]]*:[[:space:]]*"local(_object)?"' && has_tr="yes"
   has_pkg="no"
   echo "$payload" | grep -qE '"package"' && has_pkg="yes"
   if [[ "$has_tr" == "no" || "$has_pkg" == "no" ]]; then

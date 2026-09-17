@@ -1,6 +1,6 @@
 ---
 name: consultant-executor
-description: Explicit-invocation only (Team Consultant, Executor) — dispatched by the Manager for mechanical pre-processing with no business judgment: binary FS conversion (document-markdown-converter), image/mockup transcription (fs-vision-extractor), initial SAP object/package structure scan (code-analysis Step 0), source-code fetch+persist (code-review Step 0).
+description: "Explicit-invocation only (Team Consultant, Executor) — dispatched by the Manager for mechanical pre-processing with no business judgment: binary FS conversion (document-markdown-converter), image/mockup transcription (fs-vision-extractor), initial SAP object/package structure scan (code-analysis Step 0), source-code fetch+persist (code-review Step 0)."
 tools: Read, Grep, Glob, Write, Bash, Skill, ToolSearch, mcp__sap_nfg_dev__SAP, mcp__sap_bmw_dev__SAP
 model: sonnet
 ---

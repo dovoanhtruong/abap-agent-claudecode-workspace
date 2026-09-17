@@ -1,5 +1,6 @@
 ---
 name: abap-generative-ai
+version: 1.0
 description: Help with implementing Generative AI within ABAP Cloud using ISLM (Intelligent Scenario Lifecycle Management) and the official ABAP AI SDK (CL_AIC_ISLM_* / IF_AIC_* family). Use when users ask about Generative AI, AI SDK, ISLM, LLM calls from ABAP, Generative AI Hub, prompt templates, or completions in ABAP. Triggers include "generative ai", "ai sdk", "islm", "llm", "tích hợp ai", "openai abap", "completion api".
 ---
 

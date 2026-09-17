@@ -1,5 +1,6 @@
 ---
 name: odata
+version: 1.0
 description: Help with OData service development in ABAP — V2/V4 via RAP service definitions and bindings, exposing a RAP BO, consuming external OData services (client proxy), troubleshooting OData /IWBEP/ errors. Use even for quick service asks — "create OData service", "expose RAP BO", "service binding", "OData V4", "consume external OData", "publish service", "tạo service binding/definition", "lỗi OData", "gọi API/OData ngoài". For FS API-requirement analysis use fs-integration-api-analyzer; for RAP BO modeling use rap; for communication arrangements use btp-abap-environment.
 ---
 

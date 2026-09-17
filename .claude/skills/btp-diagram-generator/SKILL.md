@@ -1,5 +1,6 @@
 ---
 name: btp-diagram-generator
+version: 1.0
 description: Generate SAP BTP solution architecture diagrams as native draw.io (.drawio) files per the official SAP BTP Solution Diagram guidelines (Fiori Horizon design system), opened via a configured draw.io MCP server. USE WHEN: user asks to create/draw/design/sketch a BTP diagram, BTP architecture/landscape/solution/reference-architecture diagram, or to visualize SAP BTP services (CAP, Build, Integration Suite, SAC, AI Core, HANA Cloud, Cloud Foundry, Kyma, Workzone…) and their interdependencies in draw.io/diagrams.net. DO NOT USE FOR: non-BTP architecture diagrams, generic flowcharts, sequence/UML diagrams, or diagrams that should remain in Mermaid/PlantUML.
 ---
 

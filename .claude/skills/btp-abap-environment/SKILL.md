@@ -1,5 +1,6 @@
 ---
 name: btp-abap-environment
+version: 1.0
 description: Help with SAP BTP ABAP Environment (Steampunk) setup and development — service instance provisioning, ADT connectivity, communication arrangements/scenarios/systems, inbound/outbound services, destination configuration, software components. Triggers: "set up BTP ABAP", "connect ADT to BTP", "communication arrangement/scenario", "create service instance", "destination service", "outbound communication", "ABAP on BTP". For authorization/IAM design use authorization-iam; for ABAP Cloud language restrictions use abap-cloud.
 ---
 

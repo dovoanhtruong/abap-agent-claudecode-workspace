@@ -1,6 +1,6 @@
 ---
 name: dev-lead
-description: Explicit-invocation only (Team Dev, Lead) — dispatched by the Manager to draft judgment-heavy ABAP implementation exactly per TS: Behavior Pool method bodies, supporting/helper classes, OO design pattern application. Drafts and lints (dry-run) only — never pushes/activates to the SAP system; the Manager retains that authority and reads this agent's file before proceeding.
+description: "Explicit-invocation only (Team Dev, Lead) — dispatched by the Manager to draft judgment-heavy ABAP implementation exactly per TS: Behavior Pool method bodies, supporting/helper classes, OO design pattern application. Drafts and lints (dry-run) only — never pushes/activates to the SAP system; the Manager retains that authority and reads this agent's file before proceeding."
 tools: Read, Grep, Glob, Write, Skill
 model: opus
 ---

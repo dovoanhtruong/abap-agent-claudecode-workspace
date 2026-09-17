@@ -1,5 +1,6 @@
 ---
 name: rap-business-events
+version: 1.0
 description: Help with RAP business events and enterprise eventing including event definitions in behavior definitions, raising events from RAP handler methods, event bindings, SAP Event Mesh integration, event consumption, and event-driven patterns in ABAP Cloud. Use when users ask about RAP business events, enterprise events, event mesh, eventing, raising events, event binding, event definition, event consumption, event-driven, asynchronous processing, event topics, or publish-subscribe in ABAP. Triggers include "RAP event", "business event", "raise event", "event mesh", "event binding", "enterprise eventing", "publish event", "consume event". For general RAP modeling (BDEF, handlers, EML) use rap.
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: abap
+version: 1.0
 description: Check and improve ABAP code quality using abaplint and Clean ABAP principles. Use this skill when users ask to check, lint, validate, review, or analyze ABAP code for syntax errors, clean code compliance, code quality, best practices, or adherence to Clean ABAP guidelines. Also use when users ask to set up abaplint, configure abaplint.json, or run abaplint on their ABAP project. Triggers include requests like "check this ABAP code", "lint my ABAP", "run abaplint", "configure abaplint", "is this clean ABAP", "review my ABAP", or "analyze ABAP code quality". Use even when the user just pastes a snippet with a short ask — Vietnamese triggers: "review đoạn code này", "check/tìm bug đoạn ABAP", "code này ổn không", "chuẩn clean chưa".
 ---
 

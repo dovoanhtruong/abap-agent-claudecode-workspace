@@ -1,5 +1,6 @@
 ---
 name: authorization-iam
+version: 1.0
 description: Help with ABAP authorization and IAM — authorization objects, AUTHORITY-CHECK, CDS access control (DCL), privilege annotations, IAM apps, business catalogs, business roles, restriction types, PFCG, role-based access in ABAP Cloud and on-premise. Triggers: "authorization check", "create authorization object", "CDS access control", "DCL", "IAM app", "business catalog", "business role", "restrict access", "PFCG", "role-based security", "S_DEVELOP".
 ---
 

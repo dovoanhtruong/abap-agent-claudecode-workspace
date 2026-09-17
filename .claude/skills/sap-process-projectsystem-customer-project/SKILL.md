@@ -1,5 +1,6 @@
 ---
 name: sap-process-projectsystem-customer-project
+version: 1.0
 description: SAP Project System process knowledge for Customer Project Management (scope item J11) — Enterprise Project/WBS structure billed to an external customer, project-based services billing, on SAP S/4HANA Cloud Public Edition. Use when an FS describes a customer-facing project, WBS-based billing, professional services engagement, or explicitly "Customer Project Management"/"J11". Paired with [Skill: sap-process-projectsystem-internal-project] (same structure, internal-facing variant). Complements the FS-analysis skills (domain grounding).
 ---
 

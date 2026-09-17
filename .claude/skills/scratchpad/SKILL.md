@@ -1,5 +1,6 @@
 ---
 name: scratchpad
+version: 1.0
 description: Uses a persistent scratchpad file to plan, draft, and track complex or multi-step/multi-session work — including a status ledger and verify-loop attempt counters — before committing changes to the main codebase; use when a task is complex enough to need an explicit plan or may span multiple steps or be interrupted/compacted mid-way.
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: cds-view-entities
+version: 1.0
 description: Help with CDS view entity modeling for RAP business objects — composition trees, root/child/projection view entities, admin fields, association vs composition, draft/ETag-supporting fields, the CDS layer of a transactional app. Use even for small single-prompt RAP-view tasks — "create a CDS view for RAP", "composition tree", "root view entity", "tạo root/child view", "thêm association/composition", "thêm admin field", "sửa view RAP". For non-RAP analytical/reporting views (aggregates, parameters, joins) use cds-analytical-views; for DCL use authorization-iam.
 ---
 

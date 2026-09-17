@@ -10,7 +10,7 @@ Create ONE new project workspace under `projects/` — the explicit project-crea
 - Project name: first argument. Arguments: $ARGUMENTS
 - If the name is missing: ask for it in one line — do not guess.
 
-[EXECUTION — 4 steps]
+[EXECUTION — 5 steps]
 
 **Step 1 — Validate the name.**
 - kebab-case, lowercase, no diacritics, no spaces (`a-z`, `0-9`, `-` only).
@@ -56,7 +56,9 @@ projects/<name>/
 <!-- Links to the project's own TS/walkthrough/analysis files as they appear. -->
 ```
 
-**Step 4 — Report.** [Skill: caveman] narration: project path created, metadata recorded vs TBD. Remind: every workflow/task for this project now passes `<name>` as its first argument, and `project.md` is the first file read at workflow start.
+**Step 4 — Rename this session (rule §4, mandatory).** Call `mcp__ccd_session_mgmt__set_session_title` with `<name>_<main purpose of this session>` — the project directory name verbatim, then a short kebab-case purpose (e.g. `bmw-zbom_project-setup`, `bmw-sd-apis_fs-analysis`). Applies even when the project is expected to have only this one session.
+
+**Step 5 — Report.** [Skill: caveman] narration: project path created, metadata recorded vs TBD, session retitled to `<...>`. Remind: every workflow/task for this project now passes `<name>` as its first argument, `project.md` is the first file read at workflow start, and any NEW session for this project is titled `<name>_<purpose>`.
 
 [SCOPE GUARDS]
 - Never create a project as a side effect of another workflow — that workflow must STOP and send the user here instead (rule §4).

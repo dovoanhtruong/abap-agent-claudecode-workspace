@@ -1,5 +1,6 @@
 ---
 name: fs-logic-behavior-translator
+version: 1.0
 description: Kỹ năng phân tích FS để trích xuất các quy tắc nghiệp vụ phức tạp, phân quyền, hành vi (Behavior), status machine và chiến lược đánh số (numbering), từ đó xác định cách triển khai kỹ thuật phù hợp nhất (CDS Logic vs. ABAP Virtual Elements vs. RAP Behavior Pool). Use when analyzing the business rules / processing logic sections of an FS document during TS creation. Triggers include "extract business logic", "phân tích logic FS", "status machine", "validation/determination từ FS".
 ---
 

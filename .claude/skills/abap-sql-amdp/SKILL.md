@@ -1,5 +1,6 @@
 ---
 name: abap-sql-amdp
+version: 1.0
 description: Help with advanced ABAP SQL and AMDP — window functions, CTEs, AMDP classes/procedures, AMDP/CDS table functions, scalar functions, UNION/INTERSECT/EXCEPT, PRIVILEGED ACCESS, SQLScript, database-level performance optimization. Use even for quick single-prompt SQL asks — "AMDP", "window function", "CTE", "table function", "advanced SQL", "tối ưu SELECT", "viết/sửa câu SQL", "tính tổng theo nhóm trong SQL", "đẩy logic xuống DB". For constructor expressions, internal-table operations, and string templates use modern-abap-syntax.
 ---
 

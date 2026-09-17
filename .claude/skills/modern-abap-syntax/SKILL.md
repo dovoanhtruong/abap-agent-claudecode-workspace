@@ -1,5 +1,6 @@
 ---
 name: modern-abap-syntax
+version: 1.0
 description: Help with modern ABAP syntax for Cloud Development including constructor expressions, inline declarations, string processing, dynamic programming, and built-in functions. Use when users ask about ABAP syntax, VALUE, COND, SWITCH, REDUCE, FILTER, FOR loops, string templates, Field Symbols, Date and Time functions, built-in functions, or numeric operations. Triggers include "constructor expression", "string template", "REDUCE", "VALUE", "inline declaration", "cú pháp abap", "abap syntax". For SQL/SELECT/AMDP questions use abap-sql-amdp. Use even for quick one-off syntax questions or rewrites — Vietnamese triggers: "viết lại cho gọn", "chuyển sang VALUE/REDUCE", "refactor vòng LOOP", "cách viết ABAP hiện đại".
 ---
 

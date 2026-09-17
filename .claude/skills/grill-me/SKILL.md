@@ -1,5 +1,6 @@
 ---
 name: grill-me
+version: 1.0
 description: Interactively interviews the user with targeted, often multiple-choice questions to resolve ambiguity and align on design decisions before starting execution; use when a request has unclear or missing requirements that need clarifying before work begins.
 ---
 

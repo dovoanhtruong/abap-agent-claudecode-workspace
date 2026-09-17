@@ -39,14 +39,17 @@ INTERFACE zif_api_inbound_handler PUBLIC.
       it_headers          TYPE zif_api_fwk_types=>tt_name_value OPTIONAL  " all HTTP request headers (name/value)
       it_params           TYPE zif_api_fwk_types=>tt_name_value OPTIONAL  " URL query/form fields (name/value)
     EXPORTING
-      ev_response_payload TYPE string
-      ev_http_status      TYPE i
+      ev_response_payload   TYPE string
+      ev_http_status        TYPE i
+      ev_transaction_number TYPE string   " business key → log trans_num (optional)
     RAISING
       zcx_api_fwk.
 ENDINTERFACE.
 ```
 
 The handler owns the business result entirely: set `ev_http_status` explicitly for every path (200/201 success, 4xx business rejection with a JSON error body). Existing examples in the package: `ZCL_TEST_INBOUND_HANDLE_CLASS`, `ZCL_IB_RECEIVE_PDF_TEST`.
+
+**LUW contract (mandatory)**: every EML modify the handler stages must be closed by the handler itself — `COMMIT ENTITIES` to persist, `ROLLBACK ENTITIES` to discard — **before returning** from `handle_request`. The business outcome then belongs 100% to the handler's logic; nothing the framework does afterwards can change it. Anything left uncommitted (forgotten commit, exception after staging) is **committed** by the framework's seal (see Logging notes) — never rolled back — so an error path that stages changes MUST roll them back explicitly. Direct-SQL writers should likewise `COMMIT WORK` themselves; if they don't, the seal secures their writes.
 
 ## Handler template
 
@@ -76,34 +79,42 @@ CLASS zcl_ib_my_api IMPLEMENTATION.
                                              iv_mapping_camel = abap_true
                                    CHANGING  c_abap           = ls_request ).
 
-        " 2. Validate — business rejection is a 4xx set HERE, not an exception
+        " 2. Validate — business rejection is a 4xx set HERE, not an exception.
+        "    Error bodies follow the OData V4 standard via zcl_api_error_util_v4:
+        "    code = <msg_class>/<msg_number>, text resolved from the message class
         IF ls_request IS INITIAL.
           ev_http_status      = 400.
-          ev_response_payload = zcl_api_fwk=>abap_to_json(
-            ia_abap = VALUE ty_response( success = abap_false message = 'Empty/invalid payload' )
-            iv_mapping_camel = abap_true ).
+          ev_response_payload = zcl_api_error_util_v4=>build_error_json(
+                                  iv_msg_class  = 'ZMC_MY_API'      " your message class
+                                  iv_msg_number = '001'
+                                  iv_target     = 'payload' ).      " optional; details via it_details
           RETURN.
         ENDIF.
 
         " 3. Business logic — EML / released APIs only (rule §3), never direct table writes
 
-        " 4. Success response
-        ev_http_status      = 200.
-        ev_response_payload = zcl_api_fwk=>abap_to_json( ia_abap = ls_response iv_mapping_camel = abap_true ).
+        " 4. Success response + business key for the API log (trans_num)
+        ev_http_status        = 200.
+        ev_response_payload   = zcl_api_fwk=>abap_to_json( ia_abap = ls_response iv_mapping_camel = abap_true ).
+        ev_transaction_number = |{ lv_document_number }|.
 
       CATCH cx_root INTO DATA(lx_error).
-        " Option A (explicit, preferred): map to a controlled 500 yourself
+        " Option A (explicit, preferred): map to a controlled 500 yourself —
+        " main message from your message class, full exception text as a detail line
         ev_http_status      = 500.
-        ev_response_payload = zcl_api_fwk=>abap_to_json(
-          ia_abap = VALUE ty_response( success = abap_false message = lx_error->get_text( ) )
-          iv_mapping_camel = abap_true ).
-        " Option B: RAISE EXCEPTION TYPE zcx_api_fwk — framework returns 500 {"error": <get_text()>}
+        ev_response_payload = zcl_api_error_util_v4=>build_error_json(
+          iv_msg_class  = 'ZMC_MY_API'
+          iv_msg_number = '002'
+          it_details    = VALUE #( ( code    = 'ZMC_MY_API/002'
+                                     message = lx_error->get_text( ) ) ) ).
+        " Option B: RAISE EXCEPTION TYPE zcx_api_fwk — framework returns a 500
+        " OData V4 body whose code reuses the exception's own T100 key
     ENDTRY.
   ENDMETHOD.
 ENDCLASS.
 ```
 
-Framework behavior if an exception escapes the handler: `zcx_api_fwk` → 500 with `{"error": "<exception text>"}`; any other `cx_root` → 500 with a **generic** message ("Internal processing error…") — details deliberately not leaked to the partner.
+Framework behavior if an exception escapes the handler (OData V4 bodies since Jul 2026): `zcx_api_fwk` → 500 with `{"error":{"code":"<t100key msgid/msgno>","message":"<text>"}}`; any other `cx_root` → 500 with the **generic** message `ZMC_API_FWK/014` ("Internal processing error…") — details deliberately not leaked to the partner. Working demo of all three `build_error_json` usage patterns: `ZCL_TEST_INBOUND_HANDLE_CLASS` (uses messages `ZMC_API_FWK 011–013`).
 
 ## Framework validation matrix (before the handler runs)
 
@@ -117,7 +128,7 @@ Framework behavior if an exception escapes the handler: `zcx_api_fwk` → 500 wi
 | Class doesn't exist or doesn't implement `ZIF_API_INBOUND_HANDLER` (XCO check) | 500 | 006 |
 | `CREATE OBJECT` failed | 500 | 009 |
 
-All error bodies are `{"error": "<message>"}` JSON.
+All framework error bodies follow the **OData V4 standard** (since Jul 2026): `{"error":{"code":"ZMC_API_FWK/<NNN>","message":"<text>"[,"target"][,"details"]}}` — built by `zcl_api_error_util_v4=>build_error_json`. Specifics: missing `x-api-id` adds `"target":"x-api-id"`; `CREATE OBJECT` failure (009) carries the original exception text in `details[]`; the generic `cx_root` path uses message `ZMC_API_FWK 014`. Messages `011–014` must exist in `ZMC_API_FWK` (added manually — the MCP tool cannot edit message classes).
 
 ## Payload & response mechanics
 
@@ -127,8 +138,13 @@ All error bodies are `{"error": "<message>"}` JSON.
 
 ## Logging notes (inbound specifics)
 
+- **Persistence is deterministic (since Jul 2026)** — GET/POST/error alike. After the response is finalized, `execute_inbound` runs: `COMMIT WORK` (the **seal** — permanently closes whatever the handler intended to persist, incl. uncommitted direct-SQL writes) → `save_log` → long-form `COMMIT ENTITIES` for the log LUW → `ROLLBACK ENTITIES` only if that log save failed. The whole block is TRY/CATCH-wrapped: **logging is best-effort and can never dump or change the API response** (a dump here would turn a successful business call into a 500 and provoke partner retries).
+- Because of the seal, a handler that stages EML and returns without commit/rollback gets its leftovers **committed** — see the LUW contract in the Handler contract section. Handler data can never be lost to a failed log save: the seal runs before anything touches the log.
+- **Blind spots**: a failed log save is dropped silently (symptom: API works, **ZAPI_FWK_LOG** has no row). Phase-1 failures (`save_log`'s own `MODIFY` — e.g. a future BO authorization) are also silent (`ls_failed` is not evaluated). Debugging `save_log` is the only way to see them.
+- Logged payload copies are **capped at 1 MB per direction** (truncation marker with original size appended, applied before pretty-printing) — protects the log save from multi-MB base64 binaries; the API payload itself is untouched. `ZBP_I_API_LOG_H` is empty — the BDEF declares authorization but no check is implemented (effectively always granted; verified Jul 2026).
+- `execute_inbound` must only ever be called from the HTTP dispatcher (`ZCL_API_INBOUND_HTTP`) — it issues COMMITs, which dump inside a RAP handler context.
 - Log written after the response is finalized; request `uri_path` is logged as the literal `'INBOUND'`.
-- The standard dispatcher does not pass `iv_transaction_number`, so inbound `trans_num` is empty — put your business key in the response payload / log via your own design if traceability by document number is required.
+- **Traceability by business key**: the handler exports `ev_transaction_number` (e.g. the created/read document number) — the dispatcher stores it as `trans_num` in the log (handler value wins over the dispatcher's own `iv_transaction_number` param). Handlers that don't set it leave `trans_num` empty. Framework-level errors (bad api_id, config errors) never reach the handler, so those log rows have no trans_num by design.
 - `log_enable = 'B'` skips payloads and header/param items (log header row only).
 
 ## Test checklist (feeds the workflow's Verify Loop)

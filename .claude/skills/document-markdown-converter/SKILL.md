@@ -1,5 +1,6 @@
 ---
 name: document-markdown-converter
+version: 1.0
 description: Hướng dẫn tiền xử lý (pre-processing) tài liệu FS nhị phân (PDF, DOCX, XLSX, PPTX, HTML, v.v.) bằng công cụ Microsoft MarkItDown thành định dạng Markdown (MD) trước khi phân tích trong các workflow SAP. Sử dụng khi một tài liệu thiết kế FS/spec được cung cấp làm đầu vào cho workflow phân tích (fs-analytic, bug-fix...) — KHÔNG dùng cho các thao tác PDF/Word/Excel tổng quát (tạo, chỉnh sửa, merge file — việc đó thuộc các skill pdf/docx/xlsx chuyên dụng). Triggers: `markitdown`, `convert fs`, `parse FS document`, `tiền xử lý tài liệu FS`, `đọc file FS`.
 ---
 

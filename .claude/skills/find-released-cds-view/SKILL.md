@@ -1,5 +1,6 @@
 ---
 name: find-released-cds-view
+version: 1.0
 description: Find the best SAP released CDS view (DDLS) for a RAP/reporting field by matching the user's business object, screen context, required data grain, field availability, and local data coverage, using S/4HANA Cloud Public Edition (`public_cloud`) as the default mcp-sap-docs target. Use when asked to map a business field from SAP screens such as Business Partner, Customer, Sales Area, Company Code, Address, or Communication to a released clean-core CDS source, value help, text view, or cloud-ready alternative.
 ---
 

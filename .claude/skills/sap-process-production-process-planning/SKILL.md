@@ -1,5 +1,6 @@
 ---
 name: sap-process-production-process-planning
+version: 1.0
 description: SAP Production Planning process knowledge for Process Industry Manufacturing — scope item BJ8 (Make-to-Stock Process Manufacturing), planning side — MRP, Planned Order, Master Recipe (Bill of Operations), Process Order creation/release, on SAP S/4HANA Cloud Public Edition. Use when an FS describes process/batch manufacturing (chemicals, food, pharma), recipe-based production planning. Paired with [Skill: sap-process-manufacturing-process-execution] (same scope item, execution side). Complements the FS-analysis skills (domain grounding).
 ---
 

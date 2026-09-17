@@ -1,5 +1,6 @@
 ---
 name: caveman
+version: 1.0
 description: Compresses the agent's conversational chat narration (progress updates, status lines, completion summaries) into terse, filler-free text while preserving every technical fact; use when narrating progress or writing status/completion updates in chat, never for code or saved deliverable files.
 ---
 

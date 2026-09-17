@@ -1,5 +1,6 @@
 ---
 name: rap-query-provider
+version: 1.0
 description: Help with implementing RAP Query Providers (IF_RAP_QUERY_PROVIDER) for Custom Entities in ABAP Cloud. Focuses on handling query options (paging, sorting, filtering) to avoid the "Query not fully covered by implementation" error. Triggers include "IF_RAP_QUERY_PROVIDER", "custom entity class", "select method", "get_sort_elements", "get_paging", "set_total_number_of_records", "Query not fully covered". Use even for a single error-fix ask — Vietnamese triggers: "custom entity", "viết query provider", "lỗi Query not fully covered", "paging/filter không chạy".
 ---
 

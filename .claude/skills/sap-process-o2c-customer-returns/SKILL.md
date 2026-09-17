@@ -1,5 +1,6 @@
 ---
 name: sap-process-o2c-customer-returns
+version: 1.0
 description: SAP Order-to-Cash process knowledge for Customer Returns / Claims, Returns & Refund Management (scope item BKP) — returns order, returns delivery, goods receipt, credit memo/refund or free-of-charge replacement, on SAP S/4HANA Cloud Public Edition. Use when an FS describes handling returned goods, refunds, credit memos tied to a return, replacement deliveries, or explicitly mentions "Customer Returns", "BKP", "Claims Returns and Refund Management". Complements the FS-analysis skills (domain grounding).
 ---
 

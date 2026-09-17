@@ -1,5 +1,6 @@
 ---
 name: atc-cloudification
+version: 1.0
 description: Configure ATC Cloud Readiness and Clean Core checks using the SAP Cloudification Repository for Released APIs. Use when users ask about ATC check variants for cloud readiness, clean core compliance, released API checks, cloudification repository setup, objectReleaseInfo JSON files, SAP Cloud ERP or SAP Cloud ERP Private API validation, or migrating custom code to ABAP Cloud. Triggers include "configure ATC cloud readiness", "set up clean core check", "cloudification repository URL", "released APIs check", or "which JSON file for my S/4HANA version".
 ---
 

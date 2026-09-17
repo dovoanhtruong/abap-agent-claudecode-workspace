@@ -1,5 +1,6 @@
 ---
 name: sap-process-finance-asset-accounting
+version: 1.0
 description: SAP Finance process knowledge for Asset Accounting — scope item J62 — fixed asset master data, acquisition, depreciation, on SAP S/4HANA Cloud Public Edition. Use when an FS describes fixed asset management, depreciation, asset acquisition/retirement, or explicitly "Asset Accounting"/"J62". Complements the FS-analysis skills (domain grounding).
 ---
 

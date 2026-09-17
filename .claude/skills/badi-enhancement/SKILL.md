@@ -1,5 +1,6 @@
 ---
 name: badi-enhancement
+version: 1.0
 description: Help with BAdI (Business Add-In) development and the ABAP enhancement framework — new and classic BAdIs, enhancement spots/implementations, filter-based BAdIs, fallback classes, implicit/explicit enhancement points, extending SAP standard code. Triggers: "create/implement/find a BAdI", "enhancement spot", "BAdI filter", "fallback class", "extend standard", "custom logic injection", "enhancement framework". For the extensibility tier model and key-user extensibility use abap-cloud.
 ---
 

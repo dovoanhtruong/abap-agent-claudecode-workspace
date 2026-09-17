@@ -1,5 +1,6 @@
 ---
 name: handoff
+version: 1.0
 description: Summarizes current progress, outstanding tasks, and crucial context into a structured handoff note; use before context runs out or compaction occurs, or whenever work needs to transition seamlessly to another agent or a new session.
 ---
 

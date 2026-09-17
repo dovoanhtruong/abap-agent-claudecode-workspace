@@ -1,5 +1,6 @@
 ---
 name: activation-guard
+version: 1.0
 description: After creating, editing, or deleting any SAP object (CDS view, DDIC object, BDEF, class, service definition/binding), verify it is genuinely active with zero unresolved errors/warnings AND that no other object depending on it broke as a side effect. Use immediately after every "Push → Activate" (or delete) step in any workflow that mutates SAP system objects, before marking that step DONE in a build ledger — this is what stops a chain reaction of activation failures propagating through Steps N+1, N+2...
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: abap-cloud-migration
+version: 1.0
 description: Help with migrating classic ABAP custom code to ABAP Cloud — custom code adaptation, identifying unreleased-API replacements, wrapper classes for unreleased objects, ATC Cloud Readiness checks, incompatible language constructs, step-by-step migration workflows. Triggers: "migrate to ABAP Cloud", "cloud readiness check", "unreleased API", "replace with released API", "custom code adaptation", "wrapper for unreleased", "move to tier 1", "ABAP Cloud compatibility", "S/4HANA cloud migration". For tier-model/clean-core concepts use abap-cloud; for configuring the ATC check variant itself use atc-cloudification.
 ---
 

@@ -23,3 +23,6 @@ scratch/
 # Python bytecode cache
 __pycache__/
 *.pyc
+
+# TS24 API test credentials (secret - never commit)
+projects/**/ts24.env

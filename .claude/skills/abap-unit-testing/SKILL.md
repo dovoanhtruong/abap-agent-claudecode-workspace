@@ -1,5 +1,6 @@
 ---
 name: abap-unit-testing
+version: 1.0
 description: Help with ABAP Unit testing — test classes/methods, CL_ABAP_UNIT_ASSERT assertions, test doubles/mocking, dependency injection, CDS/OSQL test environments, RAP BO test doubles, test seams/injection, fixtures, test isolation, TDD in ABAP. Use even for a single quick test ask — "write a unit test", "create test class", "mock a dependency", "test a CDS view", "test a RAP BO", "viết unit test", "tạo test class", "mock dependency", "test method này", "kiểm thử RAP BO".
 ---
 

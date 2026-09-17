@@ -1,5 +1,6 @@
 ---
 name: abap-cloud
+version: 1.0
 description: Explain ABAP Cloud development concepts — the official 3-tier extensibility model, ABAP Cloud language version restrictions, clean core principles, key user vs developer extensibility, and how to discover released APIs. Use when users ask conceptual questions about ABAP Cloud, clean core, tier 1/2/3, restricted ABAP language scope, embedded Steampunk, or "is X allowed in ABAP Cloud". Triggers include "ABAP Cloud restrictions", "clean core", "tier model", "ABAP language version", "Steampunk", "extensibility model". For migrating existing classic code (wrappers, replacements) use abap-cloud-migration instead; for configuring ATC cloud-readiness check variants use atc-cloudification; for BTP system provisioning/connectivity use btp-abap-environment.
 ---
 

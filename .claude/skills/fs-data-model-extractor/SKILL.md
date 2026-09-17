@@ -1,5 +1,6 @@
 ---
 name: fs-data-model-extractor
+version: 1.0
 description: Kỹ năng phân tích tài liệu Functional Specification (FS) để trích xuất hoặc thiết kế cấu trúc dữ liệu nền tảng — bảng, CDS Views, điều kiện Join, trường khóa, bộ lọc bắt buộc — cho SAP ABAP Cloud / RAP, bao gồm cả thiết kế Z-table mới (composition tree, keys) cho transactional app. Use when analyzing an FS document to extract its data model, when designing new Z-tables/composition trees for a brand-new transactional app FS, or when tracing the data lineage of existing objects during bug analysis. Triggers include "extract data model", "phân tích FS", "data model từ FS", "thiết kế bảng cho app".
 ---
 

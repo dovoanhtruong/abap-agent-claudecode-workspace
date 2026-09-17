@@ -1,5 +1,6 @@
 ---
 name: released-abap-classes
+version: 1.0
 description: Find released ABAP classes for ABAP Cloud Development. Use when user asks about ABAP classes for specific functionality like email, UUID generation, time/date handling, JSON/XML processing, RAP, string processing, random numbers, regex, Base64, HTTP calls, unit testing, PDF rendering, parallel processing, application logs, or any other ABAP Cloud class lookup. Use even for one-line lookups — Vietnamese triggers: "class nào để gửi email/tạo UUID/parse JSON", "có class chuẩn (released) nào để X không", "thay thế class cũ bằng gì".
 ---
 

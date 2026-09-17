@@ -1,5 +1,6 @@
 ---
 name: cds-data-model-analysis
+version: 1.0
 description: Analyze and design the data model BEHIND a complex report or CDS view — keys, foreign-key relationships, join/association conditions, cardinality, and fan-out/duplication risks across released I_* views and Z-tables, then design the join tree BEFORE any CDS syntax is written. Use whenever a report spans 2+ tables/views whose relationships are not pinned down, or the user asks how tables relate, which fields to join on, why a report shows duplicate rows or inflated totals — "join các bảng", "xác định key/foreign key", "quan hệ giữa các bảng", "duplicate rows in report", "cardinality", "phân tích cấu trúc CDS view", "build join tree". Syntax authoring stays with cds-analytical-views / cds-view-entities; finding the right released view is find-released-cds-view.
 ---
 

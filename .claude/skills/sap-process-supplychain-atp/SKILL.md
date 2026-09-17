@@ -1,5 +1,6 @@
 ---
 name: sap-process-supplychain-atp
+version: 1.0
 description: SAP Supply Chain process knowledge for Basic Available-to-Promise (scope item 2LN) — product availability check (PAC) and backorder processing (BOP) on SAP S/4HANA Cloud Public Edition. Use when an FS mentions availability check, confirmed quantity/date on a sales order, stock reservation, or backorder processing, or explicitly "ATP"/"2LN". Complements the FS-analysis skills (domain grounding).
 ---
 

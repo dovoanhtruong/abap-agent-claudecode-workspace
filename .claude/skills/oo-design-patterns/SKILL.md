@@ -1,5 +1,6 @@
 ---
 name: oo-design-patterns
+version: 1.0
 description: Help with Object-Oriented Design Patterns (GoF) implemented in ABAP. Use when users ask about design patterns, Singleton, Factory, Observer, Strategy, Decorator, Builder, State, Command, Adapter, Facade, Composite, Iterator, Proxy, or OOP best practices. Triggers include "design pattern", "singleton", "factory", "observer", "strategy", "mẫu thiết kế", "oop abap".
 ---
 

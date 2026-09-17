@@ -1,5 +1,6 @@
 ---
 name: sap-fiori-apps-reference
+version: 1.0
 description: Generate SAP Fiori Launchpad URLs from app names. Searches the SAP Fiori apps reference library via whichever MCP server your environment exposes for it, extracts Semantic Object and Action, and constructs proper FLP URLs with required parameters like sap-client and sap-language.
 license: MIT
 ---

@@ -1,5 +1,6 @@
 ---
 name: cds-analytical-views
+version: 1.0
 description: Help with general-purpose and analytical CDS view entity authoring — expressions, built-in functions, aggregates/GROUP BY, input parameters, joins, CASE, date/string functions, CDS table entities, and UI/value-help annotations for plain reporting views with no RAP BO involved. Use even for small single-prompt view tasks — "create a CDS view for a report", "CDS aggregate/join/input parameter", "tạo CDS view", "thêm field vào view", "viết view báo cáo", "sum/group by trong CDS", "thêm parameter vào view". For RAP composition trees use cds-view-entities; for CDS access control/DCL use authorization-iam.
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: sap-process-finance-general-ledger
+version: 1.0
 description: SAP Finance process knowledge for General Ledger Accounting — scope item J58 (Accounting and Financial Close), day-to-day posting emphasis — Journal Entry, G/L account line items, on SAP S/4HANA Cloud Public Edition. Use when an FS describes G/L postings, journal entries, account line items, or is the universal downstream target of a revenue/cost report. Paired with [Skill: sap-process-finance-financial-close] (same scope item, period-end emphasis). Complements the FS-analysis skills (domain grounding).
 ---
 

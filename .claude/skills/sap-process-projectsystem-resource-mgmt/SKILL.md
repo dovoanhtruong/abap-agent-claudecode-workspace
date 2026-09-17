@@ -1,5 +1,6 @@
 ---
 name: sap-process-projectsystem-resource-mgmt
+version: 1.0
 description: SAP Project System process knowledge for Advanced Resource Management (scope item 1KC) — resource demand/request, staffing onto project WBS, on SAP S/4HANA Cloud Public Edition. Use when an FS describes staffing a project, resource demand/request, or explicitly "Resource Management"/"1KC". Complements the FS-analysis skills (domain grounding).
 ---
 

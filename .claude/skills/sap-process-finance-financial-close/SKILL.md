@@ -1,5 +1,6 @@
 ---
 name: sap-process-finance-financial-close
+version: 1.0
 description: SAP Finance process knowledge for Accounting and Financial Close — scope item J58, period-end closing emphasis — fiscal year/period closing sequence, cross-LOB closing dependencies, on SAP S/4HANA Cloud Public Edition. Use when an FS describes month-end/year-end close, posting period control, or closing checks across modules. Paired with [Skill: sap-process-finance-general-ledger] (same scope item, day-to-day posting emphasis). Complements the FS-analysis skills (domain grounding).
 ---
 

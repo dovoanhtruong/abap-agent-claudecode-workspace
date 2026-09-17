@@ -1,5 +1,6 @@
 ---
 name: rap
+version: 1.0
 description: Help with RAP (RESTful ABAP Programming Model) development — BDEF/BDL, EML, behavior pools, managed/unmanaged/draft-enabled BOs, actions, validations, determinations, side effects, handler/saver classes, CRUD, building transactional Fiori apps with ABAP Cloud. Use for any RAP ask, even a small single-prompt fix — "create a RAP BO", "write a behavior definition", "EML syntax", "managed vs unmanaged", "enable draft", "RAP handler method", "thêm action", "sửa behavior definition", "viết validation/determination", "xử lý draft", "sửa handler". For event bindings/Event Mesh use rap-business-events; for IF_RAP_QUERY_PROVIDER custom entities use rap-query-provider; for OData publishing use odata.
 ---
 

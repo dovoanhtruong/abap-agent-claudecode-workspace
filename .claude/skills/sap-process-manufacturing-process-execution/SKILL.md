@@ -1,5 +1,6 @@
 ---
 name: sap-process-manufacturing-process-execution
+version: 1.0
 description: SAP Manufacturing process knowledge for Process Industry Manufacturing — scope item BJ8 (Make-to-Stock Process Manufacturing), execution/shop-floor side — process order confirmation, phase-based backflush, batch-managed goods receipt, on SAP S/4HANA Cloud Public Edition. Use when an FS describes process-order confirmation, phase confirmation, or batch-managed production execution. Paired with [Skill: sap-process-production-process-planning] (same scope item, planning side). Complements the FS-analysis skills (domain grounding).
 ---
 

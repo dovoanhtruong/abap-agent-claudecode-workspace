@@ -1,5 +1,6 @@
 ---
 name: naming-convention
+version: 1.0
 description: Kiểm tra, đề xuất và tạo tên chuẩn cho các đối tượng ABAP (Dictionary, CDS, RAP), Fiori, Package và GitHub Repositories theo quy chuẩn của dự án FPT. Sử dụng khi người dùng yêu cầu tạo object mới, cấu trúc project hoặc review mã nguồn.
 ---
 
