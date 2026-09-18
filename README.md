@@ -2,7 +2,7 @@
 
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-native-7A5AF8)
 ![SAP](https://img.shields.io/badge/SAP-ABAP%20Cloud%20%C2%B7%20Clean%20Core-0FAAFF)
-![Skills](https://img.shields.io/badge/skills-55-2EA44F)
+![Skills](https://img.shields.io/badge/skills-56-2EA44F)
 ![Workflows](https://img.shields.io/badge/workflows-11-E8590C)
 ![Subagents](https://img.shields.io/badge/subagents-6-8957E5)
 ![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
@@ -21,7 +21,7 @@ flowchart LR
         CM["CLAUDE.md (hub)"] --> RULE["sap-dev-rule.md<br/>§1-§14 strict rules"]
     end
     subgraph ONDEMAND["Loaded on demand"]
-        SK["55 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
+        SK["56 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
         WF["11 workflows<br/>.claude/commands/*"]
         AG["6 subagents<br/>.claude/agents/*<br/>Consultant/Dev/Tester × Lead/Executor"]
     end
@@ -78,7 +78,7 @@ abap-agent-claudecode-workspace/
 ├── .claude/
 │   ├── rules/
 │   │   └── sap-dev-rule.md         # 🛡️ 14 strict rules (Clean Core, Custom Only, TR, evidence, subagents, language, self-modification)
-│   ├── skills/                     # 📚 55 skills, FLAT — auto-discovered & matched by description (catalog below)
+│   ├── skills/                     # 📚 56 skills, FLAT — auto-discovered & matched by description (catalog below)
 │   │   └── <name>/SKILL.md          #    + references/ subfolders for heavy templates (loaded only when needed)
 │   ├── agents/                     # 🤖 6 subagents — Team Consultant/Dev/Tester × Lead (opus)/Executor (sonnet)
 │   │   └── <team>-<layer>.md        #    dispatched by workflows via [Agent: y]; Manager keeps sole SAP CUD authority
@@ -102,7 +102,7 @@ abap-agent-claudecode-workspace/
 
 ---
 
-## 📚 Skill Catalog (55, by category)
+## 📚 Skill Catalog (56, by category)
 
 **🔎 FS Analysis / Consultant (8)** — `fs-data-model-extractor` (data model from FS: extract / design new Z-tables / trace lineage) · `fs-fiori-ui-elements-mapper` (FS layouts → Fiori Elements annotations + toolbar buttons) · `fs-logic-behavior-translator` (business rules → CDS vs Virtual Element vs Behavior Pool; status machine, numbering) · `fs-integration-api-analyzer` (FS integration specs → API design + payload mapping) · `fs-vision-extractor` (transcribe mockups/flowcharts/screenshots embedded in FS) · `document-markdown-converter` (binary FS → Markdown via MarkItDown) · `find-released-cds-view` (map a business field to its released Clean-Core CDS view) · `cds-data-model-analysis` (keys/foreign keys/cardinality/join-tree design + fan-out risk analysis across I_* views and Z-tables — the design step before CDS authoring).
 
@@ -116,7 +116,7 @@ abap-agent-claudecode-workspace/
 
 **🧱 ABAP Cloud Foundations (10)** — `abap` (abaplint + Clean ABAP review, merged) · `abap-cloud` (3-tier model, language restrictions, released-API discovery) · `abap-cloud-migration` (classic → cloud code adaptation, wrapper pattern) · `atc-cloudification` (ATC cloud-readiness check variants) · `modern-abap-syntax` (VALUE/COND/REDUCE enforcement) · `abap-sql-amdp` (advanced SQL, AMDP, CDS table functions) · `abap-unit-testing` (test classes, test doubles, CDS/OSQL/RAP BO test environments) · `oo-design-patterns` (when-is-which-GoF-pattern-warranted decision table) · `released-abap-classes` (released class lookup by use case) · `abap-generative-ai` (ABAP AI SDK / ISLM completion API).
 
-**⚙️ RAP & Services (8)** — `rap` (BDEF, EML, handlers/savers, draft, save sequence) · `rap-query-provider` (IF_RAP_QUERY_PROVIDER for custom entities; the "Query not fully covered" fix) · `rap-business-events` (event definition, binding, Event Mesh) · `cds-view-entities` (RAP composition-tree modeling: root/child/projection views, admin fields, association vs composition) · `cds-analytical-views` (general/analytical CDS authoring: expressions, aggregates, input parameters, joins, table entities, UI/value-help annotations — no RAP involved) · `odata` (service definition/binding, consumption, troubleshooting) · `badi-enhancement` (new BAdI framework, released BAdIs in Cloud) · `z-api-fwk` (custom Z_API_FWK integration framework: inbound handler classes + `x-api-id` dispatcher, config-driven `execute_api` outbound, config/log data model — used by `/sap-dev-api-inbound` · `/sap-dev-api-outbound`).
+**⚙️ RAP & Services (9)** — `rap` (BDEF, EML, handlers/savers, draft, save sequence) · `rap-query-provider` (IF_RAP_QUERY_PROVIDER for custom entities; the "Query not fully covered" fix) · `rap-business-events` (event definition, binding, Event Mesh) · `cds-view-entities` (RAP composition-tree modeling: root/child/projection views, admin fields, association vs composition) · `cds-analytical-views` (general/analytical CDS authoring: expressions, aggregates, input parameters, joins, table entities, UI/value-help annotations — no RAP involved) · `odata` (service definition/binding, consumption, troubleshooting) · `badi-enhancement` (new BAdI framework, released BAdIs in Cloud) · `z-api-fwk` (custom Z_API_FWK integration framework: inbound handler classes + `x-api-id` dispatcher, config-driven `execute_api` outbound, config/log data model — used by `/sap-dev-api-inbound` · `/sap-dev-api-outbound`) · `z-excel-fwk` (custom Excel export-from-template framework: `PrintExcel` static RAP action + camelCase JSON sheets payload, the `${...}` template tag grammar, openpyxl template generation & linting, Fiori `ExcelConfig.js` wiring).
 
 **🔐 Platform & Security (4)** — `authorization-iam` (AUTHORITY-CHECK, DCL, RAP auth handlers, IAM apps/catalogs/roles) · `btp-abap-environment` (provisioning, ADT connectivity, communication management) · `btp-diagram-generator` (BTP solution diagrams as draw.io files) · `sap-fiori-apps-reference` (Fiori Launchpad URL generation, offline AppList fallback).
 
