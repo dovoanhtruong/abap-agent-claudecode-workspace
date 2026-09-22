@@ -6,7 +6,7 @@
 | Description | Báo cáo quy đổi ĐVT tồn kho thành phẩm (ZSC10) — analytical report, Fiori Elements trên RAP/CDS |
 | SAP system (MCP tool) | mcp__abap_pmc_dev__SAP (PMC_dev) |
 | Default Package | ZSC10 |
-| Current TR | B2KK903775 |
+| Current TR | B2KK903836 (B2KK903775 đã release) |
 | Status | active |
 | Created | 2026-08-27 |
 
@@ -27,8 +27,8 @@
 | ZI_SC10_StockUomBase | DDLS | Active | L1 |
 | ZI_SC10_StockUomCalc | DDLS | Active | L2 |
 | ZC_SC10_StockUomConv | DDLS | Active | L3 consumption root — CHƯA có DCL (manual) |
-| ZC_SC10_STOCKUOMCONV | DCLS | **Pending manual** | draft: scratchpads/draft_dcl_ZC_SC10_STOCKUOMCONV.md |
-| ZC_SC10_StockUomConv | DDLX | **Pending manual** | draft: metadata_extensions/ZMD_BaoCaoQuyDoiDVTTonKhoThanhPham.md |
+| ZC_SC10_STOCKUOMCONV | DCLS | Active | user tạo tay ADT (Variant B, /SCWM/STB2) |
+| ZC_SC10_StockUomConv | DDLX | Active | user tạo tay ADT từ draft metadata_extensions/ |
 | ZUI_SC10_StockUomConv | SRVD | Active | |
 | ZUI_SC10_StockUomConv_O4 | SRVB | **Pending manual (recreate)** | tool tạo nhầm V2-UI, chưa publish — user delete + tạo lại OData V4 - UI + publish |
 

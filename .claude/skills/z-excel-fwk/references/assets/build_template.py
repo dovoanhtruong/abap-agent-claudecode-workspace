@@ -10,7 +10,10 @@ layouts (group / detail / subtotal) and a vertical-merge column.
     python3 verify_template.py out.xlsx sample_payload.json
 
 Engine rules baked into this file (see references/tag-reference.md):
-  * only worksheet 1 is used by the engine
+  * EVERY worksheet of the file is a master template and is deleted from the
+    output; a payload entry picks its master by name via "templateSheet",
+    falling back to the first sheet. For several document types, run a layout
+    routine like the one below once per master and name them TPL_*.
   * exactly ONE ${table:<array>.<field>} array per sheet
   * template rows must be contiguous; they are deleted after expansion
   * a cell that is exactly a tag keeps the cell's number format

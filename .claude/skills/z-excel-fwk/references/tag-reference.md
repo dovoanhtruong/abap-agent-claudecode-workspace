@@ -24,12 +24,29 @@ Resolved from `data[varName]` of the current sheet.
 |---|---|
 | value present | tag replaced |
 | whole cell was exactly the tag and value is numeric-looking | cell becomes a **real number** (`Number(value)`) — the template's number format applies |
+| whole cell was exactly the tag and the value matches `/^0[0-9]/` | **stays text**, leading zero preserved (`"02"`, `"0101234567"`) |
 | value missing / null / undefined | replaced with `""`; if the cell ends up empty the cell value is set to `null` |
 | tag embedded in a sentence | string substitution, result stays text |
 | cell also contains `table:` | **skipped** in this pass (the table pass handles it) |
 | RichText cell | each run is substituted individually, formatting preserved |
 
-**Numeric-coercion trap.** `isNaN(newValue) ? newValue : Number(newValue)` runs on the *whole resulting cell text*. A cell containing only `${soId}` with value `"1000"` becomes the number `1000`, right-aligned, losing leading zeros. If the value is an identifier that must stay text, do one of:
+**Numeric-coercion trap.** The coercion runs on the *whole resulting cell text*: a cell containing only `${soId}` with value `"1000"` becomes the number `1000`, right-aligned. Since the leading-zero fix the guard is
+
+```js
+/^0[0-9]/.test(newValue) ? newValue : (isNaN(newValue) ? newValue : Number(newValue))
+```
+
+so the SAP-typical codes that used to be mangled now survive as text:
+
+| Value | Result | Note |
+|---|---|---|
+| `"02"`, `"0101234567"`, `"00"` | stays text | status / company code / tax id — the case the fix targets |
+| `"0"`, `"0.5"`, `"1.50"`, `"99999.99"` | becomes a number | unchanged, decimals still format |
+| `"1000"` | becomes a number | unchanged — no leading zero, so still coerced |
+
+`${table:...}` cells never had this problem; before the fix the same status code printed correctly inside the table and wrongly in the header block.
+
+If an identifier without a leading zero must stay text, still do one of:
 
 - keep a prefix/suffix in the template cell (`SO ${soId}`), or
 - send a value that cannot parse as a number (e.g. already formatted `SO-1000`), or
@@ -91,18 +108,51 @@ Typical use — `material_report_styled.xlsx` defines `L1`, `L2`, `L3` for group
 
 ## 5. Layout features carried over automatically
 
+Everything below is copied **from the master sheet that this output sheet was cloned from** — with multiple masters in play, sheet A can be landscape/7-column and sheet B portrait/5-column in the same file.
+
 | Feature | Behaviour |
 |---|---|
-| Column widths / hidden columns / column styles | copied from template sheet 1 |
+| Column widths / hidden columns / column styles | copied |
 | Merged cells outside the table block | copied as-is |
 | Horizontal merges inside a template row | re-applied to every generated row |
 | Static images in the template | copied |
 | Conditional formatting | copied, and ranges that overlap or sit below the table block are shifted/expanded by the number of generated rows |
 | Formula cells | copied, but cells whose formula errored, or whose formula contains `IMAGE`, are blanked |
+| `pageSetup` | copied — orientation, fit-to-page, paper size, margins, `printTitlesRow` (repeat header rows across printed pages), `printArea` |
+| `headerFooter` | copied — print header/footer |
+| `views` | copied — frozen rows/columns, `showGridLines`, zoom |
+| `properties` | copied — tab colour, default row height / column width |
+| `state` (hidden/visible) | **deliberately not copied** — masters are usually hidden in the template file, and copying it would hide every output sheet |
+| `autoFilter` | **not copied** — known gap |
 
 Conditional formatting is therefore the supported way to do data-dependent colouring (e.g. negative variance in red) — the engine does not colour by value on its own.
 
-## 6. Quick grammar card
+**`printArea` is re-expanded after the table grows.** The master's `printArea` is captured, then widened by the number of net rows the table added (`A1:E15` → `A1:E18` for +3 rows), so footer content pushed below the block stays inside the printed area.
+
+> Sheet-level print settings were **not** copied before commit `35ce9e5`, so every output sheet fell back to ExcelJS defaults (portrait, gridlines on) regardless of the template. If an old report suddenly prints landscape without gridlines, that is this fix taking effect, not a regression — the template always declared it.
+
+## 6. Multiple template sheets (`templateSheet`)
+
+`templateSheet` is **not a tag** — it is a field of the sheets array element, resolved before any tag processing:
+
+```
+for each element of the payload array:
+    master = element.templateSheet ? lookup BY NAME : first sheet of the template file
+    if not found  → throw  'Không tìm thấy sheet mẫu "<name>" trong file template.'
+    clone master → rename to element.sheetName → resolve tags → copy master's print settings
+after the loop:
+    delete every master sheet
+```
+
+What this changes for template design:
+
+1. The template file holds **N masters, all of which disappear** from the output. A sheet that must appear in the result is an array element, never a sheet you leave lying in the file.
+2. Masters are looked up **by name** — `getWorksheet(number)` in ExcelJS matches the internal id, not the tab position, so index-based reference is unreliable. Name them `TPL_*`.
+3. Each master is an independent document: its own column count and widths, orientation, title styling, row-variant set, images and number formats. Two masters share nothing.
+4. The engine's one-array-per-sheet limit is **per master**, so two unrelated tables now mean two masters rather than one shared layout.
+5. Avoid cross-sheet formulas — the referenced master is gone by the time the file is saved.
+
+## 7. Quick grammar card
 
 ```
 ${companyName}                      scalar

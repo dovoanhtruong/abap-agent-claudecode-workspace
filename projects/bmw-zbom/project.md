@@ -26,6 +26,14 @@
 | BDEF ZCE_ZBOM_CMP_H + ZBP_ZBOM_CMP_H | BDEF+CLAS | ACTIVE (2026-09-16) | Result-entity BO toi thieu (BDL yeu cau) — READ delegate engine, LOCK no-op |
 | ZMC_ZBOM_CMP | MSAG | **CHUA CO — user tao tay ADT** | 4 message 001-004 theo TS §5; handler da tham chieu id nay |
 
+| ZTB_ZBOM_H / _H_D | TABL x2 | ACTIVE (2026-09-17) | Rename Component List: +`cl_descr` +`cl_type` +`project_id`(40) +`project_desc`(60). Cột cũ `bom_descr`/`bom_type`/`valid_from`/`valid_to` CÒN — drop ở Phase 7 (TR riêng). TR H9SK900004 |
+| ZI/ZR/ZC_ZBOM_H | DDLS x3 | ACTIVE (2026-09-17) | `ClDescr`/`ClType` + `ProjectId`/`ProjectDesc`; bỏ `ValidFrom`/`ValidTo`. **`BomVers` GIỮ tên element** (D16) — chỉ đổi label |
+| BDEF ZR_ZBOM_H + ZBP_ZBOM_H | BDEF+CLAS | ACTIVE (2026-09-17) | determination `deriveProjectFromWbs` (WBS → I_EnterpriseProject), side effect WbsElement→ProjectId/ProjectDesc; gỡ rule validity msg 002/062 |
+| DDLX ZC_ZBOM_H | DDLX | ACTIVE (2026-09-17) | Label: CL Description / Component List / CL Version; xóa facet Validity; BomRef sang Assignments; +2 field Project |
+| ZCL_IB_PRODORDER_GRRM | CLAS | ACTIVE (2026-09-17) | Payload đổi `bomDescr`/`bomType` → **`clDescr`/`clType`** — breaking change, user điều phối với đối tác |
+| ZCL_ZBOM_MIG_CL_RENAME | CLAS | ACTIVE (2026-09-17) | **MỚI** classrun migration one-off: copy `bom_descr`→`cl_descr`, `bom_type`→`cl_type`. Idempotent. CHẠY sau khi import TR, TRƯỚC Phase 7 |
+| ZCL_ZBOM_CMP_ENGINE | CLAS | ACTIVE (2026-09-17) | header diff 15 → 13 dòng (bỏ VALIDFROM/VALIDTO); 8/8 ABAP Unit PASS |
+
 ## Key documents
 - **Package knowledge map (mới nhất, 2026-09-09): `system_analysis/analysis_report_ZPRODX_ZBOM.md`** — object map, data model, control flow, invariants + drift 2026-07-18→2026-09-09
 - KTD (lịch sử fix chi tiết tới 2026-07-17): `system_analysis/KTD_ZPRODX_ZBOM.md`

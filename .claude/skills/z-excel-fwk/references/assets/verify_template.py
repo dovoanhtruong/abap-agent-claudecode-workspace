@@ -5,8 +5,10 @@ Usage:
     python3 verify_template.py TEMPLATE.xlsx [PAYLOAD.json]
 
 PAYLOAD.json is the json_content the ABAP action returns: a list of
-{"sheetName": ..., "data": {...}} objects. When supplied, every tag is
-cross-checked against the payload and unused payload fields are reported.
+{"sheetName": ..., "templateSheet": ..., "data": {...}} objects. When supplied,
+every entry is resolved to its master sheet (templateSheet by name, else the
+first sheet of the workbook), each distinct master is linted against that
+entry's data, and unused payload fields are reported.
 
 Exit code 0 = no ERROR findings, 1 = at least one ERROR.
 """
@@ -23,6 +25,7 @@ RE_TBL = re.compile(r"\$\{table:([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)(?:\|(merge))?\}
 RE_ROWTYPE = re.compile(r"\$\{(?:rowType|row_type):([a-zA-Z0-9_]+)\}", re.I)
 RE_VAR = re.compile(r"\$\{([a-zA-Z0-9_]+)\}")
 RE_ANY = re.compile(r"\$\{[^}]*\}")
+RE_LEADING_ZERO = re.compile(r"^0[0-9]")
 BAD_SHEET_CHARS = set("[]:*?/\\")
 
 findings = []
@@ -33,7 +36,15 @@ def add(level, sheet, where, msg):
 
 
 def looks_numeric(text):
-    """Mirror the engine's `isNaN(v) ? v : Number(v)` coercion."""
+    """Mirror the engine's coercion, including the leading-zero guard.
+
+    Engine: /^0[0-9]/.test(v) ? v : (isNaN(v) ? v : Number(v))
+    so "02" / "0101234567" stay text, while "0", "0.5", "1000" become numbers.
+    """
+    if not isinstance(text, str):
+        return False
+    if RE_LEADING_ZERO.match(text.strip()):
+        return False
     try:
         float(text.strip())
         return True
@@ -127,8 +138,9 @@ def scan_sheet(ws, payload_data):
                 "INFO",
                 name,
                 "-",
-                "whole-cell scalar tags (a numeric-looking value becomes a real number, "
-                f"leading zeros lost): {sorted({k for k, _ in exact_scalar_cells})}",
+                "whole-cell scalar tags (a numeric-looking value becomes a real number; "
+                "values matching ^0[0-9] are kept as text by the engine): "
+                f"{sorted({k for k, _ in exact_scalar_cells})}",
             )
         return
 
@@ -212,22 +224,46 @@ def main():
         if not isinstance(payload, list):
             payload = [{"sheetName": "Sheet1", "data": payload}]
 
-    # The engine only ever uses worksheet 1 as the master template.
-    master = wb.worksheets[0]
-    if len(wb.worksheets) > 1:
-        add("WARN", master.title, "-",
-            f"workbook has {len(wb.worksheets)} sheets; the engine only uses the first one ({master.title})")
+    # Every sheet of the workbook is a master template and is deleted from the
+    # output; each payload entry picks its master BY NAME via templateSheet,
+    # falling back to the first sheet.
+    by_name = {ws.title: ws for ws in wb.worksheets}
+    first = wb.worksheets[0]
 
-    data = payload[0]["data"] if payload else None
-    scan_sheet(master, data)
-
-    if payload:
+    if not payload:
+        for ws in wb.worksheets:
+            scan_sheet(ws, None)
+    else:
+        seen_names = set()
+        scanned = set()                     # master title -> scanned once
         for entry in payload:
             sn = entry.get("sheetName", "")
             if len(sn) > 31:
                 add("ERROR", sn, "-", f"sheetName '{sn}' is {len(sn)} chars (max 31)")
             if set(sn) & BAD_SHEET_CHARS:
                 add("ERROR", sn, "-", f"sheetName '{sn}' contains a forbidden character")
+            if sn in seen_names:
+                add("ERROR", sn, "-", f"sheetName '{sn}' is used by more than one entry")
+            seen_names.add(sn)
+
+            tpl = entry.get("templateSheet") or ""
+            if tpl and tpl not in by_name:
+                add("ERROR", sn, "-",
+                    f"templateSheet '{tpl}' does not exist in the template file "
+                    f"(available: {sorted(by_name)}) — the engine aborts the whole export")
+                continue
+            master = by_name[tpl] if tpl else first
+            if master.title in scanned:
+                continue                    # same master, already linted
+            scanned.add(master.title)
+            scan_sheet(master, entry.get("data"))
+
+        unused = sorted(set(by_name) - scanned)
+        if unused:
+            add("WARN", "-", "-",
+                f"template sheets never referenced by the payload: {unused} — "
+                "they are deleted from the output, so a sheet meant to survive "
+                "must be its own payload entry")
 
     order = {"ERROR": 0, "WARN": 1, "INFO": 2}
     findings.sort(key=lambda f: order[f[0]])

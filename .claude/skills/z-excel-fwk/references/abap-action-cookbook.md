@@ -107,7 +107,8 @@ Typing rules that matter downstream:
 | Intent in the template | ABAP type | Why |
 |---|---|---|
 | number the template formats (amount, qty) | `f` / `p` / `decfloat34` | stays numeric in JSON → cell keeps its number format |
-| identifier that must stay text | `string`, and make it non-numeric (prefix) or accept coercion | the engine coerces a numeric-looking whole-cell value with `Number()` |
+| code with a leading zero (status `02`, company code, tax id) | `string`, keep the zero | the engine keeps values matching `^0[0-9]` as text — do **not** strip the zero in ABAP |
+| other identifier that must stay text | `string`, and make it non-numeric (prefix) or accept coercion | the engine coerces a numeric-looking whole-cell value with `Number()` |
 | date / time | `string`, pre-formatted | no date type survives the JSON round trip |
 | image / logo | `string` data URI | see below |
 
@@ -136,6 +137,44 @@ TYPES: BEGIN OF ty_item,
 
 Build the rows in display order (group header, details, subtotal, …) — the engine renders the array in sequence and does no sorting or grouping. The same applies to `|merge` columns: equal values must already be adjacent.
 
+### Sheets with different layouts and different structures
+
+Since `ty_sheet-template_sheet` exists, one export can mix document types. Declare **one local structure per master** — they share no fields and nothing is inherited:
+
+```abap
+" sheet type A — one per document, master TPL_TRANSACTION
+TYPES: BEGIN OF ty_sheet_data,
+         company_name TYPE string,
+         so_id        TYPE string,
+         items        TYPE tt_items,        " → ${table:items.matId}
+       END OF ty_sheet_data.
+
+" sheet type B — one summary page, master TPL_SUMMARY
+TYPES: BEGIN OF ty_sum_line,
+         row_type TYPE string,              " GROUP / ITEM / TOTAL variants in TPL_SUMMARY
+         title    TYPE string,
+         partner  TYPE string,
+         amount   TYPE p LENGTH 15 DECIMALS 2,
+         currency TYPE string,
+       END OF ty_sum_line,
+       tt_sum_lines TYPE TABLE OF ty_sum_line WITH DEFAULT KEY.
+
+TYPES: BEGIN OF ty_summary_data,
+         report_title   TYPE string,
+         doc_count      TYPE i,
+         amount_total   TYPE p LENGTH 15 DECIMALS 2,
+         lines          TYPE tt_sum_lines,  " → ${table:lines.title}
+       END OF ty_summary_data.
+```
+
+Rules for the summary block:
+
+- **The engine never aggregates.** Every count, subtotal and grand total is computed in ABAP before serialization.
+- Emit group/detail/total rows in display order into one flat array, each carrying its `row_type` — same mechanism as above, just a second master.
+- Mixing currencies in one total is a silent wrong number; either group by currency or guard it explicitly.
+- Shared header fields (logo, printed by/at) must be repeated in the summary structure — there is no global namespace.
+- Keeping the new blocks marked (`" [MULTI-TEMPLATE]`, `" [SUMMARY]`) makes the feature removable by deletion, which is how the reference implementation `YT1_BP_R_ORDER` is written.
+
 ## 5. Pack the sheets and return
 
 ```abap
@@ -144,10 +183,18 @@ DATA lt_sheets TYPE zif_ex_lib_types=>tt_sheets.
 LOOP AT lt_head INTO DATA(ls_head).
   CLEAR ls_data.
   " ... fill ls_data, including ls_data-items ...
-  APPEND VALUE #( sheet_name = |Order_{ ls_head-soid }|      " <= 31 chars, no [ ] : * ? / \
-                  data       = NEW ty_sheet_data( ls_data )
+  APPEND VALUE #( sheet_name     = |Order_{ ls_head-soid }|  " <= 31 chars, no [ ] : * ? / \
+                  template_sheet = 'TPL_TRANSACTION'         " master sheet BY NAME; omit → first sheet
+                  data           = NEW ty_sheet_data( ls_data )
                 ) TO lt_sheets.
 ENDLOOP.
+
+" optional extra page with its own layout and its own data structure —
+" appended LAST because array order is sheet order
+APPEND VALUE #( sheet_name     = 'BAO_CAO_TONG_HOP'
+                template_sheet = 'TPL_SUMMARY'
+                data           = NEW ty_summary_data( ls_summary )
+              ) TO lt_sheets.
 
 DATA(lv_json) = zcl_api_fwk=>abap_to_json( ia_abap          = lt_sheets
                                            iv_mapping_camel = abap_true ).
@@ -180,6 +227,9 @@ The `.xlsx` lives in client-dependent table data, not in a transport. Promoting 
 - [ ] `%cid` returned
 - [ ] `excel_id` ≤ 12 chars and registered in the template app
 - [ ] Sheet names ≤ 31 chars, no forbidden characters, unique per sheet
+- [ ] Every `template_sheet` value exists as a sheet in the uploaded template file (a typo aborts the whole export)
+- [ ] Sheet array built in the intended output order (summary page last)
+- [ ] All totals computed in ABAP — the engine sums nothing
 - [ ] Serialized with `zcl_api_fwk=>abap_to_json( ... iv_mapping_camel = abap_true )`
 - [ ] Fields that must render blank are not numeric (XCO emits `0` for an initial number)
 - [ ] First end-to-end export inspected — the `data` node is populated (XCO vs `REF TO data`, see SKILL.md §2)
