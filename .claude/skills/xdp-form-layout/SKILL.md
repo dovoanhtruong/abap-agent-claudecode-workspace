@@ -22,13 +22,13 @@ Form/interface object naming → [Skill: naming-convention].
 | | Portrait (dọc) | Landscape (ngang) |
 |---|---|---|
 | Page size | 210 × 297 mm | 297 × 210 mm |
-| Margin top / bottom | 10 mm / 10 mm | 10 mm / 10 mm |
-| Margin left / right | **15 mm** (binding edge) / 10 mm | 10 mm / 10 mm |
-| Content width | 185 mm | 277 mm |
-| Content area (flowed) | x 15, y 35, w 185, h 244 mm | x 10, y 35, w 277, h 157 mm |
+| Margin top / bottom | **10 mm (1 cm)** / **10 mm (1 cm)** | 10 mm / 10 mm |
+| Margin left / right | **10 mm (1 cm)** / **10 mm (1 cm)** | 10 mm / 10 mm |
+| Content width | 190 mm | 277 mm |
+| Content area (flowed) | x 10, y 35, w 190, h 244 mm | x 10, y 35, w 277, h 157 mm |
 | Footer band | y 279, h 8 mm | y 192, h 8 mm |
 
-Pick orientation per form (wide tables → landscape); never a custom page size.
+All four margins are 1 cm in both orientations — no binding-edge offset. Pick orientation per form (wide tables → landscape); never a custom page size.
 
 ## 2. Area model (top → bottom)
 
@@ -36,40 +36,50 @@ Pick orientation per form (wide tables → landscape); never a custom page size.
 
 | Area | Position | Content |
 |---|---|---|
-| **Top** | y 10 mm, h 25 mm, full content width | Logo left, max 20 × 20 mm. Company info block immediately right of logo, left-aligned: company name 10 pt **bold**; address, tax code (MST) 9 pt regular, one line each. |
-| **Footer** | footer band (see §1), full content width | Page number `Trang X/Y` 8 pt right-aligned; optional print date 8 pt left-aligned. Nothing else. |
+| **Top** | y 10 mm, h 25 mm, full content width | Logo left, max 20 × 20 mm. Company info block immediately right of logo, left-aligned: company name 12 pt **bold**; address, tax code (MST) 12 pt regular, one line each. |
+| **Footer** | footer band (see §1), full content width | **Mandatory, both elements:** page number `Trang X/Y` 12 pt **centered**; print info (printing user + print date/time, e.g. "In bởi: <user> – <date> <time>") 12 pt **right-aligned**. Print info comes display-ready from the backend (§5, §7). Nothing else. |
 
 **In the flowed content area:**
 
 | Area | Rules |
 |---|---|
-| **Header** | h ≈ 15 mm, first page only. Title 14 pt **bold UPPERCASE**, centered. Optional detail line (e.g. "Từ ngày … đến ngày …") 10 pt *italic*, centered, directly under the title. |
+| **Header** | h ≈ 15 mm, first page only. Title **18–20 pt** **bold UPPERCASE**, centered. Optional detail line (e.g. "Từ ngày … đến ngày …") 12 pt *italic*, centered, directly under the title. |
 | **Body** | The only per-form part. Item table full content width; header row set to **repeat on page break**. Group/summary/total blocks per §4. |
-| **Signature** | Optional. ≥ 10 mm gap after body. Signature blocks distributed evenly across the width (2 blocks: left/right thirds). Role title 11 pt **bold** centered; optional "(Ký, họ tên)" 9 pt italic under it; ~20 mm empty signing space below. Must stay on one page (`keep intact`) — never split across a page break. |
+| **Signature** | Optional. ≥ 10 mm gap after body. Signature blocks distributed evenly across the width (2 blocks: left/right thirds). Role title 12 pt **bold** centered; optional "(Ký, họ tên)" 12 pt italic under it; ~20 mm empty signing space below. Must stay on one page (`keep intact`) — never split across a page break. |
 
 ## 3. Typography — Roboto everywhere
 
-| Element | Size / style |
-|---|---|
-| Form title | 14 pt bold, UPPERCASE, center |
-| Header detail line | 10 pt italic, center |
-| Company name (top) | 10 pt bold |
-| Company address / MST | 9 pt regular |
-| Table header row | 10 pt bold, center |
-| Body data row | **11 pt** regular |
-| Group / subtotal / total row | 11 pt bold |
-| Signature role title | 11 pt bold, center |
-| Signature note line | 9 pt italic, center |
-| Footer (page no., print date) | 8 pt regular |
+**Exactly two font sizes exist in a form:**
 
-No other sizes without user approval. Line spacing: single; cell padding 1 mm top/bottom, 1.5 mm left/right.
+| Size class | Size | Applies to |
+|---|---|---|
+| **Normal text** | **12 pt** | Everything except the form title — set once on the root subform, inherited by every element |
+| **Title** | **18–20 pt** | Form title only (default 18 pt; up to 20 pt when the title fits one line) |
+
+Hierarchy is expressed by weight/posture/alignment only, never by size:
+
+| Element | Style (all 12 pt unless stated) |
+|---|---|
+| Form title | **18–20 pt** bold, UPPERCASE, center |
+| Header detail line | italic, center |
+| Company name (top) | bold |
+| Company address / MST | regular |
+| Table header row | bold, center |
+| Body data row | regular |
+| Group / subtotal / total row | bold |
+| Signature role title | bold, center |
+| Signature note line | italic, center |
+| Footer — page number | regular, center |
+| Footer — print user + time | regular, right |
+
+No third size without user approval. Line spacing: single; cell padding 1 mm top/bottom, 1.5 mm left/right.
 
 ## 4. Body table rules
 
 - Borders: 0.5 pt solid black, all cells; outer frame same weight (no thick/double borders).
 - Header row: 10% grey shading; repeats on every page break.
 - Alignment: **numbers right**, **text left**, **dates center** — always, in header and data rows alike.
-- **Column sizing is data-driven**: size every column for its longest realistic formatted value, not for its header label. Amount columns ≥ 30 mm on the portrait grid (a 13-char VND amount `1.234.567.890` at 11 pt needs ~27 mm + padding); code/key columns fixed to their content width; free-text columns (names, descriptions) take the remainder and **must wrap** (multiLine, §8) instead of clipping. `columnWidths` must sum exactly to the content width (185 / 277 mm).
+- **Column sizing is data-driven**: size every column for its longest realistic formatted value, not for its header label. Amount columns ≥ 32 mm on the portrait grid (a 13-char VND amount `1.234.567.890` at 12 pt needs ~27–30 mm + 3 mm padding — scaled from the render-verified 11 pt figure, re-confirm on the first 12 pt render); code/key columns fixed to their content width; free-text columns (names, descriptions) take the remainder and **must wrap** (multiLine, §8) instead of clipping. `columnWidths` must sum exactly to the content width (190 / 277 mm).
 - Group header row (e.g. "Mã công trình – Tên công trình"): bold, merged/spanning the descriptive columns, left-aligned; amount columns of the group row right-aligned like data.
 - Subtotal per group directly under its items; grand total last row, bold; both rendered only when data exists (conditional presence, §5).
 - No zebra striping, no color other than the grey header shading — print forms are B/W-safe.
@@ -110,9 +120,9 @@ These are structural, not stylistic. Violating any of them produced a live Acrob
 
 ## 9. Compliance checklist (run before declaring any form done)
 
-1. Page = A4, margins per §1 for its orientation.
-2. All 5 areas present/positioned per §2 (signature/footer optional but, if present, per spec); every mockup element implemented (§8.8).
-3. Every text element uses Roboto and a size from §3 only.
+1. Page = A4, all four margins 1 cm (§1).
+2. All areas present/positioned per §2 (signature optional but, if present, per spec); footer present with page number centered + print user/time right-aligned; every mockup element implemented (§8.8).
+3. Every text element uses Roboto and exactly one of the two sizes in §3: 12 pt (everything) or 18–20 pt (form title only).
 4. Table header repeats on page break; signature block does not split.
 5. Numbers right / text left / dates center everywhere; columns sized per §4 (no clipped amounts).
 6. Optional blocks use conditional presence, not blank space (and never `occur min="0"` on unbound blocks — §8.3).

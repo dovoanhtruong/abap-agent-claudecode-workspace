@@ -21,10 +21,12 @@
 | ZCL_ZBOM_CMP_QUERY | CLAS | ACTIVE (2026-09-16) | IF_RAP_QUERY_PROVIDER cho 4 custom entity compare. ZPRODX_ZBOM_COMPARE / H9SK900004 |
 | ZCE_ZBOM_CMP_H / _HDR / _FG / _RM | DDLS ×4 | ACTIVE (2026-09-16) | Custom entities man hinh compare (root + 3 section), UI annotation inline. ZPRODX_ZBOM_COMPARE / H9SK900004 |
 | ZUI_ZBOM_CMP | SRVD | ACTIVE (2026-09-16) | 8 expose: BomVersion (list chinh) + 4 compare entity + 3 VH. SRVB ZUI_ZBOM_CMP_O4 user da tao — **can RE-PUBLISH sau khi SRVD them entity** |
-| ZR/ZC_ZBOM_CMP_LIST + ZBP_ZBOM_CMP_LIST | DDLS×2/BDEF×2/CLAS | ACTIVE (2026-09-16) | List BO read-only tren ztb_zbom_h; action compareWithVersion (guard 001-004, D8 min/max, D9) + GetDefaultsForCompare (O1b VH loc theo BOM). ZPRODX_ZBOM_COMPARE / H9SK900004 |
-| ZST_ZBOM_CMP_PARAM, ZC_ZBOM_CMP_VERS_VH | DDLS+BDEF, DDLS | ACTIVE (2026-09-16) | Param action (TargetVersion + BomNo an, additionalBinding #FILTER) + VH view |
+| ZR/ZC_ZBOM_CMP_LIST + ZBP_ZBOM_CMP_LIST | DDLS×2/BDEF×2/CLAS | ACTIVE (2026-09-25, D10) | **Option 1**: list 1 dong/BOM (join ZI_ZBOM_CMP_MAXV), BDEF unmanaged, action compareVersions (popup Version A+B, guard 001-005, D8 min/max) + GetDefaultsForCompare (BomNo + prefill 2 version moi nhat). ZPRODX_ZBOM_COMPARE / H9SK900004 |
+| ZI_ZBOM_CMP_MAXV | DDLS | ACTIVE (2026-09-25) | Aggregate BomNo -> MaxVers + VersionCount |
+| ZST_ZBOM_CMP_PARAM, ZC_ZBOM_CMP_VERS_VH | DDLS+BDEF, DDLS | ACTIVE (2026-09-25) | Param 2 field VersionA/VersionB (mandatory, VH additionalBinding #FILTER theo BomNo an) + VH view (da bo ValidFrom/To theo drift 17/09) |
 | BDEF ZCE_ZBOM_CMP_H + ZBP_ZBOM_CMP_H | BDEF+CLAS | ACTIVE (2026-09-16) | Result-entity BO toi thieu (BDL yeu cau) — READ delegate engine, LOCK no-op |
-| ZMC_ZBOM_CMP | MSAG | **CHUA CO — user tao tay ADT** | 4 message 001-004 theo TS §5; handler da tham chieu id nay |
+| ZMC_ZBOM_CMP | MSAG | CREATED by user (thay trong DEVC 25/09) | Can xac nhan du 001-005 (005 moi them theo D10) |
+| Compare REV v2 (D11-D14) | — | BUILT 2026-09-25 | Man detail refactor theo FS: 2 card per-version + 2 KPI FG/RM + diff Product+Batch/delta/5 category. ZCE_ZBOM_CMP_HDR DELETED. Engine test 3/3 PASS (tai hien vi du FS 2.1.2). Cho: user re-publish SRVB + evidence UI |
 
 | ZTB_ZBOM_H / _H_D | TABL x2 | ACTIVE (2026-09-17) | Rename Component List: +`cl_descr` +`cl_type` +`project_id`(40) +`project_desc`(60). Cột cũ `bom_descr`/`bom_type`/`valid_from`/`valid_to` CÒN — drop ở Phase 7 (TR riêng). TR H9SK900004 |
 | ZI/ZR/ZC_ZBOM_H | DDLS x3 | ACTIVE (2026-09-17) | `ClDescr`/`ClType` + `ProjectId`/`ProjectDesc`; bỏ `ValidFrom`/`ValidTo`. **`BomVers` GIỮ tên element** (D16) — chỉ đổi label |

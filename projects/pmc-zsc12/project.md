@@ -6,7 +6,7 @@
 | Description | ZSC12 — Biên bản thanh lý (FS: PMC_FS_SC_ZSC12_BienBanThanhLy_v0.1.docx) |
 | SAP system (MCP tool) | mcp__abap_pmc_dev__SAP — PMC DEV (metadata/DDL only, client has no master data; data probes go to user on customizing tenant) |
 | Default Package | ZSC12 |
-| Current TR | B2KK903832 (B2KK903779 released 2026-09-16/17 — chứa toàn bộ build tới ATC-clean; lỗi release "CFDF YY1_QUYTNHBBTL assign to collection" → custom field đi theo software collection riêng) |
+| Current TR | **B2KK903845** (FS v1.1_20260918). TR trước: B2KK903832 (FS v1.1_20260917, released), B2KK903779 (build gốc + ATC clean, released — lỗi release "CFDF YY1_QUYTNHBBTL assign to collection" → custom field đi theo software collection riêng) |
 | Status | active |
 | Created | 2026-08-27 |
 
