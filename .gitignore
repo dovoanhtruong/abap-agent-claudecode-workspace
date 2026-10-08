@@ -1,11 +1,6 @@
-# Per-project documents: ignore all content (FS inputs, TS, scratchpads — customer
-# data stays local), EXCEPT each project's project.md metadata so other machines
-# cloning the repo get the project list + TR/package/system context.
-# Note: "projects/" (dir-ignore) would make the re-includes impossible — git never
-# descends into an ignored directory, hence the ** + !dir/ + !file pattern trio.
-projects/**
-!projects/*/
-!projects/*/project.md
+# Per-project documents (FS/TS/scratchpads/project.md) — customer data,
+# never in git; synced across machines via OneDrive junction instead.
+/projects/
 
 # Ignore scratchpad/temporary files
 scratch/
@@ -23,6 +18,3 @@ scratch/
 # Python bytecode cache
 __pycache__/
 *.pyc
-
-# TS24 API test credentials (secret - never commit)
-projects/**/ts24.env
