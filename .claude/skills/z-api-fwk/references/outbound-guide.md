@@ -65,7 +65,7 @@ NEW zcl_api_fwk( )->execute_api(
 
 ## Call pattern C — multi-call same-session (`keep_session`, added Aug 2026)
 
-One HTTP session across several `execute_api` calls — required whenever call N+1 must reuse call N's session cookies. Canonical case: **CSRF-protected POST** (fetch token with GET, POST with it) — a token is only valid inside the cookie session that fetched it, so two independent `execute_api` calls get 403. Needs **TWO config rows** (method is config-only), e.g. `INTERNAL_GET_CSRF` (GET) + `INTERNAL_SALE_ORDER` (POST), both with the SAME `comm_scenario`/`service_id`/`comm_system_id`.
+One HTTP session across several `execute_api` calls — required whenever call N+1 must reuse call N's session cookies. Canonical case: **CSRF-protected POST** (fetch token with GET, POST with it) — a token is only valid inside the cookie session that fetched it, so two independent `execute_api` calls get 403. With a static config method this needs **TWO config rows**, e.g. `INTERNAL_GET_CSRF` (GET) + `INTERNAL_SALE_ORDER` (POST), both with the SAME `comm_scenario`/`service_id`/`comm_system_id`. Since Oct 2026 a single row with `method = DYNAMIC` can serve the whole chain instead — see pattern D below.
 
 ```abap
 DATA(lo_fwk) = NEW zcl_api_fwk( ).          " ONE instance for the whole chain
@@ -111,12 +111,44 @@ Engine rules (verified against source, Aug 2026):
 - Each call stays one `execute_api` = one log row per call, unchanged. Recommend `log_enable = 'B'` on the fetch api_id — under full logging a `$metadata` body is logged for real (up to the 1 MB cap).
 - Working reference: `ZCL_API_IB_CREATE_SO_DEMAND->CALL_SO_API_VIA_FWK` (package `Z_CUSTOMAPI_CREATE_SO`).
 
+## Call pattern D — config `method = DYNAMIC`, verb chosen per call (added Oct 2026)
+
+Set the config row's method to `DYNAMIC` (dropdown entry "Dynamic (set by caller)") when one API ID must serve several verbs — e.g. the CSRF chain above with ONE config row, or a REST resource that is read with GET and updated with PATCH. The caller then passes the verb in `is_dynamic_request_value-method`; it is **mandatory** and must be one of `GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS` (case-insensitive, blanks condensed).
+
+```abap
+DATA(lo_fwk) = NEW zcl_api_fwk( ).
+
+lo_fwk->execute_api(                                   " call 1: GET on the same api_id
+  EXPORTING iv_api_id                = 'S4_SALES_ORDER'   " config method = DYNAMIC
+            is_dynamic_request_value = VALUE #(
+              method       = 'GET'
+              uri_path     = '/sap/opu/odata/sap/API_SALES_ORDER_SRV/$metadata'
+              header       = VALUE #( ( name = 'x-csrf-token' value = 'Fetch' ) )
+              keep_session = abap_true )
+  IMPORTING es_logger                = DATA(ls_fetch) ).
+
+lo_fwk->execute_api(                                   " call 2: POST, same row, same session
+  EXPORTING iv_api_id                = 'S4_SALES_ORDER'
+            is_dynamic_request_value = VALUE #(
+              method          = 'POST'
+              uri_path        = '/sap/opu/odata/sap/API_SALES_ORDER_SRV/A_SalesOrder'
+              request_payload = lv_json
+              header          = VALUE #( ( name = 'x-csrf-token' value = lv_token ) ) )
+  IMPORTING es_logger                = DATA(ls_post) ).
+```
+
+Engine rules (verified against source + unit tests `ltc_resolve_http_method`, Oct 2026):
+- Resolution happens right after the `active` check, BEFORE the destination/client is created: a missing or invalid caller verb raises `zcx_api_fwk` textid `method_required` (`ZMC_API_FWK 015`, `api_id` filled) — no HTTP call, **no log row**, a kept session is closed.
+- Config wins: for any config method other than `DYNAMIC`, `is_dynamic_request_value-method` is ignored (100% backward compatible). An unknown static config value still falls back to `GET` as before.
+- The resolved upper-case verb is what the log's `method` column shows.
+- `ZVH_HTTP_METHOD` is a literal union — `OPTIONS` is accepted by the engine but not offered in the dropdown.
+
 ## Merge & precedence rules (engine behavior, verified)
 
 | Aspect | Rule |
 |---|---|
 | URI | dynamic `uri_path` wins; else config `uri_path` |
-| Method | from config only (`POST/PUT/DELETE/PATCH/HEAD/OPTIONS`, unknown → `GET`) — not dynamically overridable; a multi-method chain = one config row per method + `keep_session` (pattern C) |
+| Method | config wins (`GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS`, unknown static value → `GET`); config `DYNAMIC` → caller's `is_dynamic_request_value-method`, mandatory and validated (else `method_required`, raised before any HTTP/log) — pattern D. A multi-method chain = either one row per method (pattern C) or one `DYNAMIC` row |
 | Session | `keep_session = abap_true` keeps client + cookies on the instance for the next call (pattern C); initial (default) = client closed per call, exactly the pre-Aug-2026 behavior |
 | Query params | dynamic params + ALL config `_P` rows appended; URL-escaped via `cl_web_http_utility=>escape_url` |
 | Headers | dynamic headers + ALL config `_I` rows; `content-type` header auto-added from config `content_type` if absent |
@@ -139,6 +171,7 @@ Always returned (also on non-2xx). Use it to: check `es_logger-response-http_cod
 |---|---|
 | No config row | `zcx_api_fwk` textid `config_not_found` |
 | Config inactive | `config_inactive` |
+| Config `method = DYNAMIC` but caller `method` missing/invalid | `method_required` (ZMC_API_FWK 015) — raised before destination creation, nothing logged |
 | Destination/client creation failed | `init_error` (previous = root cause) |
 | HTTP execute failed (network, TLS, timeout) | log saved first (if enabled), then `execute_error` (previous = root cause) |
 | HTTP returned 4xx/5xx | NO exception — inspect `es_logger-response-http_code` |
