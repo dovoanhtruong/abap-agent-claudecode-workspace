@@ -1,5 +1,27 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/projects-session-check.sh",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/projects-session-check.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "mcp__(sap|abap)_[a-z0-9_]+_dev__.*",

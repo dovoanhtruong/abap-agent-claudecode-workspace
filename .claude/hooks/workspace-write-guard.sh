@@ -10,7 +10,10 @@
 #      creation is an explicit step (/sap-project-init), so a typo'd project
 #      name fails loudly instead of spawning a junk folder. Editing files that
 #      already exist is allowed, and paths outside the workspace (session
-#      scratchpad, memory dir) are not this hook's business.
+#      scratchpad, memory dir) are not this hook's business — EXCEPT the
+#      projects store: `projects/` may be a junction to a repo outside the
+#      workspace, and paths inside that store are mapped back to `projects/`
+#      so §4 still applies to them.
 #      Exception: a small whitelist of root-level TOOL config (`.mcp.json`,
 #      `.gitignore`, `.env`, `.env.*`) is exempt — these are Claude Code/repo
 #      infra, not FS/TS/scratchpad deliverables, so §4's containment intent
@@ -95,6 +98,20 @@ fp_n=$(norm_path "$file_path")
 if [[ "$fp_n" != /* ]]; then
   fp_n="$root_n/$fp_n"
   fp_fs="$root_fs/$fp_fs"
+fi
+
+# Projects store: `projects/` may be a per-device junction/symlink to a separate
+# git repo outside the workspace (the target path differs per device). Tools
+# such as Grep report the RESOLVED store path, so map it back onto
+# `$root/projects/...` — otherwise a write via the store path would fall into
+# the "outside the workspace" branch and skip every §4 check. `pwd -P` is a
+# bash builtin (keeps this hook dependency-free).
+store=$(cd "$root_fs/projects" 2>/dev/null && pwd -P)
+if [[ -n "$store" ]]; then
+  store_n=$(norm_path "$store")
+  if [[ "$store_n" != "$root_n/projects" && ( "$fp_n" == "$store_n" || "$fp_n" == "$store_n/"* ) ]]; then
+    fp_n="$root_n/projects${fp_n#"$store_n"}"
+  fi
 fi
 
 case "$fp_n" in

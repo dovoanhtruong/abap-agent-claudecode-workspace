@@ -7,7 +7,7 @@
 ![Subagents](https://img.shields.io/badge/subagents-6-8957E5)
 ![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
 
-Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 54 domain skills auto-activate by description (36 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 11 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks and a project-init command), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text. All documents are managed **per project**: every input/output lives under `projects/<customer>-<workstream>/` with a standard subfolder set and a `project.md` metadata file.
+Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 54 domain skills auto-activate by description (36 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 11 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks, a project-init command, and handoff/resume/sync commands for multi-device work), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text. All documents are managed **per project**: every input/output lives under `projects/<customer>-<workstream>/` with a standard subfolder set and a `project.md` metadata file — `projects/` itself is a separate git repo, junction-linked per device.
 
 > Sibling to `abap_antigravity_workspace` — same governance and domain knowledge, re-plumbed for Claude Code's native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports).
 
@@ -84,12 +84,15 @@ abap-agent-claudecode-workspace/
 │   │   └── <team>-<layer>.md        #    dispatched by workflows via [Agent: y]; Manager keeps sole SAP CUD authority
 │   ├── hooks/                      # 🔒 Hard-enforced guardrails (PreToolUse) — code, not prompt text
 │   │   ├── pre-cud-guard.sh         # Blocks non-Z/Y CUD, missing TR/Package, and any TR create/delete/modify
-│   │   └── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → projects/<existing-project>/<standard-subfolder>/ only
+│   │   ├── workspace-write-guard.sh # Locks .claude/ (open via user-created .claude/.unlock); new files → projects/<existing-project>/<standard-subfolder>/ only (store paths mapped back to projects/)
+│   │   └── projects-session-check.sh # SessionStart: warns if projects/ is unlinked or the projects repo is behind/ahead/dirty — silent when in sync
+│   ├── scripts/
+│   │   └── link-projects.ps1        # One-time per-device setup: clone the projects repo + junction projects/ → it
 │   ├── settings.json               # Hook wiring
-│   └── commands/                   # ⚙️ 11 workflows as slash commands (see Quick Start)
-├── projects/                       # 📦 Per-project document root — one folder per <customer>-<workstream>
+│   └── commands/                   # ⚙️ 11 workflows + project-init/handoff/resume/sync as slash commands (see Quick Start)
+├── projects/ ⇢ <store>             # 📦 JUNCTION (per device) → separate projects git repo outside the workspace; ignored by the workspace repo
 │   └── <customer>-<workstream>/     # e.g. bmw-zbom, nfg-zsd09 — created ONLY via /sap-project-init
-│       ├── project.md               # Project metadata: SAP system/MCP tool, default package, current TR, object status — the ONLY tracked file per project (everything else below is gitignored: customer FS/TS/scratchpads never enter git history)
+│       ├── project.md               # Project metadata: SAP system/MCP tool, default package, current TR, ## Current state snapshot, object status
 │       ├── fs_docs/                 # Input Functional Specification (FS) documents
 │       ├── technical_specifications/ # Technical Specifications (TS_*.md)
 │       ├── scratchpads/             # Drafts, progress ledgers, handoff notes (+ review/ for code reviews)
@@ -153,6 +156,28 @@ Workflows dispatch isolated subagents via `[Agent: y]` instead of doing every an
 2. (Recommended) Connect the two MCP servers above, plus your SAP system's ADT MCP server (named `mcp__sap_<project>_dev__*` so the CUD guard covers it).
 3. One-time venv for binary FS conversion: `python3 -m venv .venv_markitdown && ./.venv_markitdown/bin/pip install 'markitdown[all]'`.
 4. Know the lock: if you ask Claude to modify `.claude/` (rules/skills/hooks), first run `touch .claude/.unlock`, and delete it when done.
+5. Link the projects store (see below).
+
+### Multi-device projects
+
+Project documents (FS/TS/scratchpads/handoffs) live in their **own git repo** (customer data never enters the workspace repo). In the workspace, `projects/` is a per-device **junction** to wherever that repo is cloned — skills, commands and hooks only ever use `projects/<p>/...`, so the clone path may differ on every device.
+
+```powershell
+# One-time per device (no admin rights needed); clones the store if it doesn't exist yet
+powershell -ExecutionPolicy Bypass -File .claude\scripts\link-projects.ps1 -Store "D:\work\projects" -Remote "<private-projects-repo-url>"
+```
+
+macOS / Linux equivalent: `git clone <url> ~/claude-projects && ln -s ~/claude-projects projects` (run in the workspace root). To move or rename the store later, re-run the script (or re-create the symlink) with the new path.
+
+Sessions are per-device and are **not** synced — state crosses devices through files:
+
+```bash
+/sap-handoff bmw-zbom    # end of work: handoff file + "## Current state" in project.md + commit/push projects repo
+/sap-resume bmw-zbom     # new session (any device): pull + read project.md & latest handoff + confirm next step
+/sap-sync                # just commit + pull --rebase + push the projects repo
+```
+
+A `SessionStart` hook warns when `projects/` is unlinked or the projects repo is behind/ahead/dirty, and stays silent otherwise. Searches over project files must pass `path: projects/<p>` — Glob/Grep from the workspace root do not traverse the junction (and `projects/` is gitignored there).
 
 ### The 11 workflows
 

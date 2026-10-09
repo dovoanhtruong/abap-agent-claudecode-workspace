@@ -19,8 +19,10 @@ Pair-programming workspace for developing on **SAP BTP ABAP Environment** / **S/
 | Inbound / outbound API on Z_API_FWK | — | `/sap-dev-api-inbound` · `/sap-dev-api-outbound` |
 | Document / review existing code (read-only) | `/sap-dev-code-analysis` · `/sap-dev-code-review` | — |
 | Start working with a NEW project (skeleton + project.md) | — | `/sap-project-init <name>` |
+| End a session / switch device / resume in a new session | — | `/sap-handoff <p>` (old session) → `/sap-resume <p>` (new session) · `/sap-sync [p]` to just commit+push |
 
 - **Outputs are per-project** — rule §4 (hook-enforced): one project under `projects/<project>/`, 6 standard subfolders, `project.md` read first as base context; new projects only via `/sap-project-init`.
+- **`projects/` is a separate git repo** — a per-device junction to a store outside the workspace (setup: `.claude/scripts/link-projects.ps1`); sessions are per-device, state crosses devices via handoff files + `## Current state` in `project.md`.
 - **`.claude/` is locked** — rule §14 (hook-enforced): the USER must `touch .claude/.unlock` first (never the agent), and delete it when done.
 
 ## Recommended MCP servers

@@ -16,6 +16,7 @@ Create ONE new project workspace under `projects/` — the explicit project-crea
 - kebab-case, lowercase, no diacritics, no spaces (`a-z`, `0-9`, `-` only).
 - Recommended shape: `<customer>-<workstream>` (e.g. `bmw-zbom`, `nfg-zsd09`). A name without a customer prefix is allowed but confirm it's intentional.
 - If `projects/<name>/` already exists → STOP and report; never overwrite, never "re-init" an existing project (its `project.md` is edited by hand instead).
+- If `projects/` itself is missing on this device → STOP: the projects store is not linked yet (README "Multi-device projects", `.claude/scripts/link-projects.ps1`). Never create a plain `projects/` folder in its place.
 
 **Step 2 — Gather metadata ([Skill: grill-me], max 1 round, all fields may be "TBD").**
 From the remaining arguments or one short question round: mô tả 1 dòng, SAP system (MCP tool name + client, e.g. `mcp__sap_bmw_dev__SAP` — DEV client 080), default Package, current TR. Missing values are recorded as `TBD` — §2's TR+Package ask will fire later at build time; do not block project creation on them.
@@ -47,6 +48,12 @@ projects/<name>/
 | Status | active |
 | Created | <yyyy-mm-dd> |
 
+## Current state
+<!-- Snapshot overwritten by /sap-handoff; read first by /sap-resume. Max 10 lines. -->
+- Updated: <yyyy-mm-dd> · project created
+- Next: <first workflow to run, e.g. /sap-dev-fs-analytic <name> ...>
+- Last handoff: none
+
 ## Objects & Status
 <!-- One row per SAP object this project owns; workflows update this as they build. -->
 | Object | Type | Status | Notes |
@@ -58,7 +65,7 @@ projects/<name>/
 
 **Step 4 — Rename this session (rule §4, mandatory).** Call `mcp__ccd_session_mgmt__set_session_title` with `<name>_<main purpose of this session>` — the project directory name verbatim, then a short kebab-case purpose (e.g. `bmw-zbom_project-setup`, `bmw-sd-apis_fs-analysis`). Applies even when the project is expected to have only this one session.
 
-**Step 5 — Report.** [Skill: caveman] narration: project path created, metadata recorded vs TBD, session retitled to `<...>`. Remind: every workflow/task for this project now passes `<name>` as its first argument, `project.md` is the first file read at workflow start, and any NEW session for this project is titled `<name>_<purpose>`.
+**Step 5 — Report.** [Skill: caveman] narration: project path created, metadata recorded vs TBD, session retitled to `<...>`. Remind: every workflow/task for this project now passes `<name>` as its first argument, `project.md` is the first file read at workflow start, and any NEW session for this project is titled `<name>_<purpose>`. The project exists only on this device until `/sap-sync <name>` pushes the projects repo.
 
 [SCOPE GUARDS]
 - Never create a project as a side effect of another workflow — that workflow must STOP and send the user here instead (rule §4).
