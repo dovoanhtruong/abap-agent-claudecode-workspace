@@ -1,6 +1,7 @@
-# Per-project documents (FS/TS/scratchpads/project.md) — customer data,
-# never in git; synced across machines via OneDrive junction instead.
-/projects/
+# Per-project documents live in a separate git repo; `projects` here is a
+# per-device link to it (Windows junction / macOS-Linux symlink). No trailing
+# slash: a symlink is not a directory to git, so "/projects/" would miss it.
+/projects
 
 # Ignore scratchpad/temporary files
 scratch/
@@ -9,6 +10,9 @@ scratch/
 
 # Claude Code local-only settings (personal overrides, not shared with the team)
 .claude/settings.local.json
+
+# .claude/ lock sentinel (rule §14) — per-device, created/deleted by the user only
+.claude/.unlock
 
 # Project-scoped MCP config: machine-specific binary paths + secrets — private per machine
 .mcp.json
