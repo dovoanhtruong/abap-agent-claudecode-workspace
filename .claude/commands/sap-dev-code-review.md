@@ -6,7 +6,7 @@ argument-hint: <project> <object-or-package-name> [focus-areas]
 > **Claude Code note:** `[Skill: X]` below means invoke the `x` skill via the Skill tool (auto-discovered from `.claude/skills/x/`).
 
 [ROLE & OBJECTIVE]
-Act as an Expert SAP QA Architect & Senior Code Reviewer. Your task is to extract, read, and thoroughly scrutinize the source code of a specified SAP Object or group of Objects. You will focus intensely on identifying potential bugs, security risks, performance bottlenecks, and adherence to clean code principles without automatically generating the refactored source code.
+Act as an Expert SAP QA Architect & Senior Code Reviewer. Your task is to extract, read, and thoroughly scrutinize the source code of a specified SAP Object or group of Objects. You will focus intensely on identifying potential bugs, security risks, performance bottlenecks, excess code, and adherence to clean code principles without automatically generating the refactored source code.
 
 [INPUT DATA]
 - Project: [Tên dự án trong `projects/` — rule §4. Resolve từ argument đầu tiên hoặc prompt; thiếu thì hỏi ĐÚNG 1 câu trước khi tạo bất kỳ file nào. Đọc `projects/<project>/project.md` trước (SAP system, package). Mọi output path bên dưới nằm dưới `projects/<project>/`.]
@@ -52,6 +52,13 @@ Action:
 - Identify procedural logic that should be refactored using OO Design Patterns.
 - Suggest SAP standard helper classes (e.g., `cl_bcs_mail`, `xco_cp_json`) instead of custom monolithic logic.
 
+Step 3.5: Excess Code & Shortcut Debt
+Required Skill: [Skill: lean-abap]
+Action:
+- Walk the code against the ladder (R1-R5): hand-rolled logic that an existing Z-object, a released CDS view/class, a declarative CDS/RAP feature, or a language built-in already provides; unused parameters/methods/attributes/variables; dead branches; interfaces/factories with a single implementation and no test seam; config tables or constants for values nothing varies.
+- Every excess finding MUST carry its same-effect proof (lean-abap §3: output, safeguards, performance class, public contract unchanged). If any of the four cannot be shown, it is not a finding. Never flag a never-cut item (lean-abap §4) as excess.
+- List every existing `shortcut:` comment in the reviewed objects with: limit, upgrade trigger, and whether the trigger appears already met based on the code/system evidence (state "unverifiable" when it cannot be checked). Malformed ones (missing limit or trigger) are findings. Point to `/sap-debt <project>` for the project-wide ledger.
+
 Step 4: Cross-Impact & Regression Analysis
 Action:
 - BEFORE finalizing any suggestion, perform a dependency check (e.g., check where the method/class is called).
@@ -85,6 +92,17 @@ Format the document exactly as follows:
 ## 4. Bảo Trì & Mở Rộng (Maintainability & Clean ABAP)
 - Đánh giá naming convention, độ dài hàm.
 - Gợi ý sử dụng các class chuẩn SAP.
+
+## 5. Code Thừa & Nợ Kỹ Thuật (Excess Code & Shortcut Debt)
+- **[Excess — rung R1..R5]**: Tên method/đoạn code.
+  - *Vấn đề*: Đoạn code tự viết lại cái gì (Z-object / released API / CDS-RAP declarative / built-in nào đã có).
+  - *Gợi ý sửa*: [Snippet ngắn hoặc mô tả].
+  - *Same-effect proof*: Output / safeguards / performance class / public contract — giữ nguyên thế nào.
+  - *Impact Analysis*: Ảnh hưởng tới caller/dependent khi áp dụng.
+- **Shortcut hiện có**:
+
+| Object / Location | Limit | Upgrade when | Trigger đã đạt? (yes / no / unverifiable + evidence) |
+|---|---|---|---|
 
 [OUTPUT FORMAT]
 - All chat progress narration throughout this workflow uses `[Skill: caveman]` style per `sap-dev-rule.md` §10 — short, evidence-based, narration only (the saved report content and any code excerpts stay verbatim). This is read-only/advisory; avoid "chắc là/should be" language per `sap-dev-rule.md` §8.

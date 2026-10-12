@@ -57,7 +57,9 @@ Threshold (starting heuristic — tighten once real dispatch-timing data exists)
 
 2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently. Output: `projects/<project>/scratchpads/draft_integration_[AppName].md`.
 
-2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence). To keep this cheap on context, read only each file's **Field Name Index** (the flat list at the very top of the file) first and cross-check those names against the Verified Data Model; open the full draft body only for a file whose Index shows a name that doesn't match, to get the context needed to resolve it. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field/entity is genuinely missing) before proceeding to Phase 3.
+2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence). To keep this cheap on context, read only each file's **Field Name Index** (the flat list at the very top of the file) first and cross-check those names against the Verified Data Model; open the full draft body only for a file whose Index shows a name that doesn't match, to get the context needed to resolve it. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field/entity is genuinely missing) before proceeding to 2.E.
+
+2.E SCOPE CHALLENGE ([Skill: lean-abap] rungs R0-R3 — the only place an FS requirement may be challenged): From the reconciled drafts, list FS requirements whose cost the stated business need does not justify, or that duplicate something already available — a standard SAP Fiori app / released CDS field / existing Z-object (R1-R2), or a declarative CDS/RAP feature that replaces custom logic the FS implies (R3). For each: FS reference, why challenged, smaller alternative, what the user loses if accepted. Present them to the user in ONE message and WAIT; record each decision (Keep / Replace with alternative / Cut) with the user's own words in TS §12. No challenge → write "None" in TS §12 and continue without asking. Never drop, merge, or shrink an FS requirement without an explicit written user decision — a challenge the user has not answered means Keep. `/sap-dev-create-transactional-app` later builds only what the TS says, so this is the last point where scope can shrink.
 
 ## Phase 3 — Architecture & Coding Implementation Plan (the phase create-transactional-app depends on most)
 
@@ -89,7 +91,7 @@ This table must cover 100% of what create-transactional-app's Steps 0-8 will nee
 ## Phase 5 — Verify Loop (max 3 automatic iterations)
 
 5.0 Cross-check the TS draft against `fs_markdown.md`:
-- 100% of FS fields are present with exact names (no placeholders) and each one has a concrete DDIC home (a field in a named New Table, with type/length/key decided — not just a bullet point).
+- 100% of FS fields are present with exact names (no placeholders) — except fields the user explicitly cut in TS §12 (Scope Decisions); every 2.E challenge has a recorded user decision and each one has a concrete DDIC home (a field in a named New Table, with type/length/key decided — not just a bullet point).
 - Every field has documented source + derivation logic (new-table input field, or released-view lookup).
 - If the FS implies a status/lifecycle, the Status Machine is 100% specified: every state, every transition, its trigger and precondition — not just "some statuses."
 - Every key field that isn't pure user input has an explicit numbering mechanism decided (Number Range / managed / early / late), including batch-safety if multiple rows can be created in one request.
@@ -155,4 +157,9 @@ Base object name: [Tên gốc + suffix theo từng node, vd _H/_FG/_RM]
 - [Gap còn thiếu, `[assumption]`/`[Unverified]` cần xác nhận khi code, theo đúng Reality Filter — không suy đoán thành fact]
 - [Naming conventions beyond the default, nếu FS có chỉ định]
 - [Transport Request TBD nếu có — nêu rõ đây là quyết định hoãn của user, không phải thiếu sót TS]
+
+## 12. Scope Decisions (Scope Challenge — Phase 2.E)
+| # | FS Reference | Challenge | Smaller Alternative | User Decision (Keep / Replace / Cut) + user's words |
+|---|---|---|---|---|
+[Or "None" — no FS requirement was challenged]
 ```

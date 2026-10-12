@@ -2,12 +2,12 @@
 
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-native-7A5AF8)
 ![SAP](https://img.shields.io/badge/SAP-ABAP%20Cloud%20%C2%B7%20Clean%20Core-0FAAFF)
-![Skills](https://img.shields.io/badge/skills-56-2EA44F)
+![Skills](https://img.shields.io/badge/skills-57-2EA44F)
 ![Workflows](https://img.shields.io/badge/workflows-11-E8590C)
 ![Subagents](https://img.shields.io/badge/subagents-6-8957E5)
 ![Guardrails](https://img.shields.io/badge/guardrails-hook--enforced-CF222E)
 
-Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 54 domain skills auto-activate by description (36 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 11 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks, a project-init command, and handoff/resume/sync commands for multi-device work), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text. All documents are managed **per project**: every input/output lives under `projects/<customer>-<workstream>/` with a standard subfolder set and a `project.md` metadata file — `projects/` itself is a separate git repo, junction-linked per device.
+Pair-programming workspace for developing on **SAP BTP ABAP Environment** and **S/4HANA Cloud (Clean Core)** with Claude Code. It turns Claude into a governed SAP developer: 57 domain skills auto-activate by description (39 ABAP Cloud engineering skills + 18 SAP Public Cloud business-process skills across O2C/Supply Chain/Manufacturing/Production/Finance/Project System), 11 slash-command workflows drive FS-to-deployed-code pipelines (plus a micro-workflow for single-prompt tasks, a project-init command, a `shortcut:` debt-ledger command, and handoff/resume/sync commands for multi-device work), a 3-team/2-layer subagent pool (Consultant/Dev/Tester × Lead/Executor) handles isolated analysis and drafting, an always-loaded rule file enforces Clean Core discipline, and `PreToolUse` hooks hard-block the riskiest operations in code — not just in prompt text. All documents are managed **per project**: every input/output lives under `projects/<customer>-<workstream>/` with a standard subfolder set and a `project.md` metadata file — `projects/` itself is a separate git repo, junction-linked per device.
 
 > Sibling to `abap_antigravity_workspace` — same governance and domain knowledge, re-plumbed for Claude Code's native mechanics (Skill auto-discovery, slash commands, `CLAUDE.md` imports).
 
@@ -21,7 +21,7 @@ flowchart LR
         CM["CLAUDE.md (hub)"] --> RULE["sap-dev-rule.md<br/>§1-§14 strict rules"]
     end
     subgraph ONDEMAND["Loaded on demand"]
-        SK["56 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
+        SK["57 skills<br/>.claude/skills/*"] --> REF["references/*<br/>templates, sources & deep-dive docs"]
         WF["11 workflows<br/>.claude/commands/*"]
         AG["6 subagents<br/>.claude/agents/*<br/>Consultant/Dev/Tester × Lead/Executor"]
     end
@@ -78,7 +78,7 @@ abap-agent-claudecode-workspace/
 ├── .claude/
 │   ├── rules/
 │   │   └── sap-dev-rule.md         # 🛡️ 14 strict rules (Clean Core, Custom Only, TR, evidence, subagents, language, self-modification)
-│   ├── skills/                     # 📚 56 skills, FLAT — auto-discovered & matched by description (catalog below)
+│   ├── skills/                     # 📚 57 skills, FLAT — auto-discovered & matched by description (catalog below)
 │   │   └── <name>/SKILL.md          #    + references/ subfolders for heavy templates (loaded only when needed)
 │   ├── agents/                     # 🤖 6 subagents — Team Consultant/Dev/Tester × Lead (opus)/Executor (sonnet)
 │   │   └── <team>-<layer>.md        #    dispatched by workflows via [Agent: y]; Manager keeps sole SAP CUD authority
@@ -89,7 +89,7 @@ abap-agent-claudecode-workspace/
 │   ├── scripts/
 │   │   └── link-projects.ps1        # One-time per-device setup: clone the projects repo + junction projects/ → it
 │   ├── settings.json               # Hook wiring
-│   └── commands/                   # ⚙️ 11 workflows + project-init/handoff/resume/sync as slash commands (see Quick Start)
+│   └── commands/                   # ⚙️ 11 workflows + project-init/debt/handoff/resume/sync as slash commands (see Quick Start)
 ├── projects/ ⇢ <store>             # 📦 JUNCTION (per device) → separate projects git repo outside the workspace; ignored by the workspace repo
 │   └── <customer>-<workstream>/     # e.g. bmw-zbom, nfg-zsd09 — created ONLY via /sap-project-init
 │       ├── project.md               # Project metadata: SAP system/MCP tool, default package, current TR, ## Current state snapshot, object status
@@ -105,7 +105,7 @@ abap-agent-claudecode-workspace/
 
 ---
 
-## 📚 Skill Catalog (56, by category)
+## 📚 Skill Catalog (57, by category)
 
 **🔎 FS Analysis / Consultant (8)** — `fs-data-model-extractor` (data model from FS: extract / design new Z-tables / trace lineage) · `fs-fiori-ui-elements-mapper` (FS layouts → Fiori Elements annotations + toolbar buttons) · `fs-logic-behavior-translator` (business rules → CDS vs Virtual Element vs Behavior Pool; status machine, numbering) · `fs-integration-api-analyzer` (FS integration specs → API design + payload mapping) · `fs-vision-extractor` (transcribe mockups/flowcharts/screenshots embedded in FS) · `document-markdown-converter` (binary FS → Markdown via MarkItDown) · `find-released-cds-view` (map a business field to its released Clean-Core CDS view) · `cds-data-model-analysis` (keys/foreign keys/cardinality/join-tree design + fan-out risk analysis across I_* views and Z-tables — the design step before CDS authoring).
 
@@ -125,14 +125,14 @@ abap-agent-claudecode-workspace/
 
 **🖨️ Forms & Output (1)** — `xdp-form-layout` (project-wide Adobe Forms/XDP layout standard: A4 portrait/landscape frame, margins, 5-area model top/header/body/signature/footer, Roboto typography, binding & FormCalc conventions + text XDP skeleton in `references/` — every form same frame, only body data differs).
 
-**🧭 Governance & Productivity (6)** — `activation-guard` (3-gate post-activation verification: log, active state, ripple check) · `naming-convention` (FPT project naming standards; explicit TS names win) · `scratchpad` (plan + progress ledger, single source of truth) · `handoff` (session-transition notes with ledger pointer) · `grill-me` (targeted requirement interviews, ≤3 rounds) · `caveman` (terse chat narration, never on code/reports).
+**🧭 Governance & Productivity (7)** — `lean-abap` (minimal-code-same-effect ladder: need → existing Z → released → declarative → built-in → minimum; never-cut list; `shortcut:` comments collected by `/sap-debt`; skipped/risk reply footer; FS→TS Scope Challenge) · `activation-guard` (3-gate post-activation verification: log, active state, ripple check) · `naming-convention` (FPT project naming standards; explicit TS names win) · `scratchpad` (plan + progress ledger, single source of truth) · `handoff` (session-transition notes with ledger pointer) · `grill-me` (targeted requirement interviews, ≤3 rounds) · `caveman` (terse chat narration, never on code/reports).
 
 ---
 
 ## 🛠️ Core Components & How They Work
 
 ### 1. Skill Auto-Discovery (`.claude/skills/`)
-Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 54. The 18 `sap-process-*` skills take this one layer further: a lean `SKILL.md` (process grounding, always safe to auto-load) + an on-demand `references/deep-dive.md` (functional-consulting depth) that only the agent that judges it necessary reads — kept separate specifically so every FS analysis doesn't pay for depth it doesn't need.
+Claude Code scans `.claude/skills/<name>/SKILL.md` and matches each skill's `description` frontmatter against your request — no manual router. Skills keep their body lean and push heavy templates (BDEF/handler skeletons, syntax guides, walkthroughs) into `references/` files that load only when actually writing that object — the same progressive-disclosure pattern across all 57. The 18 `sap-process-*` skills take this one layer further: a lean `SKILL.md` (process grounding, always safe to auto-load) + an on-demand `references/deep-dive.md` (functional-consulting depth) that only the agent that judges it necessary reads — kept separate specifically so every FS analysis doesn't pay for depth it doesn't need.
 
 ### 2. Always-On Rules (`CLAUDE.md` → `.claude/rules/sap-dev-rule.md`)
 `CLAUDE.md` `@imports` the rule file, so it's unconditionally in context every turn. The 14 sections cover: DEV-only assumption, consent + Z/Y-only + TR/Package discipline, CDS-read/EML-write standards, per-project `projects/<project>/`-only outputs (active-project resolution + `project.md` context), activation-guard gates after every object mutation, Iron Laws (no improvising beyond the TS), Red Flags, evidence-based reporting ("Activated ≠ Correct"), MCP tool verification, token efficiency, evidence floor for user verification, subagent policy, language policy (chat VN · code EN), and self-modification rules (`.claude/` locked behind user-created `.unlock`).
@@ -231,6 +231,10 @@ A `SessionStart` hook warns when `projects/` is unlinked or the projects repo is
 # One small task — auto-classified (small mutation / lookup / how-to / snippet review),
 # routed through the §15 skill map, minimal governance (TR check + activation-guard on mutations)
 /sap-task "thêm field ProfitCenter vào ZI_INVENTORY và expose ra projection"
+
+# Collect every `" shortcut: <limit>; upgrade when <trigger>` comment (SAP package + drafts)
+# into projects/<p>/system_analysis/debt-ledger.md — read-only on SAP
+/sap-debt bmw-zbom
 ```
 
 Bare prompts (no slash command) get the same routing via rule §15 — every SAP-domain answer must open with a `Skills: [...]` declaration line naming what was consulted.

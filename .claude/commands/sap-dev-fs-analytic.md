@@ -43,7 +43,9 @@ Threshold (starting heuristic — tighten once real dispatch-timing data exists)
 
 2.C INTEGRATION & API ANALYSIS: [Skill: fs-integration-api-analyzer] → Integration Draft (Integration Pattern, OData Service Model, API Style Compliance, Field Mapping Table, Security/Auth). If the FS has no integration/interface requirements, output exactly "N/A — FS has no integration requirements" rather than skipping the step silently. Output: `projects/<project>/scratchpads/draft_integration_[ReportName].md`.
 
-2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence). To keep this cheap on context, read only each file's **Field Name Index** (the flat list at the very top of the file) first and cross-check those names against the Verified Data Model; open the full draft body only for a file whose Index shows a name that doesn't match, to get the context needed to resolve it. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field is genuinely missing) before proceeding to Phase 3.
+2.D RECONCILIATION: Read back each of the three draft files yourself (`sap-dev-rule.md` §12 — a dispatch's completion message is not sufficient evidence). To keep this cheap on context, read only each file's **Field Name Index** (the flat list at the very top of the file) first and cross-check those names against the Verified Data Model; open the full draft body only for a file whose Index shows a name that doesn't match, to get the context needed to resolve it. List any mismatch as a Conflict and resolve it (align naming, or return to Phase 1 if a field is genuinely missing) before proceeding to 2.E.
+
+2.E SCOPE CHALLENGE ([Skill: lean-abap] rungs R0-R3 — the only place an FS requirement may be challenged): From the reconciled drafts, list FS requirements whose cost the stated business need does not justify, or that duplicate something already available — a standard SAP Fiori app / released CDS field / existing Z-object (R1-R2), or a declarative CDS/RAP feature that replaces custom logic the FS implies (R3). For each: FS reference, why challenged, smaller alternative, what the user loses if accepted. Present them to the user in ONE message and WAIT; record each decision (Keep / Replace with alternative / Cut) with the user's own words in TS §12. No challenge → write "None" in TS §12 and continue without asking. Never drop, merge, or shrink an FS requirement without an explicit written user decision — a challenge the user has not answered means Keep. `/sap-dev-create-report` later builds only what the TS says, so this is the last point where scope can shrink.
 
 ## Phase 3 — Architecture & Coding Implementation Plan (the phase create-report depends on most)
 
@@ -63,7 +65,7 @@ This table must cover 100% of what create-report's Steps 1-7 will need (Interfac
 ## Phase 5 — Verify Loop (max 3 automatic iterations)
 
 5.0 Cross-check the TS draft against `fs_markdown.md`:
-- 100% of FS fields are present with exact names (no placeholders).
+- 100% of FS fields are present with exact names (no placeholders) — except fields the user explicitly cut in TS §12 (Scope Decisions); every 2.E challenge has a recorded user decision.
 - Every field has documented source + derivation logic.
 - Every row in the Coding Implementation Plan has a clear source/target and references no field absent from the Verified Data Model.
 
@@ -122,4 +124,9 @@ Report Type: [Read-only OR Transactional/Actionable — determined strictly from
 ## 11. Additional Requirements
 - [Naming conventions beyond the default, if the FS specifies any]
 - [Extra UI/Action requirements, e.g. custom Excel export]
+
+## 12. Scope Decisions (Scope Challenge — Phase 2.E)
+| # | FS Reference | Challenge | Smaller Alternative | User Decision (Keep / Replace / Cut) + user's words |
+|---|---|---|---|---|
+[Or "None" — no FS requirement was challenged]
 ```

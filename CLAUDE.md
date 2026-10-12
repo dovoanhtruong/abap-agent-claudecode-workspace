@@ -6,7 +6,7 @@ Pair-programming workspace for developing on **SAP BTP ABAP Environment** / **S/
 
 ## How this workspace works
 
-- **Skills** (`.claude/skills/<name>/SKILL.md`, 54 of them) auto-activate by description match — no manual routing. Catalog in `README.md`; heavy templates live in each skill's `references/`, loaded only when producing that object. The 18 `sap-process-*` skills carry SAP Public Cloud business-process knowledge for FS analysis (lean `SKILL.md` + on-demand `references/deep-dive.md`, read only when the FS needs that depth).
+- **Skills** (`.claude/skills/<name>/SKILL.md`, 57 of them) auto-activate by description match — no manual routing. Catalog in `README.md`; heavy templates live in each skill's `references/`, loaded only when producing that object. The 18 `sap-process-*` skills carry SAP Public Cloud business-process knowledge for FS analysis (lean `SKILL.md` + on-demand `references/deep-dive.md`, read only when the FS needs that depth).
 - **Subagents** (`.claude/agents/<team>-<layer>.md`, 6 of them) — Consultant/Dev/Tester × Lead (opus)/Executor (sonnet) — dispatched by workflows via `[Agent: y]` for isolated analysis/drafting, under rule §12's discipline (Manager-only SAP CUD authority, drafts to the active project's `scratchpads/` only, no ledger-DONE).
 - **Workflows** are slash commands in `.claude/commands/`. Pick by scenario:
 
@@ -19,6 +19,7 @@ Pair-programming workspace for developing on **SAP BTP ABAP Environment** / **S/
 | Inbound / outbound API on Z_API_FWK | — | `/sap-dev-api-inbound` · `/sap-dev-api-outbound` |
 | Document / review existing code (read-only) | `/sap-dev-code-analysis` · `/sap-dev-code-review` | — |
 | Start working with a NEW project (skeleton + project.md) | — | `/sap-project-init <name>` |
+| Collect `shortcut:` debt (deliberate known limits, per `lean-abap`) into a ledger | — | `/sap-debt <p>` |
 | End a session / switch device / resume in a new session | — | `/sap-handoff <p>` (old session) → `/sap-resume <p>` (new session) · `/sap-sync [p]` to just commit+push |
 
 - **Outputs are per-project** — rule §4 (hook-enforced): one project under `projects/<project>/`, 6 standard subfolders, `project.md` read first as base context; new projects only via `/sap-project-init`.
