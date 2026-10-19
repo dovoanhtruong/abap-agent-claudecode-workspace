@@ -1,3 +1,6 @@
+// LEGACY — only for apps set up before zero-config, or a system still running an old ZEX_LIB_CORE.
+// New apps: no file needed (see ../fiori-setup.md); overrides go to manifest sap.ui5/config/zExcelExport.
+// Location must be webapp/ext/controller/ExcelConfig.js.
 sap.ui.define([], function () {
     "use strict";
 
@@ -9,7 +12,9 @@ sap.ui.define([], function () {
         excelId: "",
 
         // 3. Đường dẫn Static Action OData V4 cấu hình trong BDEF
-        actionPath: "/{Entity Set} /com.sap.gateway.srvd.{Service Definition} v0001.{Action}(...)",
+        // Copy EntitySet / Namespace / Action name from the service $metadata, e.g.
+        // "/Orders/com.sap.gateway.srvd.zui_order.v0001.printExcel(...)"
+        actionPath: "/{EntitySet}/{Schema Namespace}.{ActionName}(...)",
 
         // 4. Khóa chính của Business Object (TỰ ĐỘNG KHÔNG CẦN KHAI BÁO)
         // Nếu để trống (""), hệ thống sẽ tự động quét OData Metadata để lấy danh sách khóa (hỗ trợ cả khóa đơn và khóa kép).

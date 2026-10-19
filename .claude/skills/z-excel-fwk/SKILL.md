@@ -1,6 +1,6 @@
 ---
 name: z-excel-fwk
-description: Usage guide for the custom Excel export-from-template framework (ABAP package Z_EXCEL_LIBRARY + SAPUI5 library z.custom.excel.lib) — how to build the ABAP side (static RAP action PrintExcel returning ZABS_EX_LIB_ACTION_RETURN with a camelCase JSON sheets payload), how to AUTHOR the .xlsx template itself with the engine's tag grammar (${var}, ${image:x}, ${table:arr.field|merge}, ${rowType:L1}, ${x|qrcode}), how to build a MULTI-TEMPLATE file where each output sheet picks its own master sheet via the `templateSheet` field, and how to wire the Fiori app (manifest dependency, custom action, ext/controller/ExcelConfig.js). Use this skill INSTEAD of reading the framework source whenever a task touches Excel export on this framework — creating or debugging a PrintExcel action, designing or generating an Excel template with mapping tags, adding a summary/second-layout sheet to an existing report, registering an excel_id template version, embedding a logo/QR code, or explaining why a tag did not resolve. Triggers include "Z_EXCEL_LIBRARY", "z.custom.excel.lib", "excel library", "excel template", "PrintExcel", "printExcel action", "ExcelConfig.js", "ExcelExportHelper", "excel_id", "mapping tag", "templateSheet", "multi-sheet template", "export excel from template"; Vietnamese triggers "xuất excel theo template", "in excel", "tạo template excel", "làm report excel", "in nhiều sheet", "sheet tổng hợp", "mỗi sheet một design", "tag không đổ dữ liệu", "nhúng logo/QR vào excel". For OData service definition/binding use odata; for RAP BO modeling use rap; for generic ABAP SQL use abap-sql-amdp.
+description: Usage guide for the custom Excel export-from-template framework (ABAP package Z_EXCEL_LIBRARY + SAPUI5 library z.custom.excel.lib) — how to build the ABAP side (static RAP action printExcel returning ZABS_EX_LIB_ACTION_RETURN with a camelCase JSON sheets payload), how to AUTHOR the .xlsx template itself with the engine's tag grammar (${var}, ${image:x}, ${table:arr.field|merge}, ${rowType:L1}, ${x|qrcode}), how to build a MULTI-TEMPLATE file where each output sheet picks its own master sheet via the `templateSheet` field, and how to wire the Fiori app in BAS (zero-config: manifest library dependency + custom action whose press is the library handler; optional overrides in manifest sap.ui5/config/zExcelExport; legacy ext/controller/ExcelConfig.js still honored). Use this skill INSTEAD of reading the framework source whenever a task touches Excel export on this framework — creating or debugging a PrintExcel action, designing or generating an Excel template with mapping tags, adding a summary/second-layout sheet to an existing report, registering an excel_id template version, embedding a logo/QR code, or explaining why a tag did not resolve. Triggers include "Z_EXCEL_LIBRARY", "z.custom.excel.lib", "excel library", "excel template", "PrintExcel", "printExcel action", "ExcelConfig.js", "zExcelExport", "PrintExcelHandler", "ExcelExportHelper", "excel_id", "mapping tag", "templateSheet", "multi-sheet template", "export excel from template"; Vietnamese triggers "xuất excel theo template", "in excel", "tạo template excel", "làm report excel", "in nhiều sheet", "sheet tổng hợp", "mỗi sheet một design", "tag không đổ dữ liệu", "nhúng logo/QR vào excel", "setup excel library trên BAS", "gắn nút Print Excel". For OData service definition/binding use odata; for RAP BO modeling use rap; for generic ABAP SQL use abap-sql-amdp.
 ---
 
 # Z_EXCEL_LIBRARY — Excel Export from Template
@@ -14,10 +14,16 @@ Everything in this skill is verified against live source: ABAP package `Z_EXCEL_
 ```
 User ticks rows → presses "Print Excel" (custom action on the table toolbar)
   → PrintExcelHandler.onPrintExcelPress
-      1. resolves App Component → requires <namespace>/ext/controller/ExcelConfig.js
+      1. resolves App Component → config, first hit wins:
+           a. manifest  sap.ui5/config/zExcelExport          (optional overrides)
+           b. <namespace>/ext/controller/ExcelConfig.js     (legacy, used as-is)
+           c. nothing → zero-config defaults, action name "printExcel"
       2. collects key fields of selected rows → selected_keys = JSON array of key objects
-      3. POST OData action at oAppConfig.actionPath
-          ↓  ABAP: static action PrintExcel
+      3. actionPath = config.actionPath if given (legacy: not pre-checked, diagnosed on failure)
+         else derived: /<EntitySet of the table binding>/<$EntityContainer namespace>.<actionName>(...)
+         and checked against $metadata — missing action → toast listing the service's actions
+         POST OData action at that path
+          ↓  ABAP: static action printExcel
              parameter ZABS_EX_LIB_ACTION_INPUT ( selected_keys, app_id, custom_param )
              result [1] ZABS_EX_LIB_ACTION_RETURN ( excel_id, filename, json_content )
       4. GET /sap/bc/http/sap/zib_ex_lib_template_content?excel_id=<excel_id>
@@ -36,7 +42,9 @@ Three components, three owners:
 | Template delivery endpoint | HTTP service `ZIB_EX_LIB_TEMPLATE_CONTENT` (class `ZCL_IB_EX_LIB_TEMPLATE_CONTENT`) | nobody — fixed framework code |
 | Rendering engine | UI5 library `z.custom.excel.lib` (`ExcelExportHelper`, `PrintExcelHandler`) | nobody — fixed framework code |
 
-**Never modify the three framework pieces.** A new report = one ABAP action + one template + one `ExcelConfig.js`.
+**Never modify the three framework pieces.** A new report = one ABAP action named `printExcel` + one template + two fixed manifest entries (library dependency, custom action `press`) — no `ExcelConfig.js`, nothing renamed per app (`references/fiori-setup.md`).
+
+> Zero-config needs the library version whose `PrintExcelHandler.js` resolves config as in step 1 (source of truth: BMW repo `bmw.core.zex_lib_core`, `DEFAULT_ACTION_NAME = "printExcel"`). A system still running an older `ZEX_LIB_CORE` needs `ExcelConfig.js` with `actionPath` — check what is deployed before promising the 2-step setup.
 
 ## 2. The JSON contract (the one thing both sides must agree on)
 
@@ -79,7 +87,7 @@ Rules that follow directly from the engine source:
 
 | Task | Read |
 |---|---|
-| Write / fix the ABAP `PrintExcel` action | `references/abap-action-cookbook.md` |
+| Write / fix the ABAP `printExcel` action | `references/abap-action-cookbook.md` |
 | Author or generate the `.xlsx` template | `references/template-builder.md` (how to build it with openpyxl) + `references/tag-reference.md` (the grammar) |
 | Understand exactly how a tag behaves | `references/tag-reference.md` — authoritative, derived from `ExcelExportHelper.js` |
 | Wire the Fiori app | `references/fiori-setup.md` — instructions for the Fiori developer, no coding done here |

@@ -143,18 +143,65 @@ Engine rules (verified against source + unit tests `ltc_resolve_http_method`, Oc
 - The resolved upper-case verb is what the log's `method` column shows.
 - `ZVH_HTTP_METHOD` is a literal union — `OPTIONS` is accepted by the engine but not offered in the dropdown.
 
+## Call pattern E — config `content_type = DYNAMIC`, content type chosen per call (added Oct 2026)
+
+Set the config row's content type to `DYNAMIC` (dropdown entry "Dynamic (set by caller)") when one API ID must send bodies of different content types — the canonical case is an OData V4 **`$batch`** (`multipart/mixed; boundary=…`, a different boundary per call) behind a CSRF fetch, on one `DYNAMIC`-method row. The caller then passes the content type in `is_dynamic_request_value-content_type`; it is **mandatory whenever the call carries a body** and may stay empty on a bodiless call (the HEAD fetch).
+
+| Config row (`INTERNAL_PROJDMND`-style) | Value | Why |
+|---|---|---|
+| `method` | `DYNAMIC` | HEAD (csrf) + POST on one row — pattern D |
+| `content_type` | `DYNAMIC` | the caller decides per call; a static value (e.g. `application/json`) would win over the caller. Never pick a binary-list entry (pdf / xlsx) for a text body |
+| `mapping_camel` | blank | only read by the `i_request_payload_data` / `c_response_data` XCO branches — both unused here |
+| `uri_path` | empty | passed per call |
+
+```abap
+DATA(lo_fwk) = NEW zcl_api_fwk( ).
+
+lo_fwk->execute_api(                                   " call 1: CSRF fetch, no body, no content_type
+  EXPORTING iv_api_id                = 'INTERNAL_PROJDMND'
+            is_dynamic_request_value = VALUE #(
+              method       = zcl_api_fwk=>co_method-head
+              uri_path     = lv_service_root               " e.g. /sap/opu/odata4/sap/<srv>/srvd_a2x/sap/<srv>/0001/ - confirm against $metadata
+              header       = VALUE #( ( name = 'x-csrf-token' value = 'Fetch' ) )
+              keep_session = abap_true )
+  IMPORTING es_logger                = DATA(ls_fetch) ).
+" ... take lv_token from ls_fetch-response-header (compare names case-insensitively) ...
+
+lo_fwk->execute_api(                                   " call 2: the batch, same row, same session
+  EXPORTING iv_api_id                = 'INTERNAL_PROJDMND'
+            is_dynamic_request_value = VALUE #(
+              method          = zcl_api_fwk=>co_method-post
+              uri_path        = |{ lv_service_root }$batch|
+              content_type    = |multipart/mixed; boundary={ lv_boundary }|
+              request_payload = lv_batch_body             " pre-built multipart string, CRLF line ends
+              header          = VALUE #( ( name = 'x-csrf-token' value = lv_token ) ) )
+  IMPORTING es_logger                = DATA(ls_batch) ).
+" ls_batch-response-payload = the multipart response text, untouched - parse it yourself.
+" Do NOT pass c_response_data here (that would run the JSON deserializer on it).
+```
+
+Engine rules (verified against source + unit tests `ltc_resolve_content_type`, `ltc_merge_request_headers`, Oct 2026):
+- Resolution happens in step 1c, right after the method and BEFORE the destination/client is created. Config wins: for any static config value the caller's `content_type` is ignored (100% backward compatible). Config `DYNAMIC` (any letter case) → the caller's value, condensed.
+- `DYNAMIC` + body (`i_request_payload_data` or `request_payload` filled) + empty caller value → `zcx_api_fwk` textid `content_type_required` (`ZMC_API_FWK 016`, `api_id` filled) — no HTTP call, **no log row**, a kept session is closed. `DYNAMIC` + no body + empty value → no header, nothing raised.
+- The resolved content type drives everything the config value used to drive: the `content-type` request header, the XCO serialisation of `i_request_payload_data` (value contains `json`), the binary list (`set_binary`) and the JSON deserialisation into `c_response_data`. So `DYNAMIC` + `application/json` + an ABAP structure in `i_request_payload_data` serialises exactly like a static json row.
+- Header merge order: caller headers, then ALL config `_I` rows, then — only when none of them is named `content-type` in **any letter case** and the resolved value is not empty — the resolved value as header `content-type`. A caller `content-type` / `Content-Type` header therefore still wins; sending one is no longer necessary. Before Oct 2026 only the exact lower-case spelling suppressed the config value.
+- The body goes out byte-for-byte ONLY via `is_dynamic_request_value-request_payload`. A string handed to `i_request_payload_data` is XCO-serialised when the resolved content type contains `json` (it becomes a quoted JSON string) and templated otherwise — never use it for a ready-made body.
+- `multipart/mixed` is not in the binary list → `set_text`. The response is always read with `get_text( )` and logged as-is (`format_json` only reformats payloads starting with `{` / `[`; 1 MB cap on the logged copy only).
+- Reference caller: `ZCL_BCTC_POSTING` (package `ZBCTC`, project bmw-zbctc) once built; the HEAD+POST-JSON sibling today is `ZCL_API_IB_BCTC->import_finplan` (static `application/json` row, no caller content type).
+
 ## Merge & precedence rules (engine behavior, verified)
 
 | Aspect | Rule |
 |---|---|
 | URI | dynamic `uri_path` wins; else config `uri_path` |
 | Method | config wins (`GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS`, unknown static value → `GET`); config `DYNAMIC` → caller's `is_dynamic_request_value-method`, mandatory and validated (else `method_required`, raised before any HTTP/log) — pattern D. A multi-method chain = either one row per method (pattern C) or one `DYNAMIC` row |
+| Content type | config wins (static value, caller's `content_type` ignored); config `DYNAMIC` → caller's `is_dynamic_request_value-content_type` (condensed), mandatory when the call has a body (else `content_type_required`, raised before any HTTP/log), optional on a bodiless call — pattern E. The resolved value drives the header, serialization, binary list and response deserialization rows below |
 | Session | `keep_session = abap_true` keeps client + cookies on the instance for the next call (pattern C); initial (default) = client closed per call, exactly the pre-Aug-2026 behavior |
 | Query params | dynamic params + ALL config `_P` rows appended; URL-escaped via `cl_web_http_utility=>escape_url` |
-| Headers | dynamic headers + ALL config `_I` rows; `content-type` header auto-added from config `content_type` if absent |
+| Headers | caller (dynamic) headers, then ALL config `_I` rows; the resolved content type (row above) is appended as header `content-type` only when no merged header is named content-type in any letter case (case-insensitive since Oct 2026 — `merge_request_headers`) AND the resolved value is not empty |
 | Payload | `i_request_payload_data` (when supplied and non-initial) WINS over `is_dynamic_request_value-request_payload` |
-| Serialization | only when config `content_type` contains `json` → XCO JSON (+ camelCase if `mapping_camel`); other content types fall back to `|{ data }|` string templating — pass a ready string instead |
-| Response deserialize | only when HTTP 2xx AND `c_response_data` supplied AND payload non-empty AND config `content_type` contains `json`; transformation camelCase→underscore is ALWAYS applied — target ABAP structure must use underscore names |
+| Serialization | applies to `i_request_payload_data` only: resolved content type contains `json` → XCO JSON (+ camelCase if `mapping_camel`); binary list → `set_binary`; other content types fall back to `|{ data }|` string templating. A ready string belongs in `is_dynamic_request_value-request_payload` — sent untouched whatever the content type is |
+| Response deserialize | only when HTTP 2xx AND `c_response_data` supplied AND payload non-empty AND the resolved content type contains `json`; transformation camelCase→underscore is ALWAYS applied — target ABAP structure must use underscore names |
 
 ## `es_logger` (`zif_api_fwk_types=>ty_logger`) — your §11 evidence
 
@@ -172,6 +219,7 @@ Always returned (also on non-2xx). Use it to: check `es_logger-response-http_cod
 | No config row | `zcx_api_fwk` textid `config_not_found` |
 | Config inactive | `config_inactive` |
 | Config `method = DYNAMIC` but caller `method` missing/invalid | `method_required` (ZMC_API_FWK 015) — raised before destination creation, nothing logged |
+| Config `content_type = DYNAMIC`, call has a body, caller `content_type` empty | `content_type_required` (ZMC_API_FWK 016) — raised before destination creation, nothing logged (a bodiless call stays silent) |
 | Destination/client creation failed | `init_error` (previous = root cause) |
 | HTTP execute failed (network, TLS, timeout) | log saved first (if enabled), then `execute_error` (previous = root cause) |
 | HTTP returned 4xx/5xx | NO exception — inspect `es_logger-response-http_code` |

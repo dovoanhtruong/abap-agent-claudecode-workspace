@@ -18,6 +18,8 @@ use action printExcel;
 ```
 
 Rules:
+- Name it exactly **`printExcel`** — the project standard and the library's zero-config default. OData action names are case-sensitive, so `PrintExcel` does not match; any other name forces the Fiori app to set `actionName` (see `fiori-setup.md`). BDEF names are case-insensitive, so `printExcel` cannot coexist with an existing `PrintExcel` action on the same BO.
+- Declare it on the entity the List Report table is bound to — the frontend derives the entity set from the table binding.
 - `static`, not instance-bound. The frontend calls it unbound and passes the keys itself as a JSON string.
 - **No `@UI` annotation** on the action. The button is a Fiori custom action pointing at the library handler, not a generated action button. Annotating it produces a second, broken button.
 - The two abstract entities are framework-owned — never copy or redefine them:
@@ -38,12 +40,12 @@ define abstract entity ZABS_EX_LIB_ACTION_RETURN {
 Handler declaration in the behavior pool's local handler class:
 
 ```abap
-METHODS printexcel FOR MODIFY IMPORTING keys FOR ACTION r_order_h~printexcel RESULT result.
+METHODS printexcel FOR MODIFY IMPORTING keys FOR ACTION r_order_h~printExcel RESULT result.
 ```
 
 ## 2. Parse the selected keys
 
-`selected_keys` arrives as a JSON array of objects whose property names are the **OData key property names** of the projection (e.g. `[{"SoId":"SO0001"},{"SoId":"SO0002"}]`), unless the app's `ExcelConfig.js` overrides `idProperty`.
+`selected_keys` arrives as a JSON array of objects whose property names are the **OData key property names** of the projection (e.g. `[{"SoId":"SO0001"},{"SoId":"SO0002"}]`), unless the app overrides `idProperty` (manifest `sap.ui5/config/zExcelExport`, or a legacy `ExcelConfig.js`).
 
 ```abap
 READ TABLE keys INTO DATA(ls_key) INDEX 1.
@@ -223,6 +225,7 @@ The `.xlsx` lives in client-dependent table data, not in a transport. Promoting 
 
 ## 7. Checklist before claiming the backend is done
 
+- [ ] Static action named exactly `printExcel`, on the entity the List Report table is bound to
 - [ ] Static action declared in interface BDEF **and** `use action` in the projection BDEF, no `@UI` annotation
 - [ ] `%cid` returned
 - [ ] `excel_id` ≤ 12 chars and registered in the template app

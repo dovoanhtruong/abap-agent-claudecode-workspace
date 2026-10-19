@@ -1,4 +1,4 @@
-" Reference implementation of the PrintExcel static action.
+" Reference implementation of the printExcel static action.
 " Source: live method LHC_R_ORDER_H->printexcel in class YT1_BP_R_ORDER (bmw-dev),
 " paired with template sale_order_styled.xlsx / excel_id SALE_ORDER.
 " Read references/abap-action-cookbook.md for the rules this code follows.

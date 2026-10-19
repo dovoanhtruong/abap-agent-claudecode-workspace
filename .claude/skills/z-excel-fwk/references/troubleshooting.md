@@ -5,8 +5,11 @@ Diagnose by layer first. The console log (F12) prints a line per phase; the **fi
 | Last line seen | Failing layer |
 |---|---|
 | nothing at all | button not wired to `PrintExcelHandler.onPrintExcelPress`, or the library is not in `manifest.json` `libs` |
-| `🚀 Khởi động...` then `Thiếu file cấu hình` | `ExcelConfig.js` missing/misplaced (`webapp/ext/controller/`) or has a syntax error |
-| `⏱ Thời gian ABAP Backend xử lý` never ends | the OData action failed — check `actionPath`, `use action` in the projection BDEF, authorizations |
+| toast `Service không có action 'printExcel'. Actions có sẵn: …` | zero-config could not find the action in `$metadata` — backend action missing, not exposed (`use action`), named differently (set `actionName` in `sap.ui5/config/zExcelExport`), or declared on another entity than the table's |
+| toast `Lỗi thiết lập: Không xác định được Entity Set của bảng.` | zero-config found neither a selected row nor a table binding — no rows loaded; select a row or set `actionPath` |
+| `🔗 Action Path: …` then `OData Action thất bại` | the action was called and failed in ABAP or on authorization — read the response in the Network tab; for a legacy `ExcelConfig.js` path the console also prints `Actions có trong service: …` to spot a wrong name |
+| `🚀 Khởi động...` then `Thiếu file cấu hình` | old library version (no zero-config) — `ExcelConfig.js` missing/misplaced (`webapp/ext/controller/`); deploy the current `ZEX_LIB_CORE` or add the file |
+| a legacy app suddenly calls `printExcel` instead of its own action | its `ExcelConfig.js` failed to load (syntax error, wrong folder) and the handler fell back to zero-config — the `ℹ️ Không có ExcelConfig.js` console line carries the load error |
 | `📥 [1/4] tải Template` throws | `excel_id` not registered, or HTTP 404 from `zib_ex_lib_template_content` |
 | `⚙️ [2/4] nạp Workbook` throws | the stored file is not a valid `.xlsx` |
 | everything logs, file downloads, content wrong | a tag/payload mismatch — the table below |
